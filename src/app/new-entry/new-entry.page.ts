@@ -12,6 +12,7 @@ import {
 } from '@ionic/angular/standalone';
 import {addIcons} from "ionicons";
 import {add, createOutline, pencil} from "ionicons/icons";
+import Database from "@tauri-apps/plugin-sql";
 
 @Component({
   selector: 'app-new-entry',
@@ -34,4 +35,14 @@ export class NewEntryPage implements OnInit {
   }
 
 
+    async db() {
+        const db = await Database.load("sqlite:test.db")
+        const result0 = await db.execute("CREATE TABLE IF NOT EXISTS todos(id NUMBER, title TEXT, status TEXT)")
+        const result1 = await db.execute(
+            "INSERT into todos (id, title, status) VALUES ($1, $2, $3)",
+            [5, "hello", "online"],
+        );
+        const result2 = await db.select("SELECT * FROM todos")
+        console.log(result2)
+    }
 }
