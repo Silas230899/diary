@@ -1,0 +1,14 @@
+.create-card {
+  max-width: min(max(65%, 700px), 100vw - 20px);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+ion-card > ion-card-header > .info {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  text-align: right;
+}

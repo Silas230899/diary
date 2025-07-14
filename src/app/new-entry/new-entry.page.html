@@ -1,0 +1,71 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>Neuer Eintrag</ion-title>
+      <ion-button fill="clear" slot="end" color="light" (click)="navigate('home')">
+          Home
+      </ion-button>
+      <ion-button fill="clear" slot="end" color="light" (click)="navigate('today')">
+          Today
+      </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+    <ion-card style="border: 1px solid var(--ion-color-primary)" class="create-card">
+        <ion-card-header>
+            <ion-card-subtitle>
+                Datum:
+                <ion-datetime-button datetime="date" style="display: inline"></ion-datetime-button>
+
+                <ion-modal [keepContentsMounted]="true">
+                    <ng-template>
+                        <ion-datetime id="date"
+                                      presentation="date"
+                                      [formatOptions]="{
+                            date: {
+                              weekday: 'long',
+                              month: 'long',
+                              day: '2-digit',
+                            }
+                          }"
+                        ></ion-datetime>
+                    </ng-template>
+                </ion-modal>
+
+                Verfasst:
+                <ion-datetime-button datetime="datetime" style="display: inline"></ion-datetime-button>
+
+                <ion-modal [keepContentsMounted]="true">
+                    <ng-template>
+                        <ion-datetime id="datetime"
+                                      presentation="date-time"
+                                      [formatOptions]="{
+                            date: {
+                              weekday: 'long',
+                              month: 'long',
+                              day: '2-digit',
+                            },
+                            time: {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            }
+                          }"
+                        ></ion-datetime>
+                    </ng-template>
+                </ion-modal>
+            </ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+
+            <ion-textarea autoGrow labelPlacement="floating" label="Eintrag" fill="outline">
+            </ion-textarea>
+        </ion-card-content>
+        <ion-button fill="clear" (click)="navigate('today')">
+            Hinzufügen
+        </ion-button>
+        <span style="position: absolute; right: 12px; bottom: 12px">
+            #3
+        </span>
+    </ion-card>
+</ion-content>
