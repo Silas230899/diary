@@ -50,3 +50,9 @@ ion-card {
   margin-left: auto;
   margin-right: auto;
 }
+
+// necessary! (used internally only)
+ion-input.has-focus, ion-textarea.has-focus {
+  --border-color: var(--ion-color-primary) !important;
+  --highlight-color: var(--ion-color-primary) !important; // label color
+}
