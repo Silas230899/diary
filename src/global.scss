@@ -46,7 +46,7 @@
 }
 
 ion-card {
-  max-width: max(50%, 500px);
+  width: calc(100vw - 20px);
   margin-left: auto;
   margin-right: auto;
 }
