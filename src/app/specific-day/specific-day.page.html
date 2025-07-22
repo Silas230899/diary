@@ -1,0 +1,82 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-title>
+            Spezifischer Tag
+        </ion-title>
+        <ion-button fill="clear" slot="end" color="light" (click)="navigate('new-entry')">
+            New entry
+        </ion-button>
+        <ion-button fill="clear" slot="end" color="light" (click)="navigate('today')">
+            Today
+        </ion-button>
+    </ion-toolbar>
+    <ion-toolbar color="primary">
+        <ion-button slot="start" fill="clear" color="light">
+            <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+        </ion-button>
+        <ion-datetime-button datetime="whichdate"></ion-datetime-button>
+
+        <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+                <ion-datetime id="whichdate"
+                              presentation="date"
+                              [formatOptions]="{
+                            date: {
+                              weekday: 'long',
+                              month: 'long',
+                              day: '2-digit',
+                            }
+                          }"
+                ></ion-datetime>
+            </ng-template>
+        </ion-modal>
+        <ion-button slot="end" fill="clear" color="light">
+            <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
+        </ion-button>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+    <ion-card>
+        <ion-card-header>
+            <ion-card-title>14.07.2025, Samstag</ion-card-title>
+            <ion-card-subtitle>Verfasst: Heute</ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+        </ion-card-content>
+    </ion-card>
+
+    <ion-button style="margin: 0 0 0 50%; transform: translateX(-50%)" shape="round" fill="outline" size="small">
+        <ion-icon name="add" slot="icon-only"></ion-icon>
+    </ion-button>
+
+    <ion-card>
+        <ion-card-header>
+            <ion-card-title>14.07.2025, Samstag</ion-card-title>
+            <ion-card-subtitle>Verfasst: Heute</ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+        </ion-card-content>
+    </ion-card>
+
+    <ion-button style="margin: 0 0 0 50%; transform: translateX(-50%)" shape="round" fill="outline" size="small">
+        <ion-icon name="add" slot="icon-only"></ion-icon>
+    </ion-button>
+
+    <ion-card>
+        <ion-card-header>
+            <ion-card-title>14.07.2025, Samstag</ion-card-title>
+            <ion-card-subtitle>Verfasst: Heute</ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+        </ion-card-content>
+    </ion-card>
+
+</ion-content>

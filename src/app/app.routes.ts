@@ -18,5 +18,9 @@ export const routes: Routes = [
     path: 'today',
     loadComponent: () => import('./today/today.page').then( m => m.TodayPage)
   },
+  {
+    path: 'specific-day',
+    loadComponent: () => import('./specific-day/specific-day.page').then( m => m.SpecificDayPage)
+  },
 
 ];
