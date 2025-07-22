@@ -12,7 +12,7 @@ import {
 } from '@ionic/angular/standalone';
 import {addIcons} from "ionicons";
 import {add, createOutline, pencil} from "ionicons/icons";
-import Database from "@tauri-apps/plugin-sql";
+import {DatabaseService} from "../services/database.service";
 
 @Component({
   selector: 'app-new-entry',
@@ -22,9 +22,14 @@ import Database from "@tauri-apps/plugin-sql";
     imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonDatetime, IonDatetimeButton, IonModal, IonTextarea]
 })
 export class NewEntryPage implements OnInit {
+    text = ""
+    date: string;
+    written: string;
 
-    constructor(private navController: NavController) {
+    constructor(private navController: NavController, private dbService: DatabaseService) {
         addIcons({ add, pencil, createOutline })
+        this.date = new Date().toISOString()
+        this.written = new Date().toISOString()
     }
 
     async navigate(dst: string) {
@@ -36,13 +41,17 @@ export class NewEntryPage implements OnInit {
 
 
     async db() {
-        const db = await Database.load("sqlite:test.db")
-        const result0 = await db.execute("CREATE TABLE IF NOT EXISTS todos(id NUMBER, title TEXT, status TEXT)")
+        const db = this.dbService.database
+        const fromDate = new Date(this.date)
+        const fromWritten = new Date(this.written)
+        const data = await this.dbService.encryptData(this.text, "silas")
+
+        console.log("Enter " + this.date + ", " + this.written)
+
         const result1 = await db.execute(
-            "INSERT into todos (id, title, status) VALUES ($1, $2, $3)",
-            [5, "hello", "online"],
+            "INSERT into entry (date, written, text) VALUES (date($1), datetime($2), $3)",
+            [this.date, this.written, data],
         );
-        const result2 = await db.select("SELECT * FROM todos")
-        console.log(result2)
+        await this.navController.navigateRoot(`/home`)
     }
 }

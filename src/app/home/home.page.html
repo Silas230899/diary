@@ -1,17 +1,55 @@
 <ion-header>
     <ion-toolbar color="primary">
-        <ion-title>Neuer Eintrag</ion-title>
+        <ion-title>Alle Einträge</ion-title>
         <ion-button fill="clear" slot="end" color="light" (click)="navigate('new-entry')">
             New entry
         </ion-button>
         <ion-button fill="clear" slot="end" color="light" (click)="navigate('today')">
             Today
         </ion-button>
+        <ion-button fill="clear" slot="end" color="light" (click)="navigate('specific-day')">
+            Specific
+        </ion-button>
     </ion-toolbar>
 </ion-header>
 
 <ion-content>
 
+    @for (day of entries; track day) {
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>{{formatDate(day[0].date)}}</ion-card-title>
+            </ion-card-header>
+            @for (entry of day; track entry.id) {
+                <ion-card-header>
+                    <ion-card-subtitle>Verfasst: {{formatDatetime(entry.date, entry.written)}}</ion-card-subtitle>
+                </ion-card-header>
+
+                <ion-card-content>
+                    {{entry.text}}
+                </ion-card-content>
+            }
+        </ion-card>
+        <!--
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>{{formatDate(entry.date)}}</ion-card-title>
+                <ion-card-subtitle>Verfasst: {{formatDatetime(entry.date, entry.written)}}</ion-card-subtitle>
+            </ion-card-header>
+
+            <ion-card-content>
+                {{entry.text}}
+            </ion-card-content>
+
+            <ion-button (click)="delete(entry)" fill="clear">
+                <ion-label>Löschen</ion-label>
+                <ion-icon name="trash-outline"></ion-icon>
+            </ion-button>
+        </ion-card>
+        -->
+    }
+
+    <!--
     <ion-card>
         <ion-card-header>
             <ion-card-title>17.05.2025, Samstag</ion-card-title>
@@ -39,9 +77,10 @@
             Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
         </ion-card-content>
     </ion-card>
+    -->
 
     <ion-fab vertical="bottom" horizontal="end">
-        <ion-fab-button>
+        <ion-fab-button (click)="navigate('new-entry')">
             <ion-icon name="add"></ion-icon>
         </ion-fab-button>
     </ion-fab>
