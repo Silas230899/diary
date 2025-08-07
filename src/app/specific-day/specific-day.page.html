@@ -27,6 +27,8 @@
                               day: '2-digit',
                             }
                           }"
+                              [(ngModel)]="date"
+                              (ionChange)="selectedDate($event)"
                 ></ion-datetime>
             </ng-template>
         </ion-modal>
@@ -38,7 +40,33 @@
 
 <ion-content [fullscreen]="true">
 
+    @for (entry of entries; track entry) {
+        <ion-card>
+            <ion-button (click)="createPopover($event)">
+                <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
+            </ion-button>
+            <ion-card-header>
+                <ion-card-title>
+                    {{entry.date}}
+                </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                {{entry.text}}
+            </ion-card-content>
+        </ion-card>
+    } @empty {
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>Noch kein Eintrag</ion-card-title>
+            </ion-card-header>
+        </ion-card>
+    }
+
+    <!--
     <ion-card>
+        <ion-button (click)="createPopover($event)">
+            <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
+        </ion-button>
         <ion-card-header>
             <ion-card-title>14.07.2025, Samstag</ion-card-title>
             <ion-card-subtitle>Verfasst: Heute</ion-card-subtitle>
@@ -83,5 +111,6 @@
             Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
         </ion-card-content>
     </ion-card>
+    -->
 
 </ion-content>
