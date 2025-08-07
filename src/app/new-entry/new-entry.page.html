@@ -60,7 +60,13 @@
 
         <ion-card-content>
 
-            <ion-textarea autoGrow labelPlacement="floating" label="Eintrag" fill="outline" [(ngModel)]="text">
+            <ion-textarea
+                    autoGrow
+                    rows="5"
+                    labelPlacement="floating"
+                    label="Eintrag"
+                    fill="outline"
+                    [(ngModel)]="text">
             </ion-textarea>
         </ion-card-content>
         <ion-button fill="clear" (click)="db()" [disabled]="text.length === 0">

@@ -23,8 +23,8 @@ import {DatabaseService} from "../services/database.service";
 })
 export class NewEntryPage implements OnInit {
     text = ""
-    date: string;
-    written: string;
+    date: string
+    written: string
 
     constructor(private navController: NavController, private dbService: DatabaseService) {
         addIcons({ add, pencil, createOutline })
@@ -46,7 +46,7 @@ export class NewEntryPage implements OnInit {
         const fromWritten = new Date(this.written)
         const data = await this.dbService.encryptData(this.text, "silas")
 
-        console.log("Enter " + this.date + ", " + this.written)
+        //console.log("Enter " + this.date + ", " + this.written)
 
         const result1 = await db.execute(
             "INSERT into entry (date, written, text) VALUES (date($1), datetime($2), $3)",
