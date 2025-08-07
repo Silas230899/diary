@@ -1,6 +1,6 @@
 <ion-header [translucent]="true">
     <ion-toolbar color="primary">
-        <ion-title>14. Juli</ion-title>
+        <ion-title>{{date}}</ion-title>
         <ion-button fill="clear" slot="end" color="light" (click)="navigate('home')">
             Home
         </ion-button>
@@ -12,18 +12,23 @@
 
 <ion-content [fullscreen]="true">
 
-    <ion-card>
-        <ion-card-header>
-            <ion-card-title>14.07.2025, Samstag</ion-card-title>
-        </ion-card-header>
-
-        <ion-card-header>
-            <ion-card-title>Verfasst: Heute</ion-card-title>
-        </ion-card-header>
-
-        <ion-card-content>
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-        </ion-card-content>
-    </ion-card>
+    @for (entry of entries; track entry) {
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>
+                    {{entry.date}}
+                </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                {{entry.text}}
+            </ion-card-content>
+        </ion-card>
+    } @empty {
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>An diesem Tag wurden keine Einträge verfasst</ion-card-title>
+            </ion-card-header>
+        </ion-card>
+    }
 
 </ion-content>
