@@ -9,15 +9,17 @@ import {
   IonFab,
   IonFabButton,
   IonHeader,
-  IonIcon, IonLabel,
+  IonIcon, IonInput, IonLabel,
   IonTitle,
-  IonToolbar, NavController
+  IonToolbar, ModalController, NavController
 } from '@ionic/angular/standalone';
 import {add, createOutline, pencil, trashOutline} from 'ionicons/icons';
 import {addIcons} from "ionicons";
 import {FormsModule} from "@angular/forms";
 import {DatabaseService} from "../services/database.service";
 import {Entry} from "../models/entry";
+import {NewEntryComponent} from "../components/new-entry/new-entry.component";
+import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
 
 type Day = Entry[]
 
@@ -26,13 +28,13 @@ type Day = Entry[]
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, IonCardSubtitle, IonLabel],
+    imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, IonCardSubtitle, IonLabel, IonInput, NavBarComponent],
 })
 export class HomePage {
 
   entries: Day[] = []
 
-  constructor(private navController: NavController, private dbService: DatabaseService) {
+  constructor(private navController: NavController, private dbService: DatabaseService, private modalCtrl: ModalController) {
     addIcons({ add, pencil, createOutline, trashOutline })
 
     const db = dbService.database
@@ -99,4 +101,17 @@ export class HomePage {
         date1.getFullYear() === date2.getFullYear()
     );
   }
+
+    async openNewEntryModal() {
+      const modal = await this.modalCtrl.create({
+        component: NewEntryComponent,
+      });
+      await modal.present();
+
+      const { data, role } = await modal.onWillDismiss();
+
+      if (role === 'confirm') {
+        console.log(`Hello, ${data}!`)
+      }
+    }
 }

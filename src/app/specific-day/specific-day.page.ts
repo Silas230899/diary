@@ -2,26 +2,27 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonButton,
-  IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle,
-  IonContent, IonDatetime, IonDatetimeButton,
-  IonHeader, IonIcon, IonItem, IonLabel, IonList, IonModal, IonPopover,
-  IonTitle,
-  IonToolbar,
-  NavController, PopoverController
+    IonButton, IonButtons,
+    IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle,
+    IonContent, IonDatetime, IonDatetimeButton,
+    IonHeader, IonIcon, IonItem, IonLabel, IonList, IonModal, IonPopover,
+    IonTitle,
+    IonToolbar,
+    NavController, PopoverController
 } from '@ionic/angular/standalone';
 import {addIcons} from "ionicons";
-import {add, ellipsisVerticalOutline } from "ionicons/icons";
+import {add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline } from "ionicons/icons";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
 import {Entry} from "../models/entry";
 import {DatabaseService} from "../services/database.service";
+import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
 
 @Component({
   selector: 'app-specific-day',
   templateUrl: './specific-day.page.html',
   styleUrls: ['./specific-day.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonIcon, IonDatetimeButton, IonModal, IonDatetime, IonLabel, IonPopover, IonList, IonItem]
+    imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonIcon, IonDatetimeButton, IonModal, IonDatetime, IonLabel, IonPopover, IonList, IonItem, IonButtons, NavBarComponent]
 })
 export class SpecificDayPage implements OnInit {
 
@@ -31,7 +32,7 @@ export class SpecificDayPage implements OnInit {
   constructor(private navController: NavController,
               private popoverController: PopoverController,
               private dbService: DatabaseService) {
-    addIcons({ add, ellipsisVerticalOutline })
+    addIcons({ add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline })
     this.date = new Date().toISOString()
 
     //console.log(this.date)
@@ -53,10 +54,6 @@ export class SpecificDayPage implements OnInit {
         this.entries.push(entryObject)
       }
     })
-  }
-
-  async navigate(dst: string) {
-    await this.navController.navigateRoot(`/${dst}`)
   }
 
   ngOnInit() {

@@ -1,18 +1,6 @@
 <ion-header>
     <ion-toolbar color="primary">
-        <ion-title>Alle Einträge</ion-title>
-        <ion-button fill="clear" slot="end" color="light" (click)="navigate('new-entry')">
-            New entry
-        </ion-button>
-        <ion-button fill="clear" slot="end" color="light" (click)="navigate('today')">
-            Today
-        </ion-button>
-        <ion-button fill="clear" slot="end" color="light" (click)="navigate('specific-day')">
-            Specific
-        </ion-button>
-        <ion-button fill="clear" slot="end" color="light" (click)="navigate('unlock')">
-            Unlock
-        </ion-button>
+        <ion-title>Home</ion-title>
     </ion-toolbar>
 </ion-header>
 
@@ -82,9 +70,11 @@
     </ion-card>
     -->
 
-    <ion-fab vertical="bottom" horizontal="end">
-        <ion-fab-button (click)="navigate('new-entry')">
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button (click)="openNewEntryModal()">
             <ion-icon name="add"></ion-icon>
         </ion-fab-button>
     </ion-fab>
 </ion-content>
+
+<app-nav-bar [host]="'home'"></app-nav-bar>

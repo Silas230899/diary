@@ -3,17 +3,14 @@
         <ion-title>
             Spezifischer Tag
         </ion-title>
-        <ion-button fill="clear" slot="end" color="light" (click)="navigate('new-entry')">
-            New entry
-        </ion-button>
-        <ion-button fill="clear" slot="end" color="light" (click)="navigate('today')">
-            Today
-        </ion-button>
     </ion-toolbar>
     <ion-toolbar color="primary">
-        <ion-button slot="start" fill="clear" color="light">
-            <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
-        </ion-button>
+        <ion-buttons slot="start">
+            <ion-button>
+                <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+
         <ion-datetime-button datetime="whichdate"></ion-datetime-button>
 
         <ion-modal [keepContentsMounted]="true">
@@ -32,9 +29,12 @@
                 ></ion-datetime>
             </ng-template>
         </ion-modal>
-        <ion-button slot="end" fill="clear" color="light">
-            <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
-        </ion-button>
+
+        <ion-buttons slot="end" >
+            <ion-button fill="clear">
+                <ion-icon slot="icon-only"  name="chevron-forward-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
@@ -114,3 +114,5 @@
     -->
 
 </ion-content>
+
+<app-nav-bar [host]="'specific'"></app-nav-bar>
