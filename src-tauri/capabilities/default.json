@@ -9,6 +9,10 @@
     "core:default",
     "opener:default",
     "sql:default",
-    "sql:allow-execute"
+    "sql:allow-execute",
+    {
+      "identifier": "fs:allow-desktop-read-recursive"
+    },
+    "fs:default"
   ]
 }
