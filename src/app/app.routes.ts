@@ -7,16 +7,12 @@ export const routes: Routes = [
     },
     {
         path: '',
-        redirectTo: 'new-entry',
+        redirectTo: 'home',
         pathMatch: 'full',
     },
   {
     path: 'new-entry',
     loadComponent: () => import('./new-entry/new-entry.page').then( m => m.NewEntryPage)
-  },
-  {
-    path: 'today',
-    loadComponent: () => import('./today/today.page').then( m => m.TodayPage)
   },
   {
     path: 'specific-day',
