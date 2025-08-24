@@ -1,0 +1,67 @@
+<ion-header [translucent]="true">
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-button (click)="cancel()">Cancel</ion-button>
+        </ion-buttons>
+        <ion-title>Neuer Eintrag</ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="confirm()" [strong]="true">Confirm</ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding" [fullscreen]="true">
+    Datum:
+    <ion-datetime-button datetime="date" style="display: inline"></ion-datetime-button>
+
+    <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+            <ion-datetime id="date"
+                          presentation="date"
+                          [formatOptions]="{
+                            date: {
+                              weekday: 'long',
+                              month: 'long',
+                              day: '2-digit',
+                            }
+                          }"
+                          [(ngModel)]="date"
+            ></ion-datetime>
+        </ng-template>
+    </ion-modal>
+
+    Verfasst:
+    <ion-datetime-button datetime="datetime" style="display: inline"></ion-datetime-button>
+
+    <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+            <ion-datetime id="datetime"
+                          presentation="date-time"
+                          [formatOptions]="{
+                            date: {
+                              weekday: 'long',
+                              month: 'long',
+                              day: '2-digit',
+                            },
+                            time: {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            }
+                          }"
+                          [(ngModel)]="written"
+            ></ion-datetime>
+        </ng-template>
+    </ion-modal>
+
+    <ion-textarea
+            autoGrow
+            rows="5"
+            labelPlacement="floating"
+            label="Eintrag"
+            fill="outline"
+            [(ngModel)]="text">
+    </ion-textarea>
+
+    <ion-button fill="clear" [disabled]="text.length === 0">
+        Hinzufügen
+    </ion-button>
+</ion-content>
