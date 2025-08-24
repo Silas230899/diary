@@ -12,3 +12,30 @@ ion-card > ion-card-header > .info {
   top: 16px;
   text-align: right;
 }
+
+.toolbarButton {
+  width: 33.3%;
+}
+
+.toolbar {
+  box-shadow: none;
+  border-top: 1px solid rgba(0,0,0,0.07);
+}
+
+.toolbarButtonWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbarIcon {
+  font-size: 1.35rem;
+}
+
+.toolbarLabel {
+  //text-transform: none;
+  font-size: 12px;
+  font-weight: normal;
+  letter-spacing: 0.03em;
+}

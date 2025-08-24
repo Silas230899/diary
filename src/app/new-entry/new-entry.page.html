@@ -1,12 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
     <ion-title>Neuer Eintrag</ion-title>
-      <ion-button fill="clear" slot="end" color="light" (click)="navigate('home')">
-          Home
-      </ion-button>
-      <ion-button fill="clear" slot="end" color="light" (click)="navigate('today')">
-          Today
-      </ion-button>
   </ion-toolbar>
 </ion-header>
 
@@ -68,9 +62,56 @@
                     fill="outline"
                     [(ngModel)]="text">
             </ion-textarea>
+
+            <!-- Button zum Öffnen -->
+            <ion-button (click)="triggerFileInput()">Bild auswählen</ion-button>
+
+            <!-- Verstecktes Input -->
+            <input
+                    id="fileInput"
+                    type="file"
+                    accept="image/*"
+                    style="display: none"
+                    (change)="onFileSelected($event)"
+            />
+
+            <!-- Anzeige -->
+            <ion-img *ngIf="imageSrc" [src]="imageSrc" style="width: 300px"></ion-img>
+
         </ion-card-content>
         <ion-button fill="clear" (click)="db()" [disabled]="text.length === 0">
             Hinzufügen
         </ion-button>
     </ion-card>
 </ion-content>
+
+<ion-footer class="toolbar">
+    <ion-toolbar>
+        <ion-buttons style="justify-content: center">
+            <ion-button class="toolbarButton" (click)="navigate('home')" color="dark">
+                <div class="toolbarButtonWrapper">
+                    <ion-icon name="home-outline" class="toolbarIcon"></ion-icon>
+                    <ion-label class="toolbarLabel">
+                        Home
+                    </ion-label>
+                </div>
+            </ion-button>
+            <ion-button class="toolbarButton" (click)="navigate('specific-day')" color="dark">
+                <div class="toolbarButtonWrapper">
+                    <ion-icon name="today-outline" class="toolbarIcon"></ion-icon>
+                    <ion-label class="toolbarLabel">
+                        Specific
+                    </ion-label>
+                </div>
+            </ion-button>
+            <ion-button class="toolbarButton" color="dark">
+                <div class="toolbarButtonWrapper">
+                    <ion-icon name="bar-chart-outline" class="toolbarIcon"></ion-icon>
+                    <ion-label class="toolbarLabel">
+                        Stats
+                    </ion-label>
+                </div>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-footer>
