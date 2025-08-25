@@ -1,13 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import {
-  IonButton,
-  IonButtons,
-  IonContent, IonDatetime, IonDatetimeButton,
-  IonHeader,
-  IonInput,
-  IonItem, IonModal, IonTextarea,
-  IonTitle,
-  IonToolbar, ModalController
+    IonButton,
+    IonButtons,
+    IonContent, IonDatetime, IonDatetimeButton,
+    IonHeader,
+    IonModal, IonTextarea,
+    IonTitle,
+    IonToolbar, ModalController, NavController
 } from "@ionic/angular/standalone";
 import {FormsModule} from "@angular/forms";
 import {addIcons} from "ionicons";
@@ -20,6 +19,7 @@ import {
   peopleOutline,
   todayOutline
 } from "ionicons/icons";
+import {DatabaseService} from "../../services/database.service";
 
 @Component({
   selector: 'app-new-entry',
@@ -32,8 +32,6 @@ import {
     IonButtons,
     IonTitle,
     IonContent,
-    IonItem,
-    IonInput,
     FormsModule,
     IonDatetime,
     IonDatetimeButton,
@@ -49,7 +47,7 @@ export class NewEntryComponent  implements OnInit {
   date: string
   written: string
 
-  constructor(private modalCtrl: ModalController) {
+  constructor(private modalCtrl: ModalController, private navController: NavController, private dbService: DatabaseService) {
     addIcons({ add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
     this.date = new Date().toISOString()
     this.written = new Date().toISOString()
@@ -64,5 +62,18 @@ export class NewEntryComponent  implements OnInit {
   }
 
   ngOnInit() {}
+
+    async db() {
+        const db = this.dbService.database
+        const fromDate = new Date(this.date)
+        const fromWritten = new Date(this.written)
+        const data = await this.dbService.encryptData(this.text, "silas")
+
+        const result1 = await db.execute(
+            "INSERT into entry (date, written, text) VALUES (date($1), datetime($2), $3)",
+            [this.date, this.written, data],
+        );
+        await this.navController.navigateRoot(`/home`)
+    }
 
 }

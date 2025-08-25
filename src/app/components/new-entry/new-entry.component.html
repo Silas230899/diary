@@ -9,6 +9,7 @@
         </ion-buttons>
     </ion-toolbar>
 </ion-header>
+
 <ion-content class="ion-padding" [fullscreen]="true">
     Datum:
     <ion-datetime-button datetime="date" style="display: inline"></ion-datetime-button>
@@ -61,7 +62,7 @@
             [(ngModel)]="text">
     </ion-textarea>
 
-    <ion-button fill="clear" [disabled]="text.length === 0">
+    <ion-button fill="clear" (click)="db()" [disabled]="text.length === 0">
         Hinzufügen
     </ion-button>
 </ion-content>
