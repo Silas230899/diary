@@ -40,6 +40,12 @@
 
 <ion-content [fullscreen]="true">
 
+    @if (entries.length > 0) {
+        <ion-button fill="outline">
+            <ion-icon slot="icon-only" name="add"></ion-icon>
+        </ion-button>
+    }
+
     @for (entry of entries; track entry) {
         <ion-card>
             <ion-button (click)="createPopover($event)">
@@ -47,13 +53,18 @@
             </ion-button>
             <ion-card-header>
                 <ion-card-title>
-                    {{entry.date}}
+                    {{entry.written}}
                 </ion-card-title>
             </ion-card-header>
             <ion-card-content>
                 {{entry.text}}
             </ion-card-content>
         </ion-card>
+        @if ($index < $count) {
+            <ion-button fill="outline">
+                <ion-icon slot="icon-only" name="add"></ion-icon>
+            </ion-button>
+        }
     } @empty {
         <ion-card>
             <ion-card-header>
