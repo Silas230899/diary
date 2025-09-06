@@ -1,13 +1,14 @@
 <ion-header>
     <ion-toolbar color="primary">
         <ion-title>
-            Spezifischer Tag
+            Bestimmter Tag
         </ion-title>
     </ion-toolbar>
     <ion-toolbar color="primary">
         <ion-buttons slot="start">
-            <ion-button>
-                <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+            <ion-button (click)="gotoYesterday()">
+                <ion-icon slot="start" name="chevron-back-outline"></ion-icon>
+                {{getYesterdate()}}.
             </ion-button>
         </ion-buttons>
 
@@ -31,8 +32,9 @@
         </ion-modal>
 
         <ion-buttons slot="end" >
-            <ion-button fill="clear">
-                <ion-icon slot="icon-only"  name="chevron-forward-outline"></ion-icon>
+            <ion-button (click)="gotoTomorrow()">
+                {{getTomorrowdate()}}.
+                <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
             </ion-button>
         </ion-buttons>
     </ion-toolbar>
@@ -41,88 +43,44 @@
 <ion-content [fullscreen]="true">
 
     @if (entries.length > 0) {
-        <ion-button fill="outline">
-            <ion-icon slot="icon-only" name="add"></ion-icon>
-        </ion-button>
+        <div style="width: 100%; display: flex; justify-content: center" class="ion-padding-top">
+            <ion-button fill="outline" shape="round" (click)="openNewEntryModal()">
+                <ion-icon slot="icon-only" name="add"></ion-icon>
+            </ion-button>
+        </div>
     }
 
     @for (entry of entries; track entry) {
         <ion-card>
-            <ion-button (click)="createPopover($event)">
+            <ion-button (click)="createPopover($event)" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
                 <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
             </ion-button>
-            <ion-card-header>
-                <ion-card-title>
-                    {{entry.written}}
-                </ion-card-title>
-            </ion-card-header>
             <ion-card-content>
                 {{entry.text}}
             </ion-card-content>
-        </ion-card>
-        @if ($index < $count) {
-            <ion-button fill="outline">
-                <ion-icon slot="icon-only" name="add"></ion-icon>
-            </ion-button>
-        }
-    } @empty {
-        <ion-card>
-            <ion-card-header>
-                <ion-card-title>Noch kein Eintrag</ion-card-title>
+            <ion-card-header style="position: absolute; right: 0; bottom: 0">
+                <ion-card-subtitle>
+                    {{formatTime(entry.written)}} Uhr
+                </ion-card-subtitle>
             </ion-card-header>
         </ion-card>
+        @if ($index < $count) {
+            <div style="width: 100%; display: flex; justify-content: center">
+                <ion-button fill="outline" shape="round" (click)="openNewEntryModal()">
+                    <ion-icon slot="icon-only" name="add"></ion-icon>
+                </ion-button>
+            </div>
+        }
+    } @empty {
+        <div class="container">
+            <div class="headline">
+                Noch kein Eintrag
+            </div>
+            <ion-button (click)="openNewEntryModal()" expand="block" class="ion-padding-horizontal">
+                Eintrag hinzufügen
+            </ion-button>
+        </div>
     }
-
-    <!--
-    <ion-card>
-        <ion-button (click)="createPopover($event)">
-            <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
-        </ion-button>
-        <ion-card-header>
-            <ion-card-title>14.07.2025, Samstag</ion-card-title>
-            <ion-card-subtitle>Verfasst: Heute</ion-card-subtitle>
-        </ion-card-header>
-
-        <ion-card-content>
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-        </ion-card-content>
-
-
-        <span style="position: absolute; right: 12px; bottom: 12px">
-            #3
-        </span>
-    </ion-card>
-
-    <ion-button style="margin: 0 0 0 50%; transform: translateX(-50%)" shape="round" fill="outline" size="small">
-        <ion-icon name="add" slot="icon-only"></ion-icon>
-    </ion-button>
-
-    <ion-card>
-        <ion-card-header>
-            <ion-card-title>14.07.2025, Samstag</ion-card-title>
-            <ion-card-subtitle>Verfasst: Heute</ion-card-subtitle>
-        </ion-card-header>
-
-        <ion-card-content>
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-        </ion-card-content>
-    </ion-card>
-
-    <ion-button style="margin: 0 0 0 50%; transform: translateX(-50%)" shape="round" fill="outline" size="small">
-        <ion-icon name="add" slot="icon-only"></ion-icon>
-    </ion-button>
-
-    <ion-card>
-        <ion-card-header>
-            <ion-card-title>14.07.2025, Samstag</ion-card-title>
-            <ion-card-subtitle>Verfasst: Heute</ion-card-subtitle>
-        </ion-card-header>
-
-        <ion-card-content>
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-        </ion-card-content>
-    </ion-card>
-    -->
 
 </ion-content>
 

@@ -1,0 +1,17 @@
+.container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: max(30%, 400px);
+  margin: auto;
+}
+
+.container > .headline {
+  font-weight: bold;
+  font-size: 20px;
+  line-height: 26px;
+  text-align: center;
+  text-wrap: balance;
+}

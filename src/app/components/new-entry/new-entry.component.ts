@@ -57,7 +57,8 @@ export class NewEntryComponent  implements OnInit {
     return this.modalCtrl.dismiss(null, 'cancel');
   }
 
-  confirm() {
+  async confirm() {
+      await this.db()
     return this.modalCtrl.dismiss(this.name, 'confirm');
   }
 
@@ -73,7 +74,7 @@ export class NewEntryComponent  implements OnInit {
             "INSERT into entry (date, written, text) VALUES (date($1), datetime($2), $3)",
             [this.date, this.written, data],
         );
-        await this.navController.navigateRoot(`/home`)
+        //await this.navController.navigateRoot(`/home`)
     }
 
 }
