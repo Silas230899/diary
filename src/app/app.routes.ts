@@ -11,10 +11,6 @@ export const routes: Routes = [
         pathMatch: 'full',
     },
   {
-    path: 'new-entry',
-    loadComponent: () => import('./new-entry/new-entry.page').then( m => m.NewEntryPage)
-  },
-  {
     path: 'specific-day',
     loadComponent: () => import('./specific-day/specific-day.page').then( m => m.SpecificDayPage)
   },
