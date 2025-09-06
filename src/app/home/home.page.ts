@@ -48,6 +48,7 @@ export class HomePage {
             entry["id"],
             entry["date"],
             entry["written"],
+            entry["entryId"],
             text)
         console.log(entryObject.date)
         const day = entriesByDay.get(entryObject.date)
@@ -58,7 +59,8 @@ export class HomePage {
       this.entries = Array.from(entriesByDay)
           .sort((a, b) => new Date(b[0]).getTime()-new Date(a[0]).getTime())
           .map(value => value[1])
-      this.entries.forEach(entry => {entry.sort((a, b) => new Date(a.written).getTime()-new Date(b.written).getTime())})
+
+      this.entries.forEach(entry => {entry.sort((a, b) => a.entryId-b.entryId)})
     })
   }
 
@@ -73,7 +75,7 @@ export class HomePage {
   }
 
   formatDate(date: string) {
-    return new Date(date).toLocaleDateString(undefined, {day: "numeric", month: "short", year: "2-digit", weekday: "long"});
+    return new Date(date).toLocaleDateString(undefined, {day: "numeric", month: "short", year: "numeric", weekday: "long"});
   }
 
   formatDatetime(date: string, written: string) {

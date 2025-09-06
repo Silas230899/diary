@@ -14,6 +14,7 @@ export class DatabaseService {
         "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
         "date DATE, " +
         "written DATETIME, " +
+        "entryId INTEGER," +
         "text TEXT)")
   }
 
