@@ -11,10 +11,14 @@
             <ion-card-header>
                 <ion-card-title>{{formatDate(day[0].date)}}</ion-card-title>
             </ion-card-header>
-            @for (entry of day; track entry.id) {
-                <ion-card-header>
-                    <ion-card-subtitle>Verfasst: {{formatDatetime(entry.date, entry.written)}}</ion-card-subtitle>
-                </ion-card-header>
+            @for (entry of day; track entry.id; let firstInnerEntry = $first) {
+                @if (firstInnerEntry) {
+                    <ion-card-subtitle class="ion-padding-horizontal">Verfasst: {{formatDatetime(entry.date, entry.written)}}</ion-card-subtitle>
+                } @else {
+                    <ion-card-header>
+                        <ion-card-subtitle>Verfasst: {{formatDatetime(entry.date, entry.written)}}</ion-card-subtitle>
+                    </ion-card-header>
+                }
 
                 <ion-card-content>
                     {{entry.text}}
