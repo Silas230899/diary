@@ -21,9 +21,11 @@
     "@ionic/angular": "^8.6.4",
     "@ionic/core": "^8.6.4",
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-deep-link": "^2.4.3",
     "@tauri-apps/plugin-fs": "^2.4.2",
-    "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-opener": "^2.5.0",
     "@tauri-apps/plugin-sql": "^2.3.0",
+    "google-auth-library": "^10.3.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.2"

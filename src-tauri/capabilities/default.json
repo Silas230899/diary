@@ -13,6 +13,9 @@
     {
       "identifier": "fs:allow-desktop-read-recursive"
     },
-    "fs:default"
+    "fs:default",
+    "opener:default",
+    "deep-link:default",
+    "opener:default"
   ]
 }

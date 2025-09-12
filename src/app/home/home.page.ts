@@ -20,6 +20,11 @@ import {DatabaseService} from "../services/database.service";
 import {Entry} from "../models/entry";
 import {NewEntryComponent} from "../components/new-entry/new-entry.component";
 import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
+import {OAuth2Client} from "google-auth-library";
+import {getCurrent} from "@tauri-apps/plugin-deep-link";
+import {openUrl} from "@tauri-apps/plugin-opener";
+import {listen} from "@tauri-apps/api/event";
+import {invoke} from "@tauri-apps/api/core";
 
 type Day = Entry[]
 
@@ -62,6 +67,22 @@ export class HomePage {
 
       this.entries.forEach(entry => {entry.sort((a, b) => a.entryId-b.entryId)})
     })
+
+      listen("diary://new-url", async (event) => {
+          console.log("Deep Link empfangen:", event.payload);
+
+          // @ts-ignore
+          const url = new URL(event.payload);
+          if (url.pathname.startsWith("/oauth/callback")) {
+              const code = url.searchParams.get("code");
+              if (!code) return console.error("Kein Authorization Code erhalten!");
+
+              console.log("Authorization Code:", code);
+              // → Token-Exchange durchführen
+          }
+      }).then(value => {
+
+      })
   }
 
   async navigate(dst: string) {
@@ -115,5 +136,50 @@ export class HomePage {
       if (role === 'confirm') {
         console.log(`Hello, ${data}!`)
       }
+    }
+
+    async google() {
+
+      console.log(await getCurrent())
+
+        const localAddress = await invoke<string>('get_free_local_address');
+        const redirectUri = `http://${localAddress}/`;
+        console.log(redirectUri)
+        const authUrl =
+            `https://accounts.google.com/o/oauth2/v2/auth?` +
+            `client_id=15828861697-dgl8nsejs1jbmefj39gcaeud9occkgrj.apps.googleusercontent.com` +
+            `&redirect_uri=${redirectUri}` +
+            `&response_type=code` +
+            `&scope=https://www.googleapis.com/auth/drive.file` +
+            `&access_type=offline` +
+            `&prompt=consent`;
+
+
+
+
+        await invoke('start_oauth_server', {address: localAddress});
+
+        await openUrl(authUrl);
+
+        //const redirectUri = await invoke<string>('start_oauth_server');
+
+
+
+        //const clientId = "15828861697-dgl8nsejs1jbmefj39gcaeud9occkgrj.apps.googleusercontent.com";
+        //const client = new OAuth2Client({clientId: clientId, clientSecret: "xyz"});
+/*
+// Auth-URL mit Drive-Scope generieren
+        const authUrl = client.generateAuthUrl({
+            access_type: "offline",
+            scope: [
+                "https://www.googleapis.com/auth/drive.file" // Zugriff nur auf von der App erstellte Dateien
+                // oder "https://www.googleapis.com/auth/drive" für vollen Zugriff
+            ],
+        });
+
+// Browser öffnen (System-Browser oder neues Tauri-Window)
+        await openPath(authUrl)
+
+        console.log("success")*/
     }
 }
