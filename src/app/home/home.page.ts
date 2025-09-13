@@ -138,12 +138,104 @@ export class HomePage {
       }
     }
 
-    async google() {
+    async generatePKCE() {
+        const array = new Uint8Array(32);
+        crypto.getRandomValues(array);
+        const codeVerifier = btoa(String.fromCharCode(...array))
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=/g, '');
+        const encoder = new TextEncoder();
+        const data = encoder.encode(codeVerifier);
+        const digest = await crypto.subtle.digest("SHA-256", data);
+        const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=/g, '');
+        return { codeVerifier, codeChallenge };
+    }
 
-      console.log(await getCurrent())
+    /**
+     * Listet die Dateien im Google Drive des Nutzers auf.
+     * @param accessToken Dein OAuth2-Access Token
+     * @returns Array von Dateinamen
+     */
+    async listDriveFiles(
+        accessToken: string
+    ): Promise<string[]> {
+        const res = await fetch(
+            "https://www.googleapis.com/drive/v3/files?pageSize=100&fields=files(id,name)",
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            }
+        );
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Fehler beim Abrufen der Dateien (${res.status}): ${text}`);
+        }
+
+        const data = await res.json();
+        return data.files?.map((f: { name: string }) => f.name) ?? [];
+    }
+
+
+
+    async fetchTokens(code: string, codeVerifier: string, redirectUri: string, clientId: string) {
+        const res = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                client_id: clientId,
+                client_secret: "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",
+                code,
+                code_verifier: codeVerifier,
+                grant_type: "authorization_code",
+                redirect_uri: redirectUri,
+            }),
+        });
+        return await res.json(); // enthält access_token, refresh_token
+    }
+
+    async refreshToken(clientId: string, refreshToken: string) {
+        const res = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                client_id: clientId,
+                client_secret: "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",
+                grant_type: "refresh_token",
+                refresh_token: refreshToken
+            }),
+        });
+        return await res.json(); // enthält access_token, refresh_token
+    }
+
+
+    async google() {
+        const clientId = "15828861697-4hsmsq4fhdktkd05hrceipvl2ak64jnc.apps.googleusercontent.com";
 
         const localAddress = await invoke<string>('get_free_local_address');
         const redirectUri = `http://${localAddress}/`;
+        //const redirectUri = "http://127.0.0.1:12345"; // oder myapp://oauth
+
+        const { codeVerifier, codeChallenge } = await this.generatePKCE();
+
+        const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+        authUrl.searchParams.set("client_id", clientId);
+        authUrl.searchParams.set("redirect_uri", redirectUri);
+        authUrl.searchParams.set("response_type", "code");
+        authUrl.searchParams.set("scope", "https://www.googleapis.com/auth/drive.file");
+        authUrl.searchParams.set("code_challenge", codeChallenge);
+        authUrl.searchParams.set("code_challenge_method", "S256");
+
+
+
+        //console.log(await getCurrent())
+
+        /*
         console.log(redirectUri)
         const authUrl =
             `https://accounts.google.com/o/oauth2/v2/auth?` +
@@ -154,12 +246,27 @@ export class HomePage {
             `&access_type=offline` +
             `&prompt=consent`;
 
+         */
 
 
 
-        await invoke('start_oauth_server', {address: localAddress});
+        const server = invoke('start_oauth_server', {address: localAddress})
 
-        await openUrl(authUrl);
+        await openUrl(authUrl)
+
+        const code: string = (await server) as string
+
+        console.log(code)
+
+        const hm = await this.fetchTokens(code, codeVerifier, redirectUri, clientId);
+
+        console.log(hm)
+
+        const accessToken = hm.access_token;
+        const refreshToken = hm.refresh_token;
+
+        console.log(accessToken);
+        console.log(refreshToken);
 
         //const redirectUri = await invoke<string>('start_oauth_server');
 
@@ -182,4 +289,12 @@ export class HomePage {
 
         console.log("success")*/
     }
+
+    async listFiles() {
+        const accessToken = "ya29.a0AS3H6NzyyCFidgxu_qNsFbOA6gMzuEVFqbzaAfSi8DJNtVpGd-v0ddZHQ_nmLRetlRU8PZeLLD6Tf9XG-gUmkbiACAOdQTDIohXgaoaLAzpJWclNYOXFZKEBmG455ZmSCnsBeUh761v-ai2s_u8kSnucaF07ETPVpQVme5k-2qAVjKtrgUB_nF7sEbvH3MerXgZbTsoaCgYKAc8SARQSFQHGX2MifqR5RYiX275GM_ynOa-X2Q0206"
+        console.log("📂 Liste aller Dateien:");
+        const names = await this.listDriveFiles(accessToken);
+        console.log(names);
+    }
+
 }

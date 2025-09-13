@@ -7,6 +7,7 @@ fn greet(name: &str) -> String {
 use std::net::TcpListener;
 use std::io::{Read, Write};
 use url::Url;
+use tauri::command;
 
 // 1️⃣ Command: Liefere freien Port/Adresse
 #[tauri::command]
@@ -19,11 +20,13 @@ fn get_free_local_address() -> String {
 }
 
 // 2️⃣ Command: Starte Server auf gegebener Adresse
-#[tauri::command]
-fn start_oauth_server(address: String) {
-    // Start im Thread, damit Tauri Command nicht blockiert
-    std::thread::spawn(move || {
-        println!("[DEBUG] Trying to bind to {}", &address);
+#[command]
+async fn start_oauth_server(address: String) -> Option<String> {
+    println!("[DEBUG] Trying to bind to {}", &address);
+
+    // Hier kein Thread mehr nötig, weil die Funktion async ist
+    // Wir blocken innerhalb von spawn_blocking, damit UI-Thread nicht einfriert
+    tauri::async_runtime::spawn_blocking(move || {
         let listener = TcpListener::bind(&address).expect("Failed to bind to given address");
         println!("[DEBUG] OAuth2 server listening on http://{}", address);
 
@@ -32,7 +35,7 @@ fn start_oauth_server(address: String) {
                 Ok(mut stream) => {
                     println!("[DEBUG] Accepted a connection from {:?}", stream.peer_addr());
 
-                    let mut buffer = [0; 2048]; // etwas größerer Buffer
+                    let mut buffer = [0; 2048];
                     match stream.read(&mut buffer) {
                         Ok(n) => {
                             println!("[DEBUG] Read {} bytes from stream", n);
@@ -46,36 +49,36 @@ fn start_oauth_server(address: String) {
                                         let path = &first_line[4..pos].trim();
                                         println!("[DEBUG] Extracted path: {}", path);
 
-                                        let base = "http://127.0.0.1"; // Basis-URL für Pfad
+                                        let base = "http://127.0.0.1";
                                         if let Ok(url) = Url::parse(&format!("{}{}", base, path)) {
                                             if let Some(code_pair) = url.query_pairs().find(|(k, _)| k == "code") {
                                                 let code = code_pair.1.to_string();
                                                 println!("[DEBUG] OAuth2 code received: {}", code);
 
                                                 // Browser-Antwort
-                                                let response_body = "<html><body>You can close this tab now.</body></html>";
+                                                let response_body = r#"
+                                                <html>
+                                                    <body>
+                                                        <p>You can close this tab now.</p>
+                                                        <script>window.close();</script>
+                                                    </body>
+                                                </html>
+                                                "#;
                                                 let response = format!(
                                                     "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: {}\r\n\r\n{}",
                                                     response_body.len(),
                                                     response_body
                                                 );
-                                                match stream.write_all(response.as_bytes()) {
-                                                    Ok(_) => println!("[DEBUG] Response sent to browser"),
-                                                    Err(e) => println!("[ERROR] Failed to send response: {:?}", e),
-                                                }
+                                                let _ = stream.write_all(response.as_bytes());
                                                 let _ = stream.flush();
 
                                                 println!("[DEBUG] Closing server after receiving code");
-                                                break; // Server kann danach schließen
-                                            } else {
-                                                println!("[DEBUG] No 'code' query parameter found in URL");
+                                                return Some(code);
                                             }
                                         } else {
                                             println!("[ERROR] Failed to parse URL from path: {}", path);
                                         }
                                     }
-                                } else {
-                                    println!("[DEBUG] First line does not start with GET");
                                 }
                             }
                         }
@@ -86,9 +89,13 @@ fn start_oauth_server(address: String) {
             }
         }
 
-        println!("[DEBUG] OAuth2 server thread exiting");
-    });
+        println!("[DEBUG] OAuth2 server loop ended without code");
+        None
+    })
+    .await
+    .unwrap_or(None)
 }
+
 
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
