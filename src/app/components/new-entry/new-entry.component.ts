@@ -3,7 +3,7 @@ import {
     IonButton,
     IonButtons,
     IonContent, IonDatetime, IonDatetimeButton,
-    IonHeader,
+    IonHeader, IonIcon,
     IonModal, IonTextarea,
     IonTitle,
     IonToolbar, ModalController, NavController
@@ -17,7 +17,9 @@ import {
   createOutline, homeOutline,
   pencil,
   peopleOutline,
-  todayOutline
+  todayOutline,
+    checkmarkOutline,
+    closeOutline
 } from "ionicons/icons";
 import {DatabaseService} from "../../services/database.service";
 
@@ -25,19 +27,20 @@ import {DatabaseService} from "../../services/database.service";
   selector: 'app-new-entry',
   templateUrl: './new-entry.component.html',
   styleUrls: ['./new-entry.component.css'],
-  imports: [
-    IonHeader,
-    IonToolbar,
-    IonButton,
-    IonButtons,
-    IonTitle,
-    IonContent,
-    FormsModule,
-    IonDatetime,
-    IonDatetimeButton,
-    IonModal,
-    IonTextarea
-  ],
+    imports: [
+        IonHeader,
+        IonToolbar,
+        IonButton,
+        IonButtons,
+        IonTitle,
+        IonContent,
+        FormsModule,
+        IonDatetime,
+        IonDatetimeButton,
+        IonModal,
+        IonTextarea,
+        IonIcon
+    ],
   standalone: true
 })
 export class NewEntryComponent  implements OnInit {
@@ -48,7 +51,7 @@ export class NewEntryComponent  implements OnInit {
   written: string
 
   constructor(private modalCtrl: ModalController, private navController: NavController, private dbService: DatabaseService) {
-    addIcons({ add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
+    addIcons({ closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
     this.date = new Date().toISOString()
     this.written = new Date().toISOString()
   }

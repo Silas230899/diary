@@ -1,11 +1,15 @@
 <ion-header [translucent]="true">
     <ion-toolbar color="primary">
         <ion-buttons slot="start">
-            <ion-button (click)="cancel()">Cancel</ion-button>
+            <ion-button (click)="cancel()">
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
         </ion-buttons>
         <ion-title>Neuer Eintrag</ion-title>
         <ion-buttons slot="end">
-            <ion-button (click)="confirm()" [strong]="true">Confirm</ion-button>
+            <ion-button (click)="confirm()" [strong]="true" [disabled]="text.length === 0">
+                <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
+            </ion-button>
         </ion-buttons>
     </ion-toolbar>
 </ion-header>
