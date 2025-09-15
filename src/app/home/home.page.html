@@ -10,6 +10,10 @@
 
     <ion-button (click)="listFiles()">List files</ion-button>
 
+    <ion-button (click)="uploadFile()">Upload file</ion-button>
+
+    <ion-button (click)="deleteFile()">Delete</ion-button>
+
     @for (day of entries; track day) {
         <ion-card>
             <ion-card-header>
@@ -17,7 +21,7 @@
             </ion-card-header>
             @for (entry of day; track entry.id; let firstInnerEntry = $first) {
                 @if (firstInnerEntry) {
-                    <ion-card-subtitle class="ion-padding-horizontal">Verfasst: {{formatDatetime(entry.date, entry.written)}}</ion-card-subtitle>
+                    <ion-card-subtitle class="ion-padding-horizontal" style="position: absolute; right: 0">Verfasst: {{formatDatetime(entry.date, entry.written)}}</ion-card-subtitle>
                 } @else {
                     <ion-card-header>
                         <ion-card-subtitle>Verfasst: {{formatDatetime(entry.date, entry.written)}}</ion-card-subtitle>

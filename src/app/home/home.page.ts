@@ -39,6 +39,8 @@ export class HomePage {
 
   entries: Day[] = []
 
+    accessToken = "ya29.a0AS3H6Nyao7CnB_vJjKYoQdENwf0rxepuzKH5tYPMXM0bFF4mIapqOfIdOOddZW3oephugFcDm--PwCcm2XHOY9sAKpmxJTy5giLtdQwCAa9qAcdpA1mk84RjE0ZhXrF61V19f6hV02ScAXVy54lvyk1LiALyj7g_D5HhAyTErh27TkFgVPEuqQT81Hfddcsr2sBw0IoaCgYKASESARQSFQHGX2Mitwspi_jTkpPfMKhMrHIFbA0206"
+
   constructor(private navController: NavController, private dbService: DatabaseService, private modalCtrl: ModalController) {
     addIcons({ add, pencil, createOutline, trashOutline })
 
@@ -164,7 +166,7 @@ export class HomePage {
         accessToken: string
     ): Promise<string[]> {
         const res = await fetch(
-            "https://www.googleapis.com/drive/v3/files?pageSize=100&fields=files(id,name)",
+            "https://www.googleapis.com/drive/v3/files?pageSize=100&fields=files(id,name)&spaces=appDataFolder",
             {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
@@ -178,7 +180,8 @@ export class HomePage {
         }
 
         const data = await res.json();
-        return data.files?.map((f: { name: string }) => f.name) ?? [];
+        //return data.files?.map((f: { name: string }) => f.name) ?? [];
+        return data.files
     }
 
 
@@ -213,6 +216,69 @@ export class HomePage {
         return await res.json(); // enthält access_token, refresh_token
     }
 
+    async deleteFile() {
+        const id = "1tvdhhZGnYum-VIRz0fZe8CaG_dCnJFf3LhbtUQclzSYQ_7RN"
+
+        const url = `https://www.googleapis.com/drive/v3/files/${id}`;
+
+        const res = await fetch(url, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${this.accessToken}`,
+            },
+        });
+
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`Upload failed: ${errText}`);
+        }
+
+        console.log("File deleted:");
+    }
+
+    async uploadFile() {
+        const fileName = "erdnuss"
+        const fileContent = "grießbrei mit schoko"
+
+        const url =
+            "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
+
+        // FormData automatisch bauen lassen
+        const form = new FormData();
+
+        // 1. Teil: Metadaten als Blob (JSON)
+        const metadata = {
+            name: fileName,
+            mimeType: "text/plain",
+            parents: ["appDataFolder"],
+        };
+        form.append(
+            "metadata",
+            new Blob([JSON.stringify(metadata)], { type: "application/json" })
+        );
+
+        // 2. Teil: Dateiinhalt als Blob
+        form.append("file", new Blob([fileContent], { type: "text/plain" }));
+
+        // Fetch mit automatisch gesetztem Content-Type + Boundary
+        const res = await fetch(url, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${this.accessToken}`,
+                // KEIN Content-Type setzen -> Browser macht das inkl. Boundary automatisch
+            },
+            body: form,
+        });
+
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`Upload failed: ${errText}`);
+        }
+
+        const result = await res.json();
+        console.log("File uploaded:", result);
+    }
+
 
     async google() {
         const clientId = "15828861697-4hsmsq4fhdktkd05hrceipvl2ak64jnc.apps.googleusercontent.com";
@@ -227,7 +293,7 @@ export class HomePage {
         authUrl.searchParams.set("client_id", clientId);
         authUrl.searchParams.set("redirect_uri", redirectUri);
         authUrl.searchParams.set("response_type", "code");
-        authUrl.searchParams.set("scope", "https://www.googleapis.com/auth/drive.file");
+        authUrl.searchParams.set("scope", "https://www.googleapis.com/auth/drive.appfolder");
         authUrl.searchParams.set("code_challenge", codeChallenge);
         authUrl.searchParams.set("code_challenge_method", "S256");
 
@@ -265,7 +331,7 @@ export class HomePage {
         const accessToken = hm.access_token;
         const refreshToken = hm.refresh_token;
 
-        console.log(accessToken);
+        console.log("access:" + accessToken);
         console.log(refreshToken);
 
         //const redirectUri = await invoke<string>('start_oauth_server');
@@ -291,9 +357,8 @@ export class HomePage {
     }
 
     async listFiles() {
-        const accessToken = "ya29.a0AS3H6NzyyCFidgxu_qNsFbOA6gMzuEVFqbzaAfSi8DJNtVpGd-v0ddZHQ_nmLRetlRU8PZeLLD6Tf9XG-gUmkbiACAOdQTDIohXgaoaLAzpJWclNYOXFZKEBmG455ZmSCnsBeUh761v-ai2s_u8kSnucaF07ETPVpQVme5k-2qAVjKtrgUB_nF7sEbvH3MerXgZbTsoaCgYKAc8SARQSFQHGX2MifqR5RYiX275GM_ynOa-X2Q0206"
         console.log("📂 Liste aller Dateien:");
-        const names = await this.listDriveFiles(accessToken);
+        const names = await this.listDriveFiles(this.accessToken);
         console.log(names);
     }
 
