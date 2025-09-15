@@ -1,17 +1,17 @@
 import {Component} from '@angular/core';
 import {
-  IonButton,
-  IonCard,
-  IonCardContent,
-  IonCardHeader, IonCardSubtitle,
-  IonCardTitle,
-  IonContent,
-  IonFab,
-  IonFabButton,
-  IonHeader,
-  IonIcon, IonInput, IonLabel,
-  IonTitle,
-  IonToolbar, ModalController, NavController
+    IonButton,
+    IonCard,
+    IonCardContent,
+    IonCardHeader, IonCardSubtitle,
+    IonCardTitle,
+    IonContent,
+    IonFab,
+    IonFabButton,
+    IonHeader,
+    IonIcon, IonInput, IonItem, IonLabel, IonList, IonTextarea,
+    IonTitle,
+    IonToolbar, ModalController, NavController
 } from '@ionic/angular/standalone';
 import {add, createOutline, pencil, trashOutline} from 'ionicons/icons';
 import {addIcons} from "ionicons";
@@ -33,13 +33,15 @@ type Day = Entry[]
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-    imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, IonCardSubtitle, IonLabel, IonInput, NavBarComponent],
+    imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, IonCardSubtitle, IonLabel, IonInput, NavBarComponent, IonList, IonItem, IonTextarea],
 })
 export class HomePage {
 
   entries: Day[] = []
+    allFiles: any[] = []
 
-    accessToken = "ya29.a0AS3H6Nyao7CnB_vJjKYoQdENwf0rxepuzKH5tYPMXM0bFF4mIapqOfIdOOddZW3oephugFcDm--PwCcm2XHOY9sAKpmxJTy5giLtdQwCAa9qAcdpA1mk84RjE0ZhXrF61V19f6hV02ScAXVy54lvyk1LiALyj7g_D5HhAyTErh27TkFgVPEuqQT81Hfddcsr2sBw0IoaCgYKASESARQSFQHGX2Mitwspi_jTkpPfMKhMrHIFbA0206"
+    accessToken = "ya29.a0AQQ_BDSeCG2450MCsUXNbGQ8xb_KGHjEoXp99BcdnSuM32GVzX4IlwOf3WUSVivA86kA_21s0M1TiQ_8wwZqNrq2Iknsv2acQqLfO_WYPYXaNIHqYto5jj9Se0yObOYPUzhFq9yEH0l5dMHEU4FuiDBp9kmpHENHlZXtknytnc2jOAzMHwhNHGtUgu-DrDPu65SMWcUaCgYKAYsSARQSFQHGX2MiUi_LeKqOoRhod_iktX0UeA0206"
+    textfield: string = ""
 
   constructor(private navController: NavController, private dbService: DatabaseService, private modalCtrl: ModalController) {
     addIcons({ add, pencil, createOutline, trashOutline })
@@ -164,7 +166,7 @@ export class HomePage {
      */
     async listDriveFiles(
         accessToken: string
-    ): Promise<string[]> {
+    ) {
         const res = await fetch(
             "https://www.googleapis.com/drive/v3/files?pageSize=100&fields=files(id,name)&spaces=appDataFolder",
             {
@@ -237,8 +239,8 @@ export class HomePage {
     }
 
     async uploadFile() {
-        const fileName = "erdnuss"
-        const fileContent = "grießbrei mit schoko"
+        const fileName = "file"
+        const fileContent = this.textfield
 
         const url =
             "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
@@ -334,6 +336,8 @@ export class HomePage {
         console.log("access:" + accessToken);
         console.log(refreshToken);
 
+        this.accessToken = accessToken;
+
         //const redirectUri = await invoke<string>('start_oauth_server');
 
 
@@ -359,7 +363,25 @@ export class HomePage {
     async listFiles() {
         console.log("📂 Liste aller Dateien:");
         const names = await this.listDriveFiles(this.accessToken);
+        this.allFiles = names;
         console.log(names);
     }
 
+    async deleteFile2(id: string) {
+        const url = `https://www.googleapis.com/drive/v3/files/${id}`;
+
+        const res = await fetch(url, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${this.accessToken}`,
+            },
+        });
+
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`Upload failed: ${errText}`);
+        }
+
+        console.log("File deleted: " + id);
+    }
 }
