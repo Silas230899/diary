@@ -44,7 +44,7 @@
 
     @if (entries.length > 0) {
         <div style="width: 100%; display: flex; justify-content: center" class="ion-padding-top">
-            <ion-button fill="outline" shape="round" (click)="openNewEntryModal()">
+            <ion-button size="small" fill="outline" shape="round" (click)="openNewEntryModal(0, null)">
                 <ion-icon slot="icon-only" name="add"></ion-icon>
             </ion-button>
         </div>
@@ -65,8 +65,8 @@
             </ion-card-header>
         </ion-card>
         @if ($index < $count) {
-            <div style="width: 100%; display: flex; justify-content: center">
-                <ion-button fill="outline" shape="round" (click)="openNewEntryModal()">
+            <div style="width: 100%; display: flex; justify-content: center" [class.ion-padding-bottom]="$last">
+                <ion-button size="small" fill="outline" shape="round" (click)="openNewEntryModal($last ? null : $index+1, $index)">
                     <ion-icon slot="icon-only" name="add"></ion-icon>
                 </ion-button>
             </div>
@@ -76,7 +76,7 @@
             <div class="headline">
                 Noch kein Eintrag
             </div>
-            <ion-button (click)="openNewEntryModal()" expand="block" class="ion-padding-horizontal">
+            <ion-button (click)="openNewEntryModal(null, null)" expand="block" class="ion-padding-horizontal">
                 Eintrag hinzufügen
             </ion-button>
         </div>

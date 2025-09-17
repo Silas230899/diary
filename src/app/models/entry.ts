@@ -2,14 +2,16 @@ export class Entry {
     id: number
     date: string
     written: string
-    entryId: number
+    entryIndex: number
     text: string
+    sync: boolean
 
-    constructor(id: number, date: string, written: string, entryId: number, text: string) {
+    constructor(id: number, date: string, written: string, entryIndex: number, text: string, sync: boolean) {
         this.id = id;
         this.date = date;
         this.written = written;
-        this.entryId = entryId;
+        this.entryIndex = entryIndex;
         this.text = text;
+        this.sync = sync;
     }
 }

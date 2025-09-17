@@ -17,6 +17,7 @@ import {Entry} from "../models/entry";
 import {DatabaseService} from "../services/database.service";
 import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
 import {NewEntryComponent} from "../components/new-entry/new-entry.component";
+import {CryptoService} from "../services/crypto.service";
 
 @Component({
   selector: 'app-specific-day',
@@ -33,7 +34,8 @@ export class SpecificDayPage implements OnInit {
   constructor(private navController: NavController,
               private popoverController: PopoverController,
               private dbService: DatabaseService,
-              private modalCtrl: ModalController) {
+              private modalCtrl: ModalController,
+              private crypto: CryptoService) {
     addIcons({ add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline })
     this.date = new Date().toISOString()
 
@@ -47,16 +49,17 @@ export class SpecificDayPage implements OnInit {
     this.dbService.database.select("SELECT * FROM entry WHERE date = date($1)", [date]).then(async res => {
       // @ts-ignore
       for(const entry of res) {
-        const text = await this.dbService.decryptData(entry["text"], "silas")
+        const text = await this.crypto.decryptData(entry["text"])
         const entryObject = new Entry(
-            entry["id"],
-            entry["date"],
-            entry["written"],
-            entry["entryId"],
-            text)
+          entry["id"],
+          entry["date"],
+          entry["written"],
+          entry["entryIndex"],
+          text,
+          entry["sync"])
         this.entries.push(entryObject)
       }
-      entries.sort((a, b) => a.entryId-b.entryId)
+      entries.sort((a, b) => a.entryIndex-b.entryIndex)
     })
     this.entries = entries
   }
@@ -84,9 +87,24 @@ export class SpecificDayPage implements OnInit {
     await this.populateEntries(this.date)
   }
 
-  async openNewEntryModal() {
+  async openNewEntryModal(beforeId: number | null, afterId: number | null) {
+    let entryIndex = 0
+    if(beforeId !== null && afterId !== null) {
+      entryIndex = this.entries[afterId].entryIndex + (this.entries[beforeId].entryIndex - this.entries[afterId].entryIndex)/2
+    } else if(beforeId === null && afterId === null) {
+    
+    } else if(afterId !== null) {
+      entryIndex = this.entries[afterId].entryIndex + 1
+    } else if(beforeId !== null) {
+      entryIndex = this.entries[beforeId].entryIndex - 1
+    }
+    
     const modal = await this.modalCtrl.create({
       component: NewEntryComponent,
+      componentProps: {
+        entryIndex: entryIndex,
+        date: this.date
+      }
     });
     await modal.present();
 

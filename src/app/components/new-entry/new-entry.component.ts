@@ -1,12 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {
-    IonButton,
-    IonButtons,
-    IonContent, IonDatetime, IonDatetimeButton,
-    IonHeader, IonIcon,
-    IonModal, IonTextarea,
-    IonTitle,
-    IonToolbar, ModalController, NavController
+  IonButton,
+  IonButtons,
+  IonContent, IonDatetime, IonDatetimeButton,
+  IonHeader, IonIcon,
+  IonModal, IonNote, IonTextarea,
+  IonTitle, IonToggle,
+  IonToolbar, ModalController, NavController
 } from "@ionic/angular/standalone";
 import {FormsModule} from "@angular/forms";
 import {addIcons} from "ionicons";
@@ -22,35 +22,43 @@ import {
     closeOutline
 } from "ionicons/icons";
 import {DatabaseService} from "../../services/database.service";
+import {CryptoService} from "../../services/crypto.service";
 
 @Component({
   selector: 'app-new-entry',
   templateUrl: './new-entry.component.html',
   styleUrls: ['./new-entry.component.css'],
-    imports: [
-        IonHeader,
-        IonToolbar,
-        IonButton,
-        IonButtons,
-        IonTitle,
-        IonContent,
-        FormsModule,
-        IonDatetime,
-        IonDatetimeButton,
-        IonModal,
-        IonTextarea,
-        IonIcon
-    ],
+  imports: [
+    IonHeader,
+    IonToolbar,
+    IonButton,
+    IonButtons,
+    IonTitle,
+    IonContent,
+    FormsModule,
+    IonDatetime,
+    IonDatetimeButton,
+    IonModal,
+    IonTextarea,
+    IonIcon,
+    IonToggle,
+    IonNote
+  ],
   standalone: true
 })
 export class NewEntryComponent  implements OnInit {
+  
+  @Input() entryIndex: number | null = null;
 
-  name!: string;
   text = ""
-  date: string
+  @Input() date: string
   written: string
+  sync = true
 
-  constructor(private modalCtrl: ModalController, private navController: NavController, private dbService: DatabaseService) {
+  constructor(private modalCtrl: ModalController,
+              private navController: NavController,
+              private dbService: DatabaseService,
+              private crypto: CryptoService) {
     addIcons({ closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
     this.date = new Date().toISOString()
     this.written = new Date().toISOString()
@@ -62,7 +70,7 @@ export class NewEntryComponent  implements OnInit {
 
   async confirm() {
       await this.db()
-    return this.modalCtrl.dismiss(this.name, 'confirm');
+    return this.modalCtrl.dismiss(null, 'confirm');
   }
 
   ngOnInit() {}
@@ -71,11 +79,19 @@ export class NewEntryComponent  implements OnInit {
         const db = this.dbService.database
         const fromDate = new Date(this.date)
         const fromWritten = new Date(this.written)
-        const data = await this.dbService.encryptData(this.text, "silas")
+        const data = await this.crypto.encryptData(this.text)
+      
+      let entryIndex = this.entryIndex
+      if (entryIndex === null) {
+        const res = await this.dbService.database.select("SELECT MAX(entryIndex) AS entryIndex FROM entry WHERE date = date($1)", [this.date])
+        // @ts-ignore
+        const currentMax = res[0].entryIndex
+        entryIndex = currentMax + 1
+      }
 
         const result1 = await db.execute(
-            "INSERT into entry (date, written, text) VALUES (date($1), datetime($2), $3)",
-            [this.date, this.written, data],
+            "INSERT into entry (date, written, entryIndex, text, sync) VALUES (date($1), datetime($2), $3, $4, $5)",
+            [this.date, this.written, entryIndex, data, this.sync],
         );
         //await this.navController.navigateRoot(`/home`)
     }

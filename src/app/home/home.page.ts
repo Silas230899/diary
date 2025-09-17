@@ -25,6 +25,7 @@ import {getCurrent} from "@tauri-apps/plugin-deep-link";
 import {openUrl} from "@tauri-apps/plugin-opener";
 import {listen} from "@tauri-apps/api/event";
 import {invoke} from "@tauri-apps/api/core";
+import {CryptoService} from "../services/crypto.service";
 
 type Day = Entry[]
 
@@ -43,22 +44,33 @@ export class HomePage {
     accessToken = "ya29.a0AQQ_BDSeCG2450MCsUXNbGQ8xb_KGHjEoXp99BcdnSuM32GVzX4IlwOf3WUSVivA86kA_21s0M1TiQ_8wwZqNrq2Iknsv2acQqLfO_WYPYXaNIHqYto5jj9Se0yObOYPUzhFq9yEH0l5dMHEU4FuiDBp9kmpHENHlZXtknytnc2jOAzMHwhNHGtUgu-DrDPu65SMWcUaCgYKAYsSARQSFQHGX2MiUi_LeKqOoRhod_iktX0UeA0206"
     textfield: string = ""
 
-  constructor(private navController: NavController, private dbService: DatabaseService, private modalCtrl: ModalController) {
+  constructor(private navController: NavController,
+              private dbService: DatabaseService,
+              private modalCtrl: ModalController,
+              private crypto: CryptoService) {
     addIcons({ add, pencil, createOutline, trashOutline })
 
+
     const db = dbService.database
+
     const res2: Promise<Entry[]> = db.select("SELECT * FROM entry")
+    
     res2.then(async (res) => {
+
       const entriesByDay: Map<string, Entry[]> = new Map()
 
       for(const entry of res) {
-        const text = await dbService.decryptData(entry["text"], "silas")
+        
+        const text = await crypto.decryptData(entry["text"])
+        
+
         const entryObject = new Entry(
-            entry["id"],
-            entry["date"],
-            entry["written"],
-            entry["entryId"],
-            text)
+          entry["id"],
+          entry["date"],
+          entry["written"],
+          entry["entryIndex"],
+          text,
+          entry["sync"])
         console.log(entryObject.date)
         const day = entriesByDay.get(entryObject.date)
         if(day) day.push(entryObject)
@@ -69,7 +81,7 @@ export class HomePage {
           .sort((a, b) => new Date(b[0]).getTime()-new Date(a[0]).getTime())
           .map(value => value[1])
 
-      this.entries.forEach(entry => {entry.sort((a, b) => a.entryId-b.entryId)})
+      this.entries.forEach(entry => {entry.sort((a, b) => a.entryIndex-b.entryIndex)})
     })
 
       listen("diary://new-url", async (event) => {
@@ -131,7 +143,7 @@ export class HomePage {
 
     async openNewEntryModal() {
       const modal = await this.modalCtrl.create({
-        component: NewEntryComponent,
+        component: NewEntryComponent
       });
       await modal.present();
 
