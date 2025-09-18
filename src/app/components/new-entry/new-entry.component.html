@@ -78,6 +78,15 @@
 
     <br>
 
+    <input type="file" id="file-upload" style="display: none" (change)="setImage($event)">
+    <ion-button (click)="openFileDialog()">
+        <ion-label>Bild</ion-label>
+        <ion-icon slot="end" icon="camera"></ion-icon>
+    </ion-button>
+    @if (imgsrc !== undefined) {
+        <ion-img [src]="imgsrc"></ion-img>
+    }
+
     <ion-button fill="clear" (click)="confirm()" [disabled]="text.length === 0">
         Hinzufügen
     </ion-button>

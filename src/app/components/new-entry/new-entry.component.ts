@@ -3,7 +3,7 @@ import {
   IonButton,
   IonButtons,
   IonContent, IonDatetime, IonDatetimeButton,
-  IonHeader, IonIcon,
+  IonHeader, IonIcon, IonImg, IonLabel,
   IonModal, IonNote, IonTextarea,
   IonTitle, IonToggle,
   IonToolbar, ModalController, NavController
@@ -42,7 +42,9 @@ import {CryptoService} from "../../services/crypto.service";
     IonTextarea,
     IonIcon,
     IonToggle,
-    IonNote
+    IonNote,
+    IonLabel,
+    IonImg
   ],
   standalone: true
 })
@@ -54,6 +56,7 @@ export class NewEntryComponent  implements OnInit {
   @Input() date: string
   written: string
   sync = true
+  imgsrc: string | undefined
 
   constructor(private modalCtrl: ModalController,
               private navController: NavController,
@@ -75,25 +78,47 @@ export class NewEntryComponent  implements OnInit {
 
   ngOnInit() {}
 
-    async db() {
-        const db = this.dbService.database
-        const fromDate = new Date(this.date)
-        const fromWritten = new Date(this.written)
-        const data = await this.crypto.encryptData(this.text)
-      
-      let entryIndex = this.entryIndex
-      if (entryIndex === null) {
-        const res = await this.dbService.database.select("SELECT MAX(entryIndex) AS entryIndex FROM entry WHERE date = date($1)", [this.date])
-        // @ts-ignore
-        const currentMax = res[0].entryIndex
-        entryIndex = currentMax + 1
-      }
-
-        const result1 = await db.execute(
-            "INSERT into entry (date, written, entryIndex, text, sync) VALUES (date($1), datetime($2), $3, $4, $5)",
-            [this.date, this.written, entryIndex, data, this.sync],
-        );
-        //await this.navController.navigateRoot(`/home`)
+  async db() {
+      const db = this.dbService.database
+      const fromDate = new Date(this.date)
+      const fromWritten = new Date(this.written)
+      const data = await this.crypto.encryptData(this.text)
+    
+    let entryIndex = this.entryIndex
+    if (entryIndex === null) {
+      const res = await this.dbService.database.select("SELECT MAX(entryIndex) AS entryIndex FROM entry WHERE date = date($1)", [this.date])
+      // @ts-ignore
+      const currentMax = res[0].entryIndex
+      entryIndex = currentMax + 1
     }
+
+      const result1 = await db.execute(
+          "INSERT into entry (date, written, entryIndex, text, sync) VALUES (date($1), datetime($2), $3, $4, $5)",
+          [this.date, this.written, entryIndex, data, this.sync],
+      );
+      //await this.navController.navigateRoot(`/home`)
+  }
+  
+  openFileDialog() {
+    // @ts-ignore
+    document.getElementById("file-upload").click();
+  }
+  
+  setImage(event: any) {
+    console.log(event.target.files[0]);
+    const reader = new FileReader()
+    
+    // Wandelt die Datei in Base64 um
+    reader.onload = (e) => {
+      // @ts-ignore
+      this.imgsrc = e.target.result // Base64 Data-URL setzen
+      
+      // @ts-ignore
+      console.log(new Blob([this.imgsrc]).size)
+      //console.log('Base64:', e.target.result) // Kannst du für Upload verwenden
+    }
+    
+    reader.readAsDataURL(event.target.files[0])
+  }
 
 }
