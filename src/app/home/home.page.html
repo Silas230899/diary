@@ -6,27 +6,6 @@
 
 <ion-content>
 
-    <ion-button (click)="google()">Google</ion-button>
-
-    <ion-button (click)="listFiles()">List files</ion-button>
-
-    <ion-list>
-        @for (file of allFiles; track file) {
-            <ion-item>
-                {{file.id}}, {{file.name}}
-                <ion-button slot="end" (click)="deleteFile2(file.id)">
-                    <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
-                </ion-button>
-            </ion-item>
-        }
-    </ion-list>
-
-    <ion-button (click)="uploadFile()">Upload file</ion-button>
-
-    <ion-textarea [(ngModel)]="textfield"></ion-textarea>
-
-    <ion-button (click)="deleteFile()">Delete</ion-button>
-
     @for (day of entries; track day) {
         <ion-card>
             <ion-card-header>
