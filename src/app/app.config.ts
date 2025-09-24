@@ -1,4 +1,4 @@
-import {APP_INITIALIZER, ApplicationConfig} from "@angular/core";
+import {ApplicationConfig, inject, provideAppInitializer} from "@angular/core";
 import {PreloadAllModules, provideRouter, RouteReuseStrategy, withPreloading} from "@angular/router";
 
 import { routes } from "./app.routes";
@@ -11,6 +11,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: RouteReuseStrategy, useClass: IonicRouteStrategy
     },
+    /*
     DatabaseService,
     {
       provide: APP_INITIALIZER,
@@ -18,7 +19,9 @@ export const appConfig: ApplicationConfig = {
       deps: [DatabaseService],
       multi: true,
     },
+    */
+    provideAppInitializer(async () => {await initDbFactory(inject(DatabaseService))}),
     provideIonicAngular(),
-    provideRouter(routes, withPreloading(PreloadAllModules)),
+    provideRouter(routes, withPreloading(PreloadAllModules)), provideIonicAngular({}),
   ],
 };
