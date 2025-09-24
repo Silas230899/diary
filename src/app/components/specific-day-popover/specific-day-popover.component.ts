@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {IonContent, IonItem, IonList} from "@ionic/angular/standalone";
+import {IonContent, IonItem, IonList, ModalController, PopoverController} from "@ionic/angular/standalone";
 
 @Component({
   selector: 'app-specific-day-popover',
@@ -14,8 +14,11 @@ import {IonContent, IonItem, IonList} from "@ionic/angular/standalone";
 })
 export class SpecificDayPopoverComponent  implements OnInit {
 
-  constructor() { }
+  constructor(private popoverCtrl: PopoverController) { }
 
   ngOnInit() {}
-
+  
+  delete() {
+    return this.popoverCtrl.dismiss("", 'confirm');
+  }
 }

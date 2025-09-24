@@ -38,11 +38,14 @@
             </ion-button>
         </ion-buttons>
     </ion-toolbar>
+    @if (entriesLoading) {
+        <ion-progress-bar></ion-progress-bar>
+    }
 </ion-header>
 
 <ion-content [fullscreen]="true">
 
-    @if (entries.length > 0) {
+    @if (!entriesLoading && entries.length > 0) {
         <div style="width: 100%; display: flex; justify-content: center" class="ion-padding-top">
             <ion-button size="small" fill="outline" shape="round" (click)="openNewEntryModal(0, null)">
                 <ion-icon slot="icon-only" name="add"></ion-icon>
@@ -52,11 +55,31 @@
 
     @for (entry of entries; track entry) {
         <ion-card>
-            <ion-button (click)="createPopover($event)" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
+            <ion-button (click)="createPopover($event, entry)" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
                 <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
             </ion-button>
             <ion-card-content>
-                {{entry.text}}
+                @for (part of splitEntryText(entry); track $index) {
+                    @if (part.type === "text") {
+                        {{ part.value }}
+                    } @else if (part.type === "newline") {
+                        <br>
+                    } @else if (part.type === "image") {
+                        <div class="imageContainer">
+                            <img [src]="part.value">
+                        </div>
+                    } @else if (part.type === "images") {
+                        <div class="imageContainer">
+                            @for (image of part.value; track image) {
+                                <img [src]="image">
+                            }
+                        </div>
+                    } @else if (part.type === "chat") {
+                        <span style="background-color: darkseagreen;">
+                            {{ part.value }}
+                        </span>
+                    }
+                }
             </ion-card-content>
             <ion-card-header style="position: absolute; right: 0; bottom: 0">
                 <ion-card-subtitle>
@@ -72,14 +95,16 @@
             </div>
         }
     } @empty {
-        <div class="container">
-            <div class="headline">
-                Noch kein Eintrag
+        @if (!entriesLoading) {
+            <div class="container">
+                <div class="headline">
+                    Noch kein Eintrag
+                </div>
+                <ion-button (click)="openNewEntryModal(null, null)" expand="block" class="ion-padding-horizontal">
+                    Eintrag hinzufügen
+                </ion-button>
             </div>
-            <ion-button (click)="openNewEntryModal(null, null)" expand="block" class="ion-padding-horizontal">
-                Eintrag hinzufügen
-            </ion-button>
-        </div>
+        }
     }
 
 </ion-content>
