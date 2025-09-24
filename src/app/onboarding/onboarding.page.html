@@ -1,0 +1,22 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>onboarding</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+    <ion-input label="Passwort" [(ngModel)]="password"></ion-input>
+    <ion-button (click)="setPassword()" [disabled]="password.length === 0">Setzen</ion-button>
+
+    <br><br>
+
+    @if (!googleInitialized) {
+        <ion-button (click)="initializeGoogle()">Google Drive initialisieren</ion-button>
+    } @else {
+        <ion-note>Google Drive is initialized</ion-note>
+        <br>
+        <br>
+        <ion-button (click)="testupload()">tesrupload</ion-button>
+    }
+
+</ion-content>
