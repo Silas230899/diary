@@ -56,7 +56,7 @@ export class OnboardingPage implements OnInit {
     if(masterPasswordSalt !== null) {
       const masterPasswordSaltBlob = await this.sync.downloadImage(masterPasswordSalt.id)
       await this.passwordService.writeSalt(await masterPasswordSaltBlob.bytes())
-    } else if(this.crypto.isMasterKeyInitialized()) {
+    } else if(await this.passwordService.saltExists()) {
       await this.sync.uploadBinary("masterPasswordSalt.bin", await this.passwordService.readSalt())
     }
     

@@ -53,7 +53,7 @@ export class SynchronizationService {
         } else console.log("entry was deleted from db already")
       } else {
         if(change.file.mimeType === "application/json") {
-          const existsAlready = this.dbService.entryExistsWithDriveFileId(change.fileId)
+          const existsAlready = await this.dbService.entryExistsWithDriveFileId(change.fileId)
           if(!existsAlready) {
             const entry = await this.downloadEntry(change.file.id)
             console.log(entry)
@@ -660,7 +660,7 @@ export class SynchronizationService {
     await this.checkToken()
     const name = "masterPasswordSalt.bin"
     const query = `name='${name.replace(/'/g, "\\'")}' and trashed=false`;
-    const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)`;
+    const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)&spaces=appDataFolder`;
     
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${this.accessToken}` },
