@@ -379,11 +379,8 @@ export class SynchronizationService {
     return result.id
   }
   
-  async uploadBinary(content: Uint8Array<ArrayBuffer>) {
+  async uploadBinary(filename: string, content: Uint8Array<ArrayBuffer>) {
     await this.checkToken();
-    
-    // Zufällige Datei erzeugen
-    const fileName = `random-binary-${Date.now()}.bin`;
     
     const url =
       "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
@@ -392,7 +389,7 @@ export class SynchronizationService {
     
     // 1. Teil: Metadaten (JSON)
     const metadata = {
-      name: fileName,
+      name: filename,
       mimeType: "application/octet-stream", // generischer Binärtyp
       parents: ["appDataFolder"],
     };
@@ -657,5 +654,23 @@ export class SynchronizationService {
       const f = await this.deleteFile(file.id)
       console.log(f)
     }
+  }
+  
+  async getMasterPasswordSalt() {
+    await this.checkToken()
+    const name = "masterPasswordSalt.bin"
+    const query = `name='${name.replace(/'/g, "\\'")}' and trashed=false`;
+    const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)`;
+    
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${this.accessToken}` },
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Fehler bei files.list: ${res.status} ${await res.text()}`);
+    }
+    
+    const data = await res.json() as { files: { id: string; name: string }[] };
+    return data.files.length > 0 ? data.files[0] : null;
   }
 }

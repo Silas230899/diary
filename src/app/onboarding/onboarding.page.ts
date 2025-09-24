@@ -7,6 +7,7 @@ import {Router} from "@angular/router";
 import {SynchronizationService} from "../services/synchronization.service";
 import {ImageDb} from "../models/image-db";
 import {DatabaseService} from "../services/database.service";
+import {CryptoService} from "../services/crypto.service";
 
 @Component({
   selector: 'app-onboarding',
@@ -23,7 +24,8 @@ export class OnboardingPage implements OnInit {
   constructor(private passwordService: PasswordService,
               private router: Router,
               private sync: SynchronizationService,
-              private dbService: DatabaseService) {
+              private dbService: DatabaseService,
+              private crypto: CryptoService,) {
     this.googleInitialized = this.sync.isGoogleInitialized()
   }
 
@@ -50,6 +52,14 @@ export class OnboardingPage implements OnInit {
       console.log(done + "/" + allFiles.length)
     }
     
+    const masterPasswordSalt = await this.sync.getMasterPasswordSalt()
+    if(masterPasswordSalt !== null) {
+      const masterPasswordSaltBlob = await this.sync.downloadImage(masterPasswordSalt.id)
+      await this.passwordService.writeSalt(await masterPasswordSaltBlob.bytes())
+    } else if(this.crypto.isMasterKeyInitialized()) {
+      await this.sync.uploadBinary("masterPasswordSalt.bin", await this.passwordService.readSalt())
+    }
+    
     this.googleInitialized = this.sync.isGoogleInitialized()
   }
   
@@ -60,6 +70,9 @@ export class OnboardingPage implements OnInit {
   
   async setPassword() {
     await this.passwordService.setPassword(this.password);
+    if(this.googleInitialized) {
+      await this.sync.uploadBinary("masterPasswordSalt.bin", await this.passwordService.readSalt())
+    }
     await this.router.navigate(['/home'], { replaceUrl: true });
   }
 }

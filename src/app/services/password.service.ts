@@ -26,11 +26,15 @@ export class PasswordService {
   }
   
   private async createSalt() {
-    const masterPasswordSaltFile = await create(this.saltFilename, { baseDir: BaseDirectory.AppData })
     const salt = crypto.getRandomValues(new Uint8Array(16))
+    await this.writeSalt(salt)
+    return salt
+  }
+  
+  async writeSalt(salt: Uint8Array<ArrayBuffer>) {
+    const masterPasswordSaltFile = await create(this.saltFilename, { baseDir: BaseDirectory.AppData })
     await masterPasswordSaltFile.write(salt)
     await masterPasswordSaltFile.close()
-    return salt
   }
   
   async readSalt() {
