@@ -18,11 +18,19 @@ import {
   pencil,
   peopleOutline,
   todayOutline,
-    checkmarkOutline,
-    closeOutline
+  checkmarkOutline,
+  closeOutline,
+  camera
 } from "ionicons/icons";
 import {DatabaseService} from "../../services/database.service";
 import {CryptoService} from "../../services/crypto.service";
+import imageBlobReduce from 'image-blob-reduce';
+import { v4 as uuidv4 } from 'uuid';
+import {BaseDirectory, create, exists, mkdir} from "@tauri-apps/plugin-fs";
+import {NewEntry} from "../../models/new-entry";
+import {NewEntryWithoutEntryIndex} from "../../models/new-entry-without-entry-index";
+import {ImageView} from "../../models/image-view";
+import {ImageDb} from "../../models/image-db";
 
 @Component({
   selector: 'app-new-entry',
@@ -49,20 +57,19 @@ import {CryptoService} from "../../services/crypto.service";
   standalone: true
 })
 export class NewEntryComponent  implements OnInit {
-  
-  @Input() entryIndex: number | null = null;
 
   text = ""
   @Input() date: string
   written: string
   sync = true
-  imgsrc: string | undefined
+  imagesViews: ImageView[] = []
+  imagesDb: ImageDb[] = []
 
   constructor(private modalCtrl: ModalController,
               private navController: NavController,
               private dbService: DatabaseService,
               private crypto: CryptoService) {
-    addIcons({ closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
+    addIcons({ camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
     this.date = new Date().toISOString()
     this.written = new Date().toISOString()
   }
@@ -72,53 +79,134 @@ export class NewEntryComponent  implements OnInit {
   }
 
   async confirm() {
-      await this.db()
-    return this.modalCtrl.dismiss(null, 'confirm');
+    const newEntry = new NewEntryWithoutEntryIndex(this.date, this.written, this.text, this.sync, this.imagesDb)
+    return this.modalCtrl.dismiss(newEntry, 'confirm');
   }
 
   ngOnInit() {}
-
-  async db() {
-      const db = this.dbService.database
-      const fromDate = new Date(this.date)
-      const fromWritten = new Date(this.written)
-      const data = await this.crypto.encryptData(this.text)
-    
-    let entryIndex = this.entryIndex
-    if (entryIndex === null) {
-      const res = await this.dbService.database.select("SELECT MAX(entryIndex) AS entryIndex FROM entry WHERE date = date($1)", [this.date])
-      // @ts-ignore
-      const currentMax = res[0].entryIndex
-      entryIndex = currentMax + 1
-    }
-
-      const result1 = await db.execute(
-          "INSERT into entry (date, written, entryIndex, text, sync) VALUES (date($1), datetime($2), $3, $4, $5)",
-          [this.date, this.written, entryIndex, data, this.sync],
-      );
-      //await this.navController.navigateRoot(`/home`)
-  }
   
   openFileDialog() {
     // @ts-ignore
     document.getElementById("file-upload").click();
   }
   
-  setImage(event: any) {
-    console.log(event.target.files[0]);
+  async convertToWebp(file: File): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const reader = new FileReader();
+      
+      reader.onload = () => {
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Canvas context not available"));
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0);
+          
+          canvas.toBlob(
+            (blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error("Failed to encode AVIF"));
+            },
+            "image/webp",
+            1
+          );
+        };
+        
+        img.onerror = reject;
+        img.src = reader.result as string;
+      };
+      
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  
+  
+  async setImage(event: any) {
+    const imagefile = event.target.files[0]
+    const uuid = uuidv4()
+    const newFilename = uuid + "." + "webp"
+    
+    const downscaled = await imageBlobReduce().toCanvas(imagefile, { max: 5000 })
+    console.log(downscaled.width, downscaled.height)
+    const downscaledWebpBlob: Blob = await new Promise((resolve, reject) => {
+      downscaled.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("Failed to encode webp"));
+        },
+        "image/webp",
+        0.9)
+    })
+    console.log((await downscaledWebpBlob.arrayBuffer()).byteLength)
+    this.imagesDb.push(new ImageDb(newFilename, downscaledWebpBlob))
+    const imageUrl = URL.createObjectURL(downscaledWebpBlob)
+    this.imagesViews.push(new ImageView(newFilename, imageUrl))
+    
+    
+    /*
+    //console.log(imagefile)
+    const filename = imagefile.name;
+    //console.log(filename);
     const reader = new FileReader()
     
-    // Wandelt die Datei in Base64 um
+    
+    const webp = await this.convertToWebp(imagefile)
+    const url = URL.createObjectURL(webp)*/
+    /*
+    webpcanvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Failed to encode AVIF"));
+      },
+      "image/webp",
+      1
+    );
+    *//*
+    const dataurl = downscaled.toDataURL()
+    
+    
+    
+    const rescaled = await imageBlobReduce().toBlob(imagefile, {max: 500})
+    
+    
     reader.onload = (e) => {
       // @ts-ignore
-      this.imgsrc = e.target.result // Base64 Data-URL setzen
+      const imageData = e.target.result
       
+      this.imagesViews.push(new ImageView(newFilename, url))
       // @ts-ignore
-      console.log(new Blob([this.imgsrc]).size)
+      //console.log(new Blob([this.imgsrc]).size)
       //console.log('Base64:', e.target.result) // Kannst du für Upload verwenden
     }
     
-    reader.readAsDataURL(event.target.files[0])
+    //reader.readAsDataURL(imagefile)
+    reader.readAsDataURL(rescaled)*/
+    /*
+    const dirExists = await exists("images", { baseDir: BaseDirectory.AppData })
+    if(!dirExists) await mkdir("images", { baseDir: BaseDirectory.AppData })
+    
+    const file = await create("images/" + newFilename, { baseDir: BaseDirectory.AppData })
+    const fileArrayBuffer = await rescaled.arrayBuffer()
+    const encryptedFile = await this.crypto.encryptArrayBufferToArrayBuffer(fileArrayBuffer)
+    await file.write(encryptedFile)
+    await file.close()
+    */
   }
-
+  
+  getFileExtension(filename: string): string | null {
+    const index = filename.lastIndexOf(".");
+    return index !== -1 ? filename.slice(index + 1) : null;
+  }
+  
+  reference(img: ImageView) {
+    this.text += `\n![image](${img.filename})`
+    console.log(img.filename)
+  }
 }

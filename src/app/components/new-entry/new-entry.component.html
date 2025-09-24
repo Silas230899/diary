@@ -59,15 +59,7 @@
         </ng-template>
     </ion-modal>
 
-    <ion-textarea
-            style="margin-top: 8px"
-            autoGrow="true"
-            rows="5"
-            labelPlacement="floating"
-            label="Eintrag"
-            fill="outline"
-            [(ngModel)]="text">
-    </ion-textarea>
+    <br>
 
     <ion-toggle [(ngModel)]="sync" style="margin-top: 8px">Synchronisieren</ion-toggle>
 
@@ -78,14 +70,31 @@
 
     <br>
 
+    <ion-textarea
+            style="margin-top: 8px"
+            autoGrow="true"
+            rows="5"
+            labelPlacement="floating"
+            label="Eintrag"
+            fill="outline"
+            [(ngModel)]="text">
+    </ion-textarea>
+
+    <br>
+
     <input type="file" id="file-upload" style="display: none" (change)="setImage($event)">
     <ion-button (click)="openFileDialog()">
         <ion-label>Bild</ion-label>
         <ion-icon slot="end" icon="camera"></ion-icon>
     </ion-button>
-    @if (imgsrc !== undefined) {
-        <ion-img [src]="imgsrc"></ion-img>
-    }
+
+    <br>
+
+    <div style="display: flex; gap: 4px">
+        @for (img of imagesViews; track img.filename) {
+            <img [src]="img.localImageUrl" (click)="reference(img)" style="width: 200px; border-radius: 16px">
+        }
+    </div>
 
     <ion-button fill="clear" (click)="confirm()" [disabled]="text.length === 0">
         Hinzufügen
