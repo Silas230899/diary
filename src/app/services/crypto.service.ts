@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import {DatabaseService} from "./database.service";
 
 @Injectable({
   providedIn: 'root'
@@ -9,36 +10,15 @@ export class CryptoService {
 
   private enc = new TextEncoder();
   private dec = new TextDecoder();
-
-  async init() {
-    const salt = this.hexToUint8Array("129d8891895ed1d58cb5f8c2c9a4fa51")
-
-    await this.initMasterKey("silas", salt)
+  
+  constructor() {}
+  
+  isMasterKeyInitialized() {
+    return this.masterKeyRaw !== null
   }
 
-  hexToUint8Array(hex: string): Uint8Array {
-    // Optional: führendes "0x" entfernen
-    if (hex.startsWith("0x")) {
-      hex = hex.slice(2);
-    }
-
-    // Länge prüfen
-    if (hex.length % 2 !== 0) {
-      throw new Error("Hex-String muss gerade Anzahl von Zeichen haben");
-    }
-
-    const len = hex.length / 2;
-    const bytes = new Uint8Array(len);
-
-    for (let i = 0; i < len; i++) {
-      bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
-    }
-
-    return bytes;
-  }
-
-  // === 1) Master-Key einmal aus Passwort ableiten ===
-  private async initMasterKey(password: string, salt: Uint8Array): Promise<void> {
+  async initMasterKey(password: string, salt: Uint8Array): Promise<void> {
+    console.log("start initializing master key")
     const passwordKey = await crypto.subtle.importKey(
       "raw",
       this.enc.encode(password),
@@ -50,18 +30,19 @@ export class CryptoService {
     const masterKeyBits = await crypto.subtle.deriveBits(
       {
         name: "PBKDF2",
-        salt: salt,
-        iterations: 250_000,
-        hash: "SHA-256"
-      },
+        hash: "SHA-256",
+        iterations: 2_500_000,
+        salt: salt
+      } as Pbkdf2Params,
       passwordKey,
       256 // 256 bit = 32 Byte
     );
 
     this.masterKeyRaw = masterKeyBits;
+    
+    console.log("Initialized master key")
   }
 
-  // === 2) HKDF pro Datei ableiten ===
   private async deriveFileKey(fileId: Uint8Array, usage: KeyUsage[]): Promise<CryptoKey> {
     if (!this.masterKeyRaw) throw new Error("Master-Key nicht initialisiert!");
 
@@ -79,16 +60,19 @@ export class CryptoService {
         hash: "SHA-256",
         salt: new Uint8Array([]),  // optional
         info: fileId,
-      },
+      } as HkdfParams,
       masterKeyImported,
       { name: "AES-GCM", length: 256 },
       false,
       usage
     );
   }
+  
+  async encryptStringToBase64String(secretData: string) {
+    return this.buff_to_base64(await this.encryptArrayBufferToArrayBuffer(this.enc.encode(secretData).buffer))
+  }
 
-  // === 3) Verschlüsseln ===
-  async encryptData(secretData: string): Promise<string> {
+  async encryptArrayBufferToArrayBuffer(secretData: ArrayBuffer) {
     if (!this.masterKeyRaw) throw new Error("Master-Key nicht initialisiert!");
 
     const fileId = crypto.getRandomValues(new Uint8Array(16)); // eindeutige Datei-ID
@@ -99,7 +83,7 @@ export class CryptoService {
     const encryptedContent = await crypto.subtle.encrypt(
       { name: "AES-GCM", iv },
       fileKey,
-      this.enc.encode(secretData)
+      secretData
     );
 
     const encryptedContentArr = new Uint8Array(encryptedContent);
@@ -108,17 +92,20 @@ export class CryptoService {
     buff.set(iv, fileId.length);
     buff.set(encryptedContentArr, fileId.length + iv.length);
 
-    return this.buff_to_base64(buff);
+    return buff
+  }
+  
+  async decryptBase64StringToString(encryptedData: string) {
+    return this.dec.decode(await this.decryptUint8ArrayToArrayBuffer(this.base64_to_buf(encryptedData)))
   }
 
-  // === 4) Entschlüsseln ===
-  async decryptData(encryptedData: string): Promise<string> {
+  async decryptUint8ArrayToArrayBuffer(encryptedData: Uint8Array) {
     if (!this.masterKeyRaw) throw new Error("Master-Key nicht initialisiert!");
 
-    const encryptedDataBuff = this.base64_to_buf(encryptedData);
-    const fileId = encryptedDataBuff.slice(0, 16);
-    const iv = encryptedDataBuff.slice(16, 28);
-    const ciphertext = encryptedDataBuff.slice(28);
+    //const encryptedDataBuff = this.base64_to_buf(encryptedData);
+    const fileId = encryptedData.slice(0, 16);
+    const iv = encryptedData.slice(16, 28);
+    const ciphertext = encryptedData.slice(28);
 
     const fileKey = await this.deriveFileKey(fileId, ["decrypt"]);
 
@@ -128,7 +115,7 @@ export class CryptoService {
       ciphertext
     );
 
-    return this.dec.decode(decryptedContent);
+    return decryptedContent
   }
 
   // === Hilfsfunktionen Base64 ===
