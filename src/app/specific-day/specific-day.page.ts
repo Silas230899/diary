@@ -178,11 +178,11 @@ export class SpecificDayPage implements OnInit {
       const { data, role } = e
       if(role === "confirm") {
         await this.dbService.setSyncStatus(entry.id, "pending_delete")
-        this.sync.uploadLocalChanges()
+        await this.sync.uploadLocalChanges()
         //const entryDeletionPromise = this.dbService.deleteEntry(entry.id)
         //const imageDeletionPromises = entry.images.map(image => this.dbService.deleteImage(image.filename))
         //await Promise.all([...imageDeletionPromises, entryDeletionPromise])
-        this.populateEntries(this.date)
+        await this.populateEntries(this.date)
       }
     })
     await popover.present()
@@ -230,7 +230,7 @@ export class SpecificDayPage implements OnInit {
         imagePromises = [...imagePromises, entryPromise]
         await Promise.all(imagePromises)
         await this.populateEntries(this.date)
-        await this.sync.uploadLocalChanges()
+        this.sync.uploadLocalChanges() // dont wait for upload
       }
     })
     
