@@ -13,19 +13,13 @@ import {
 import {addIcons} from "ionicons";
 import {add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline } from "ionicons/icons";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
-import {EntryDbRecord} from "../models/entry-db-record";
 import {DatabaseService} from "../services/database.service";
 import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
 import {NewEntryComponent} from "../components/new-entry/new-entry.component";
-import {CryptoService} from "../services/crypto.service";
-import {BaseDirectory, readFile} from "@tauri-apps/plugin-fs";
 import {EntryViewRecord} from "../models/entry-view-record";
-import {ImageView} from "../models/image-view";
 import {NewEntry} from "../models/new-entry";
 import {NewEntryWithoutEntryIndex} from "../models/new-entry-without-entry-index";
-import {EntriesService} from "../services/entries.service";
 import {SynchronizationService} from "../services/synchronization.service";
-import {ImageDb} from "../models/image-db";
 
 type EntryPart = { type: "text", value: string }
   | { type: "newline" }
@@ -96,8 +90,6 @@ export class SpecificDayPage implements OnInit {
     currentDate.setUTCHours(0, 0, 0, 0)
     this.date = currentDate.toISOString()
 
-    //console.log(this.date)
-
     this.populateEntries(this.date).then(() => this.entriesLoading = false)
     
     const size = 1024; // 1 KB
@@ -158,6 +150,8 @@ export class SpecificDayPage implements OnInit {
     
     //this.sync.deleteAll()
     
+    //this.passwordService.readSalt().then(async salt => await this.sync.uploadBinary("masterPasswordSalt.bin", salt))
+    
     //this.sync.synchronize()
   }
 
@@ -184,10 +178,11 @@ export class SpecificDayPage implements OnInit {
       const { data, role } = e
       if(role === "confirm") {
         await this.dbService.setSyncStatus(entry.id, "pending_delete")
+        this.sync.uploadLocalChanges()
         //const entryDeletionPromise = this.dbService.deleteEntry(entry.id)
         //const imageDeletionPromises = entry.images.map(image => this.dbService.deleteImage(image.filename))
         //await Promise.all([...imageDeletionPromises, entryDeletionPromise])
-        await this.populateEntries(this.date)
+        this.populateEntries(this.date)
       }
     })
     await popover.present()

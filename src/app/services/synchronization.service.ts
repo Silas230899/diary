@@ -67,7 +67,7 @@ export class SynchronizationService {
     for(const change of changesList.changes) {
       if(change.removed) {
         const entry = await this.dbService.getEntryByDriveFileId(change.fileId)
-        if(entry) {
+        if(entry !== null) {
           const affectedRows = await this.dbService.deleteEntryByDriveFileId(change.fileId)
           console.log("affected rows: " + affectedRows)
           for(const filename of entry.referencedImages) {
@@ -556,7 +556,6 @@ export class SynchronizationService {
     localStorage.setItem("drive_refresh_token", refreshToken);
     localStorage.setItem("drive_access_token_expiration", driveAccessTokenExpiration);
     localStorage.setItem("drive_start_page_token", startPageToken)
-    
     
     //const redirectUri = await invoke<string>('start_oauth_server');
     

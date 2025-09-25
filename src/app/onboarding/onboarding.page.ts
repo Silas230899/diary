@@ -47,13 +47,19 @@ export class OnboardingPage implements OnInit {
     
     await this.downloadEverything()
     
+    /*
     const masterPasswordSalt = await this.sync.getMasterPasswordSalt()
     if(masterPasswordSalt !== null) {
       const masterPasswordSaltBlob = await this.sync.downloadImage(masterPasswordSalt.id)
-      await this.passwordService.writeSalt(await masterPasswordSaltBlob.bytes())
+      //fehlerawait this.passwordService.writeSalt(await this.crypto.encryptArrayBufferToArrayBuffer(await masterPasswordSaltBlob.arrayBuffer()))
     } else if(await this.passwordService.saltExists()) {
       await this.sync.uploadBinary("masterPasswordSalt.bin", await this.passwordService.readSalt())
+    } else {
+      alert("weder salt aus der cloud gefunden noch auf dem gerät. fehler")
     }
+    */
+    
+    await this.passwordService.initMasterKeyIfPossible()
     
     this.googleInitialized = this.sync.isGoogleInitialized()
   }
@@ -82,7 +88,11 @@ export class OnboardingPage implements OnInit {
         console.log(entry)
         await this.dbService.insertRawEntry(entry)
         done++
-      }
+      } else if(file.name === "masterPasswordSalt.bin"){
+        const masterPasswordSaltBlob = await this.sync.downloadImage(file.id)
+        await this.passwordService.writeSalt(new Uint8Array(await masterPasswordSaltBlob.arrayBuffer()))
+        done++
+      } else console.log("skip " + file.name)
       console.log(done + "/" + allFiles.length)
     }
   }

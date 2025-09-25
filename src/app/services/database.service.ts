@@ -67,8 +67,8 @@ export class DatabaseService {
   
   async insertRawImage(image: ImageDb) {
     const file = await create("images/" + image.filename, { baseDir: BaseDirectory.AppData })
-    const fileArrayBuffer = await image.imageData.bytes()
-    await file.write(fileArrayBuffer)
+    const fileArrayBuffer = await image.imageData.arrayBuffer()
+    await file.write(new Uint8Array(fileArrayBuffer))
     await file.close()
   }
   
@@ -110,7 +110,6 @@ export class DatabaseService {
   }
   
   async insertRawEntry(entry: EntryDbRecord) {
-    //const encryptedText = await this.crypto.encryptStringToBase64String(entry.text)
     const referencedImagesString = entry.referencedImages.join(",")
     await this.database.execute(
       `INSERT into entry (id, date, written, entryIndex, text, sync, referencedImages, syncStatus, driveFileId)
