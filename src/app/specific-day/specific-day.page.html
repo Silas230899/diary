@@ -46,7 +46,7 @@
 <ion-content [fullscreen]="true">
 
     @if (!entriesLoading && entries.length > 0) {
-        <div style="width: 100%; display: flex; justify-content: center" class="ion-padding-top">
+        <div style="width: 100%; display: flex; justify-content: center;">
             <ion-button size="small" fill="outline" shape="round" (click)="openNewEntryModal(0, null)">
                 <ion-icon slot="icon-only" name="add"></ion-icon>
             </ion-button>
@@ -54,7 +54,7 @@
     }
 
     @for (entry of entries; track entry) {
-        <ion-card>
+        <ion-card style="margin-top: 4px; margin-bottom: 4px">
             <ion-button (click)="createPopover($event, entry)" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
                 <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
             </ion-button>
@@ -88,7 +88,7 @@
             </ion-card-header>
         </ion-card>
         @if ($index < $count) {
-            <div style="width: 100%; display: flex; justify-content: center" [class.ion-padding-bottom]="$last">
+            <div style="width: 100%; display: flex; justify-content: center">
                 <ion-button size="small" fill="outline" shape="round" (click)="openNewEntryModal($last ? null : $index+1, $index)">
                     <ion-icon slot="icon-only" name="add"></ion-icon>
                 </ion-button>
