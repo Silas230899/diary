@@ -64,6 +64,10 @@ export class OnboardingPage implements OnInit {
     this.googleInitialized = this.sync.isGoogleInitialized()
   }
   
+  async clearDb() {
+    await this.dbService.clearDb()
+  }
+  
   async setPassword() {
     await this.passwordService.setPassword(this.password);
     if(this.googleInitialized) {

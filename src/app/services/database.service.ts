@@ -227,33 +227,34 @@ export class DatabaseService {
    * does not return entries that are marked as pending_delete
    */
   async getEntriesBySpecificDate(date: string) {
+    /*
     if(!this.entries.has(date)) {
-      const res = await this.database.select("SELECT * FROM entry WHERE date = date($1) AND syncStatus != 'pending_delete'", [date])
-      const entryPromises: Promise<EntryViewRecord>[] = (res as any[]).map(async entry => {
-        const decryptedText = await this.crypto.decryptBase64StringToString(entry["text"])
-        console.log(entry["referencedImages"])
-        const referencedImages = (entry["referencedImages"] as string).length === 0 ? [] : (entry["referencedImages"] as string).split(",")
-        console.log(referencedImages)
-        const imagePromises: Promise<ImageView>[] = referencedImages.map(async (imageName) => {
-          console.log(imageName)
-          return new ImageView(imageName, await this.getImage(imageName))
-        })
-        const images: ImageView[] = await Promise.all(imagePromises)
-        return new EntryViewRecord(
-          entry["id"],
-          entry["date"],
-          entry["written"],
-          entry["entryIndex"],
-          decryptedText,
-          entry["sync"],
-          images,
-          entry["syncStatus"],
-          entry["driveFileId"])
-      })
-      const entries = await Promise.all(entryPromises)
+      
       this.entries.set(date, entries)
     } else console.log("entry cash hit")
     return this.entries.get(date)!
+    */
+    const res = await this.database.select("SELECT * FROM entry WHERE date = date($1) AND syncStatus != 'pending_delete'", [date])
+    const entryPromises: Promise<EntryViewRecord>[] = (res as any[]).map(async entry => {
+      const decryptedText = await this.crypto.decryptBase64StringToString(entry["text"])
+      const referencedImages = (entry["referencedImages"] as string).length === 0 ? [] : (entry["referencedImages"] as string).split(",")
+      const imagePromises: Promise<ImageView>[] = referencedImages.map(async (imageName) => {
+        return new ImageView(imageName, await this.getImage(imageName))
+      })
+      const images: ImageView[] = await Promise.all(imagePromises)
+      return new EntryViewRecord(
+        entry["id"],
+        entry["date"],
+        entry["written"],
+        entry["entryIndex"],
+        decryptedText,
+        entry["sync"],
+        images,
+        entry["syncStatus"],
+        entry["driveFileId"])
+    })
+    const entries = await Promise.all(entryPromises)
+    return entries
   }
   
   byteArrayToBase64(bytes: Uint8Array): string {
@@ -264,6 +265,9 @@ export class DatabaseService {
     return btoa(binary); // btoa() gibt Base64 zurück
   }
   
+  async clearDb() {
+    await this.database.select("DELETE FROM entry")
+  }
 }
 
 export async function initDbFactory(dbService: DatabaseService) {
