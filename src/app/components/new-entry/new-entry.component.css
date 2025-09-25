@@ -4,6 +4,10 @@
     white-space: nowrap;
 }
 
+.imageContainer > img {
+    border: 2px solid var(--ion-color-primary);
+}
+
 .imageContainer > img, ion-thumbnail {
     height: 200px;
     border-radius: 16px;
@@ -20,4 +24,12 @@
 
 .imageContainer > ion-thumbnail > ion-skeleton-text {
     border-radius: 16px;
+}
+
+#addAnotherImageButtonContainer {
+    height: 200px;
+    display: inline-block;
+    vertical-align: top;
+    align-content: center;
+    padding-right: 8px;
 }

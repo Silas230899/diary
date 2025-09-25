@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewChild} from '@angular/core';
 import {
   IonButton,
   IonButtons,
@@ -68,6 +68,8 @@ export class NewEntryComponent  implements OnInit {
   sync = true
   imagesViews: ImageView[] = []
   imagesDb: ImageDb[] = []
+  
+  @ViewChild("textarea") textarea!: IonTextarea
 
   constructor(private modalCtrl: ModalController,
               private navController: NavController,
@@ -77,6 +79,10 @@ export class NewEntryComponent  implements OnInit {
     addIcons({ camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
     this.date = new Date().toISOString()
     this.written = new Date().toISOString()
+  }
+  
+  async ionViewDidEnter() {
+    await this.textarea.setFocus()
   }
 
   cancel() {

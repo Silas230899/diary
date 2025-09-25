@@ -71,6 +71,7 @@
     <br>
 
     <ion-textarea
+            #textarea
             style="margin-top: 8px"
             autoGrow="true"
             rows="5"
@@ -80,27 +81,38 @@
             [(ngModel)]="text">
     </ion-textarea>
 
-    <br>
-
     <input type="file" id="file-upload" style="display: none" (change)="setImage($event)">
-    <ion-button (click)="openFileDialog()">
-        <ion-label>Bild</ion-label>
-        <ion-icon slot="end" icon="camera"></ion-icon>
-    </ion-button>
 
-    <br>
-
-    <div class="imageContainer">
-        @for (img of imagesViews; track img.filename) {
-            @if (img.localImageUrl === "") {
-                <ion-thumbnail><ion-skeleton-text [animated]="true"></ion-skeleton-text></ion-thumbnail>
-            } @else {
-                <img [src]="img.localImageUrl" (click)="reference(img)">
+    @if (imagesViews.length === 0) {
+        <br>
+        <ion-button (click)="openFileDialog()">
+            <ion-label>Bild</ion-label>
+            <ion-icon slot="end" icon="camera"></ion-icon>
+        </ion-button>
+        <br>
+    } @else {
+        <br>
+        <div class="imageContainer">
+            <div id="addAnotherImageButtonContainer">
+                <ion-button shape="round" fill="outline" size="large" (click)="openFileDialog()">
+                    <ion-icon slot="icon-only" name="add"></ion-icon>
+                </ion-button>
+            </div>
+            @for (img of imagesViews; track img.filename) {
+                @if (img.localImageUrl === "") {
+                    <ion-thumbnail><ion-skeleton-text [animated]="true"></ion-skeleton-text></ion-thumbnail>
+                } @else {
+                    <img [src]="img.localImageUrl" (click)="reference(img)">
+                }
             }
-        }
-    </div>
+        </div>
+    }
+
+    <!--
+    <br>
 
     <ion-button fill="clear" (click)="confirm()" [disabled]="text.length === 0">
         Hinzufügen
     </ion-button>
+    -->
 </ion-content>
