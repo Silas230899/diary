@@ -4,7 +4,7 @@ import {
   IonButtons,
   IonContent, IonDatetime, IonDatetimeButton,
   IonHeader, IonIcon, IonImg, IonLabel,
-  IonModal, IonNote, IonSkeletonText, IonTextarea,
+  IonModal, IonNote, IonSkeletonText, IonTextarea, IonThumbnail,
   IonTitle, IonToggle,
   IonToolbar, ModalController, NavController
 } from "@ionic/angular/standalone";
@@ -55,7 +55,8 @@ import {image} from "@tauri-apps/api";
     IonNote,
     IonLabel,
     IonImg,
-    IonSkeletonText
+    IonSkeletonText,
+    IonThumbnail
   ],
   standalone: true
 })
@@ -87,16 +88,16 @@ export class NewEntryComponent  implements OnInit {
     
     const everyImageUsed = this.imagesViews.every(image => this.text.includes(`![image](${image.filename})`))
     
-    if(everyImageUsed) {
+    if(!everyImageUsed) {
       const actionSheet = await this.actionSheetCtrl.create({
         header: 'Du hast nicht alle Bilder benutzt. Trotzdem einfügen?',
         buttons: [
           {
-            text: 'Yes',
+            text: 'Ja',
             role: 'confirm',
           },
           {
-            text: 'No',
+            text: 'Nein',
             role: 'cancel',
           },
         ],
@@ -182,8 +183,6 @@ export class NewEntryComponent  implements OnInit {
     const imageUrl = URL.createObjectURL(downscaledWebpBlob)
     //this.imagesViews.push(new ImageView(newFilename, imageUrl))
     imageView.localImageUrl = imageUrl
-    
-    
     /*
     //console.log(imagefile)
     const filename = imagefile.name;

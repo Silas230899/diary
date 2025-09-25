@@ -1,0 +1,23 @@
+.imageContainer {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.imageContainer > img, ion-thumbnail {
+    height: 200px;
+    border-radius: 16px;
+    display: inline-block;
+    width: auto;
+    max-width: none;
+    margin-right: 8px;
+}
+
+.imageContainer > ion-thumbnail {
+    width: 200px;
+    vertical-align: top;
+}
+
+.imageContainer > ion-thumbnail > ion-skeleton-text {
+    border-radius: 16px;
+}
