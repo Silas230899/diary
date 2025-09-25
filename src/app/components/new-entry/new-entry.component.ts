@@ -4,7 +4,7 @@ import {
   IonButtons,
   IonContent, IonDatetime, IonDatetimeButton,
   IonHeader, IonIcon, IonImg, IonLabel,
-  IonModal, IonNote, IonTextarea,
+  IonModal, IonNote, IonSkeletonText, IonTextarea,
   IonTitle, IonToggle,
   IonToolbar, ModalController, NavController
 } from "@ionic/angular/standalone";
@@ -31,6 +31,8 @@ import {NewEntry} from "../../models/new-entry";
 import {NewEntryWithoutEntryIndex} from "../../models/new-entry-without-entry-index";
 import {ImageView} from "../../models/image-view";
 import {ImageDb} from "../../models/image-db";
+import {ActionSheetController} from "@ionic/angular";
+import {image} from "@tauri-apps/api";
 
 @Component({
   selector: 'app-new-entry',
@@ -52,7 +54,8 @@ import {ImageDb} from "../../models/image-db";
     IonToggle,
     IonNote,
     IonLabel,
-    IonImg
+    IonImg,
+    IonSkeletonText
   ],
   standalone: true
 })
@@ -68,7 +71,8 @@ export class NewEntryComponent  implements OnInit {
   constructor(private modalCtrl: ModalController,
               private navController: NavController,
               private dbService: DatabaseService,
-              private crypto: CryptoService) {
+              private crypto: CryptoService,
+              private actionSheetCtrl: ActionSheetController) {
     addIcons({ camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
     this.date = new Date().toISOString()
     this.written = new Date().toISOString()
@@ -80,7 +84,32 @@ export class NewEntryComponent  implements OnInit {
 
   async confirm() {
     const newEntry = new NewEntryWithoutEntryIndex(this.date, this.written, this.text, this.sync, this.imagesDb)
-    return this.modalCtrl.dismiss(newEntry, 'confirm');
+    
+    const everyImageUsed = this.imagesViews.every(image => this.text.includes(`![image](${image.filename})`))
+    
+    if(everyImageUsed) {
+      const actionSheet = await this.actionSheetCtrl.create({
+        header: 'Du hast nicht alle Bilder benutzt. Trotzdem einfügen?',
+        buttons: [
+          {
+            text: 'Yes',
+            role: 'confirm',
+          },
+          {
+            text: 'No',
+            role: 'cancel',
+          },
+        ],
+      });
+      
+      await actionSheet.present();
+      
+      const { role } = await actionSheet.onWillDismiss();
+      
+      if(role === "confirm") await this.modalCtrl.dismiss(newEntry, 'confirm');
+    } else {
+      await this.modalCtrl.dismiss(newEntry, 'confirm');
+    }
   }
 
   ngOnInit() {}
@@ -130,9 +159,13 @@ export class NewEntryComponent  implements OnInit {
   
   
   async setImage(event: any) {
-    const imagefile = event.target.files[0]
     const uuid = uuidv4()
     const newFilename = uuid + "." + "webp"
+    
+    const imageView = new ImageView(newFilename, "")
+    this.imagesViews.push(imageView)
+    
+    const imagefile = event.target.files[0]
     
     const downscaled = await imageBlobReduce().toCanvas(imagefile, { max: 5000 })
     console.log(downscaled.width, downscaled.height)
@@ -147,7 +180,8 @@ export class NewEntryComponent  implements OnInit {
     console.log((await downscaledWebpBlob.arrayBuffer()).byteLength)
     this.imagesDb.push(new ImageDb(newFilename, downscaledWebpBlob))
     const imageUrl = URL.createObjectURL(downscaledWebpBlob)
-    this.imagesViews.push(new ImageView(newFilename, imageUrl))
+    //this.imagesViews.push(new ImageView(newFilename, imageUrl))
+    imageView.localImageUrl = imageUrl
     
     
     /*

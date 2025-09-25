@@ -92,7 +92,11 @@
 
     <div style="display: flex; gap: 4px">
         @for (img of imagesViews; track img.filename) {
-            <img [src]="img.localImageUrl" (click)="reference(img)" style="width: 200px; border-radius: 16px">
+            @if (img.localImageUrl === "") {
+                <ion-skeleton-text [animated]="true" style="width: 200px; aspect-ratio: 1; border-radius: 16px"></ion-skeleton-text>
+            } @else {
+                <img [src]="img.localImageUrl" (click)="reference(img)" style="width: 200px; border-radius: 16px">
+            }
         }
     </div>
 
