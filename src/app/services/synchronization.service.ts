@@ -43,6 +43,15 @@ export class SynchronizationService {
     for(let entry of entries) {
       if(entry.syncStatus === "pending_delete" && entry.driveFileId !== null) {
         await this.deleteFile(entry.driveFileId)
+        await this.dbService.deleteEntry(entry.id)
+        console.log("deleted entry " + entry.id)
+        for(const filename of entry.referencedImages) {
+          await this.dbService.deleteImage(filename)
+          const driveFileId = await this.getDriveFileIdOfImageByFilename(filename)
+          if(driveFileId === null) throw new Error(`file ${filename} not found`)
+          await this.deleteFile(driveFileId.id)
+          console.log("deleted image " + filename + ", " + driveFileId)
+        }
       } else if(entry.syncStatus === "pending_create") {
         console.log(entry.syncStatus)
         entry.syncStatus = "synced"
@@ -68,8 +77,8 @@ export class SynchronizationService {
       if(change.removed) {
         const entry = await this.dbService.getEntryByDriveFileId(change.fileId)
         if(entry !== null) {
-          const affectedRows = await this.dbService.deleteEntryByDriveFileId(change.fileId)
-          console.log("affected rows: " + affectedRows)
+          await this.dbService.deleteEntry(entry.id)
+          console.log("deleted entry with id " + entry.id)
           for(const filename of entry.referencedImages) {
             await this.dbService.deleteImage(filename)
             console.log("deleted image " + filename)
@@ -80,13 +89,14 @@ export class SynchronizationService {
           const existsAlready = await this.dbService.entryExistsWithDriveFileId(change.fileId)
           if(!existsAlready) {
             const entry = await this.downloadEntry(change.file.id)
-            console.log(entry)
+            console.log("download entry: " + entry)
             await this.dbService.insertRawEntry(entry)
           } else console.log("entry '" + change.file.name + "' exists already")
         } else if(change.file.mimeType === "image/webp") {
           if(!await this.dbService.imageFileExists(change.file.name)) {
             const imageData = await this.downloadImage(change.file.id)
             const image = new ImageDb(change.file.name, imageData)
+            console.log("download image " + change.file.name)
             await this.dbService.insertRawImage(image)
           } else console.log("image '" + change.file.name + "' exists already")
         }
@@ -646,7 +656,7 @@ export class SynchronizationService {
     
     if (!res.ok) {
       const errText = await res.text();
-      throw new Error(`Upload failed: ${errText}`);
+      throw new Error(`Deleting the file failed: ${errText}`);
     }
     
     console.log("File deleted: " + driveFileId);
@@ -677,6 +687,23 @@ export class SynchronizationService {
     
     if (!res.ok) {
       throw new Error(`Fehler bei files.list: ${res.status} ${await res.text()}`);
+    }
+    
+    const data = await res.json() as { files: { id: string; name: string }[] };
+    return data.files.length > 0 ? data.files[0] : null;
+  }
+  
+  private async getDriveFileIdOfImageByFilename(filename: string) {
+    await this.checkToken()
+    const query = `name='${filename.replace(/'/g, "\\'")}' and trashed=false`;
+    const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)&spaces=appDataFolder`;
+    
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${this.accessToken}` },
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Fehler bei getDriveFileIdOfImageByFilename: ${res.status} ${await res.text()}`);
     }
     
     const data = await res.json() as { files: { id: string; name: string }[] };
