@@ -7,7 +7,7 @@ import {
   IonContent,
   IonHeader,
   IonInput,
-  IonNote,
+  IonNote, IonProgressBar,
   IonTitle,
   IonToolbar
 } from '@ionic/angular/standalone';
@@ -24,12 +24,15 @@ import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
   templateUrl: './onboarding.page.html',
   styleUrls: ['./onboarding.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonInput, IonButton, IonNote, IonBackButton, NavBarComponent]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonInput, IonButton, IonNote, IonBackButton, NavBarComponent, IonProgressBar]
 })
 export class OnboardingPage implements OnInit {
   
   password = ""
   googleInitialized: boolean
+  googleInitializing = false
+  done = 0
+  all = 0
 
   constructor(private passwordService: PasswordService,
               private router: Router,
@@ -43,6 +46,8 @@ export class OnboardingPage implements OnInit {
   }
   
   async initializeGoogle() {
+    this.googleInitializing = true
+    
     await this.sync.google()
     
     await this.downloadEverything()
@@ -78,6 +83,7 @@ export class OnboardingPage implements OnInit {
   
   async downloadEverything() {
     const allFiles = await this.sync.listDriveFiles()
+    this.all = allFiles.length
     let done = 0
     for(let file of allFiles) {
       if(file.name.endsWith(".webp")) {
@@ -98,6 +104,11 @@ export class OnboardingPage implements OnInit {
         done++
       } else console.log("skip " + file.name)
       console.log(done + "/" + allFiles.length)
+      this.done = done
     }
+  }
+  
+  async download() {
+    await this.sync.downloadRemoteChanges()
   }
 }

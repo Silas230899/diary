@@ -11,7 +11,7 @@
     <br><br>
 
     @if (!googleInitialized) {
-        <ion-button (click)="initializeGoogle()">Google Drive initialisieren</ion-button>
+        <ion-button (click)="initializeGoogle()" [disabled]="googleInitializing">Google Drive initialisieren</ion-button>
     } @else {
         <ion-note>Google Drive is initialized</ion-note>
         <br>
@@ -23,7 +23,19 @@
 
     <br>
     <br>
+    @if (googleInitializing && all !== 0 && !googleInitialized) {
+        <ion-progress-bar [value]="done/all"></ion-progress-bar>
+        <br>
+        {{done}}/{{all}}
+    }
+
+    <br>
+    <br>
     <ion-button (click)="clearDb()">Clear db</ion-button>
+
+    <br>
+    <br>
+    <ion-button (click)="download()">Sync (download)</ion-button>
 
 </ion-content>
 
