@@ -73,7 +73,7 @@ export class OnboardingPage implements OnInit {
       if(file.name.endsWith(".webp")) {
         const imageData = await this.sync.downloadImage(file.id)
         const image = new ImageDb(file.name, imageData)
-        await this.dbService.addImage(image)
+        await this.dbService.insertRawImage(image)
         done++
         console.log("downloaded image " + file.name)
       } else if(file.name.startsWith("entry-")) {
