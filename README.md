@@ -22,7 +22,7 @@ C:\Users\Silas\AppData\Local\Android\Sdk\build-tools\35.0.0\apksigner.bat sign
 
 Goto
 ```
-C:\Users\Silas\AppData\Local\Android\Sdk\platform-tools>
+C:\Users\Silas\AppData\Local\Android\Sdk\platform-tools
 ```
 
 and do
