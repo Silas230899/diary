@@ -111,11 +111,11 @@ export class DatabaseService {
   
   async insertRawEntry(entry: EntryDbRecord) {
     //const encryptedText = await this.crypto.encryptStringToBase64String(entry.text)
-    //const referencedImagesString = entry.referencedImages.join(",")
+    const referencedImagesString = entry.referencedImages.join(",")
     await this.database.execute(
       `INSERT into entry (id, date, written, entryIndex, text, sync, referencedImages, syncStatus, driveFileId)
       VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8, $9)`,
-      [entry.id, entry.date, entry.written, entry.entryIndex, entry.text, entry.sync, entry.referencedImages, entry.syncStatus, entry.driveFileId]
+      [entry.id, entry.date, entry.written, entry.entryIndex, entry.text, entry.sync, referencedImagesString, entry.syncStatus, entry.driveFileId]
     );
   }
   
@@ -232,8 +232,11 @@ export class DatabaseService {
       const res = await this.database.select("SELECT * FROM entry WHERE date = date($1) AND syncStatus != 'pending_delete'", [date])
       const entryPromises: Promise<EntryViewRecord>[] = (res as any[]).map(async entry => {
         const decryptedText = await this.crypto.decryptBase64StringToString(entry["text"])
+        console.log(entry["referencedImages"])
         const referencedImages = (entry["referencedImages"] as string).length === 0 ? [] : (entry["referencedImages"] as string).split(",")
+        console.log(referencedImages)
         const imagePromises: Promise<ImageView>[] = referencedImages.map(async (imageName) => {
+          console.log(imageName)
           return new ImageView(imageName, await this.getImage(imageName))
         })
         const images: ImageView[] = await Promise.all(imagePromises)
