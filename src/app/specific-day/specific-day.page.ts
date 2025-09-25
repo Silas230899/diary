@@ -235,7 +235,7 @@ export class SpecificDayPage implements OnInit {
         imagePromises = [...imagePromises, entryPromise]
         await Promise.all(imagePromises)
         await this.populateEntries(this.date)
-        await this.sync.synchronize()
+        await this.sync.uploadLocalChanges()
       }
     })
     

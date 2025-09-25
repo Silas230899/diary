@@ -65,6 +65,13 @@ export class DatabaseService {
     await file.close()
   }
   
+  async insertRawImage(image: ImageDb) {
+    const file = await create("images/" + image.filename, { baseDir: BaseDirectory.AppData })
+    const fileArrayBuffer = await image.imageData.bytes()
+    await file.write(fileArrayBuffer)
+    await file.close()
+  }
+  
   private async getImage(name: string) {
     if(!this.images.has(name)) {
       const encryptedImageFile = await readFile("images/" + name, { baseDir: BaseDirectory.AppData })
@@ -79,6 +86,12 @@ export class DatabaseService {
     const encryptedImageFile = await readFile("images/" + name, { baseDir: BaseDirectory.AppData })
     const decryptedImageFile = await this.crypto.decryptUint8ArrayToArrayBuffer(encryptedImageFile)
     return new ImageDb(name, new Blob([decryptedImageFile]))
+  }
+  
+  async getRawDBImage(name: string) {
+    const encryptedImageFile = await readFile("images/" + name, { baseDir: BaseDirectory.AppData })
+    //const decryptedImageFile = await this.crypto.decryptUint8ArrayToArrayBuffer(encryptedImageFile)
+    return new ImageDb(name, new Blob([encryptedImageFile]))
   }
   
   async deleteImage(filename: string) {
@@ -96,13 +109,13 @@ export class DatabaseService {
     this.entries.delete(entry.date) // TODO verbessern
   }
   
-  async insertEntry(entry: EntryDbRecord) {
-    const encryptedText = await this.crypto.encryptStringToBase64String(entry.text)
-    const referencedImagesString = entry.referencedImages.join(",")
+  async insertRawEntry(entry: EntryDbRecord) {
+    //const encryptedText = await this.crypto.encryptStringToBase64String(entry.text)
+    //const referencedImagesString = entry.referencedImages.join(",")
     await this.database.execute(
       `INSERT into entry (id, date, written, entryIndex, text, sync, referencedImages, syncStatus, driveFileId)
       VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8, $9)`,
-      [entry.id, entry.date, entry.written, entry.entryIndex, encryptedText, entry.sync, referencedImagesString, entry.syncStatus, entry.driveFileId]
+      [entry.id, entry.date, entry.written, entry.entryIndex, entry.text, entry.sync, entry.referencedImages, entry.syncStatus, entry.driveFileId]
     );
   }
   
@@ -160,17 +173,16 @@ export class DatabaseService {
     return index !== -1 ? filename.slice(index + 1) : null;
   }
   
-  async getAllUnsyncedSyncEntries() {
+  async getAllUnsyncedSyncEntriesRaw() {
     const res = await this.database.select("SELECT * FROM entry WHERE (syncStatus = 'pending_create' OR syncStatus = 'pending_delete') AND sync = 'true'")
     const entryPromises: Promise<EntryDbRecord>[] = (res as any[]).map(async entry => {
-      const decryptedText = await this.crypto.decryptBase64StringToString(entry["text"])
       const referencedImages = (entry["referencedImages"] as string).length === 0 ? [] : (entry["referencedImages"] as string).split(",")
       return new EntryDbRecord(
         entry["id"],
         entry["date"],
         entry["written"],
         entry["entryIndex"],
-        decryptedText,
+        entry["text"],
         entry["sync"],
         referencedImages,
         entry["syncStatus"],

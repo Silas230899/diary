@@ -33,10 +33,34 @@ export class SynchronizationService {
       this.refreshToken = refreshToken
       this.accessTokenExpiration = accessTokenExpiration
       this.startPageToken = startPageToken
+      this.downloadRemoteChanges().then(() => console.log("successfully downloaded remote changes"))
     }
   }
   
-  async synchronize() {
+  async uploadLocalChanges() {
+    // upload changes from local db
+    const entries = await this.dbService.getAllUnsyncedSyncEntriesRaw()
+    for(let entry of entries) {
+      if(entry.syncStatus === "pending_delete" && entry.driveFileId !== null) {
+        await this.deleteFile(entry.driveFileId)
+      } else if(entry.syncStatus === "pending_create") {
+        console.log(entry.syncStatus)
+        entry.syncStatus = "synced"
+        const entryDriveFileId = await this.uploadEntry(entry)
+        entry.driveFileId = entryDriveFileId
+        await this.dbService.setDriveFileId(entry.id, entry.driveFileId)
+        await this.dbService.setSyncStatus(entry.id, entry.syncStatus)
+        
+        console.log(entry.referencedImages)
+        for(let filename of entry.referencedImages) {
+          const dbImage = await this.dbService.getRawDBImage(filename)
+          const imageDriveFileId = await this.uploadImage(dbImage)
+        }
+      }
+    }
+  }
+  
+  async downloadRemoteChanges() {
     // download changes from drive
     const changesList = await this.listChanges()
     console.log(changesList)
@@ -57,44 +81,30 @@ export class SynchronizationService {
           if(!existsAlready) {
             const entry = await this.downloadEntry(change.file.id)
             console.log(entry)
-            await this.dbService.insertEntry(entry)
-          } else console.log("entry " + change.file.name + "exists already")
+            await this.dbService.insertRawEntry(entry)
+          } else console.log("entry '" + change.file.name + "' exists already")
         } else if(change.file.mimeType === "image/webp") {
           if(!await this.dbService.imageFileExists(change.file.name)) {
             const imageData = await this.downloadImage(change.file.id)
             const image = new ImageDb(change.file.name, imageData)
-            await this.dbService.addImage(image)
-          } else console.log("image " + change.file.name + " exists already")
+            await this.dbService.insertRawImage(image)
+          } else console.log("image '" + change.file.name + "' exists already")
         }
       }
     }
     this.startPageToken = await changesList.newStartPageToken
     localStorage.setItem("drive_start_page_token", this.startPageToken!)
+  }
+  
+  async synchronizeEverything() {
+    await this.uploadLocalChanges()
     
-    // upload changes from local db
-    const entries = await this.dbService.getAllUnsyncedSyncEntries()
-    for(let entry of entries) {
-      if(entry.syncStatus === "pending_delete" && entry.driveFileId !== null) {
-        await this.deleteFile(entry.driveFileId)
-        
-      } else if(entry.syncStatus === "pending_create") {
-        console.log(entry.syncStatus)
-        entry.syncStatus = "synced"
-        const entryDriveFileId = await this.uploadEntry(entry)
-        entry.driveFileId = entryDriveFileId
-        await this.dbService.setDriveFileId(entry.id, entry.driveFileId)
-        await this.dbService.setSyncStatus(entry.id, entry.syncStatus)
-        
-        for(let filename of entry.referencedImages) {
-          const dbImage = await this.dbService.getDBImage(filename)
-          const imageDriveFileId = await this.uploadImage(dbImage)
-        }
-      }
-    }
+    // delay is necessary for api to process changes
+    setTimeout(async () => await this.downloadRemoteChanges(), 1000)
   }
   
   isGoogleInitialized() {
-    console.log(this.accessToken + "," + this.refreshToken + "," + this.accessTokenExpiration)
+    //console.log(this.accessToken + "," + this.refreshToken + "," + this.accessTokenExpiration)
     return this.accessToken !== null && this.refreshToken !== null && this.accessTokenExpiration !== null
   }
   

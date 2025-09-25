@@ -1,20 +1,30 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {IonButton, IonContent, IonHeader, IonInput, IonNote, IonTitle, IonToolbar} from '@ionic/angular/standalone';
+import {
+  IonBackButton,
+  IonButton,
+  IonContent,
+  IonHeader,
+  IonInput,
+  IonNote,
+  IonTitle,
+  IonToolbar
+} from '@ionic/angular/standalone';
 import {PasswordService} from "../services/password.service";
 import {Router} from "@angular/router";
 import {SynchronizationService} from "../services/synchronization.service";
 import {ImageDb} from "../models/image-db";
 import {DatabaseService} from "../services/database.service";
 import {CryptoService} from "../services/crypto.service";
+import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
 
 @Component({
   selector: 'app-onboarding',
   templateUrl: './onboarding.page.html',
   styleUrls: ['./onboarding.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonInput, IonButton, IonNote]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonInput, IonButton, IonNote, IonBackButton, NavBarComponent]
 })
 export class OnboardingPage implements OnInit {
   
@@ -35,22 +45,7 @@ export class OnboardingPage implements OnInit {
   async initializeGoogle() {
     await this.sync.google()
     
-    const allFiles = await this.sync.listDriveFiles()
-    let done = 0
-    for(let file of allFiles) {
-      if(file.name.endsWith(".webp")) {
-        const imageData = await this.sync.downloadImage(file.id)
-        const image = new ImageDb(file.name, imageData)
-        await this.dbService.addImage(image)
-        done++
-      } else if(file.name.startsWith("entry-")) {
-        const entry = await this.sync.downloadEntry(file.id)
-        entry.driveFileId = file.id
-        await this.dbService.insertEntry(entry)
-        done++
-      }
-      console.log(done + "/" + allFiles.length)
-    }
+    await this.downloadEverything()
     
     const masterPasswordSalt = await this.sync.getMasterPasswordSalt()
     if(masterPasswordSalt !== null) {
@@ -63,16 +58,32 @@ export class OnboardingPage implements OnInit {
     this.googleInitialized = this.sync.isGoogleInitialized()
   }
   
-  async testupload() {
-    await this.sync.uploadFile()
-    await this.sync.listFiles()
-  }
-  
   async setPassword() {
     await this.passwordService.setPassword(this.password);
     if(this.googleInitialized) {
       await this.sync.uploadBinary("masterPasswordSalt.bin", await this.passwordService.readSalt())
     }
     await this.router.navigate(['/home'], { replaceUrl: true });
+  }
+  
+  async downloadEverything() {
+    const allFiles = await this.sync.listDriveFiles()
+    let done = 0
+    for(let file of allFiles) {
+      if(file.name.endsWith(".webp")) {
+        const imageData = await this.sync.downloadImage(file.id)
+        const image = new ImageDb(file.name, imageData)
+        await this.dbService.addImage(image)
+        done++
+        console.log("downloaded image " + file.name)
+      } else if(file.name.startsWith("entry-")) {
+        const entry = await this.sync.downloadEntry(file.id)
+        entry.driveFileId = file.id
+        console.log(entry)
+        await this.dbService.insertRawEntry(entry)
+        done++
+      }
+      console.log(done + "/" + allFiles.length)
+    }
   }
 }

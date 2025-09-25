@@ -4,7 +4,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="ion-padding">
     <ion-input label="Passwort" [(ngModel)]="password"></ion-input>
     <ion-button (click)="setPassword()" [disabled]="password.length === 0">Setzen</ion-button>
 
@@ -16,7 +16,11 @@
         <ion-note>Google Drive is initialized</ion-note>
         <br>
         <br>
-        <ion-button (click)="testupload()">tesrupload</ion-button>
+        <ion-button (click)="downloadEverything()">Redownload everything</ion-button>
+        <br>
+        <ion-note>(db must have been manually deleted/cleared)</ion-note>
     }
 
 </ion-content>
+
+<app-nav-bar [host]="'statistics'"></app-nav-bar>
