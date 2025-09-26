@@ -1,0 +1,21 @@
+@for (part of entryParts; track $index) {
+    @if (part.type === "text") {
+        {{ part.value }}
+    } @else if (part.type === "newline") {
+        <br>
+    } @else if (part.type === "image") {
+        <div class="imageContainer">
+            <img [src]="part.value">
+        </div>
+    } @else if (part.type === "images") {
+        <div class="imageContainer">
+            @for (image of part.value; track image) {
+                <img [src]="image">
+            }
+        </div>
+    } @else if (part.type === "chat") {
+        <span style="background-color: darkseagreen;">
+            {{ part.value }}
+        </span>
+    }
+}

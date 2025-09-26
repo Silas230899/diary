@@ -1,0 +1,14 @@
+.imageContainer {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.imageContainer > img {
+    height: clamp(300px, 45vw, 500px);
+    border-radius: 16px;
+    display: inline-block;
+    width: auto;
+    max-width: none;
+    margin-right: 8px;
+}
