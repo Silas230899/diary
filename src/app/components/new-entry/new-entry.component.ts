@@ -37,7 +37,7 @@ import {image} from "@tauri-apps/api";
 @Component({
   selector: 'app-new-entry',
   templateUrl: './new-entry.component.html',
-  styleUrls: ['./new-entry.component.css'],
+  styleUrls: ['./new-entry.component.scss'],
   imports: [
     IonHeader,
     IonToolbar,

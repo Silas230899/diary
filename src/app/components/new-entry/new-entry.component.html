@@ -18,7 +18,7 @@
     Datum:
     <ion-datetime-button datetime="date" style="display: inline"></ion-datetime-button>
 
-    <ion-modal [keepContentsMounted]="true">
+    <ion-modal [keepContentsMounted]="true" class="test">
         <ng-template>
             <ion-datetime id="date"
                           presentation="date"
@@ -27,6 +27,7 @@
                               weekday: 'long',
                               month: 'long',
                               day: '2-digit',
+                              year: 'numeric'
                             }
                           }"
                           [(ngModel)]="date"
@@ -39,7 +40,7 @@
     Verfasst:
     <ion-datetime-button datetime="datetime" style="display: inline; margin-top: 8px"></ion-datetime-button>
 
-    <ion-modal [keepContentsMounted]="true">
+    <ion-modal [keepContentsMounted]="true" class="test">
         <ng-template>
             <ion-datetime id="datetime"
                           presentation="date-time"
@@ -48,6 +49,7 @@
                               weekday: 'long',
                               month: 'long',
                               day: '2-digit',
+                              year: 'numeric'
                             },
                             time: {
                               hour: '2-digit',
