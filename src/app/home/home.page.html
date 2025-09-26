@@ -1,78 +1,72 @@
 <ion-header>
     <ion-toolbar color="primary">
-        <ion-title>Home</ion-title>
+        <ion-title>An diesem Tag</ion-title>
     </ion-toolbar>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-button (click)="gotoYesterday()">
+                <ion-icon slot="start" name="chevron-back-outline"></ion-icon>
+                {{getYesterdate()}}.
+            </ion-button>
+        </ion-buttons>
+
+        <ion-datetime-button datetime="whichdate"></ion-datetime-button>
+
+        <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+                <ion-datetime id="whichdate"
+                              presentation="date"
+                              [formatOptions]="{
+                            date: {
+                              month: 'long',
+                              day: '2-digit',
+                            }
+                          }"
+                              [(ngModel)]="date"
+                              (ionChange)="selectedDate($event)"
+                ></ion-datetime>
+            </ng-template>
+        </ion-modal>
+
+        <ion-buttons slot="end" >
+            <ion-button (click)="gotoTomorrow()">
+                {{getTomorrowdate()}}.
+                <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+    @if (entriesLoading) {
+        <ion-progress-bar></ion-progress-bar>
+    }
 </ion-header>
 
 <ion-content>
 
     @for (day of entries; track day) {
-        <ion-card>
-            <ion-card-header>
+        <ion-card button (click)="openEntry(day[0].date)">
+            <ion-card-header style="padding-bottom: 4px">
                 <ion-card-title>{{formatDate(day[0].date)}}</ion-card-title>
             </ion-card-header>
             @for (entry of day; track entry.id) {
-                @if ($first) {
-                    <ion-card-subtitle class="ion-padding-horizontal" style="position: absolute; right: 0">Verfasst: {{formatDatetime(entry.date, entry.written)}}</ion-card-subtitle>
-                } @else {
-                    <ion-card-header>
-                        <ion-card-subtitle class="ion-padding-horizontal" style="position: absolute; right: 0">Verfasst: {{formatDatetime(entry.date, entry.written)}}</ion-card-subtitle>
-                    </ion-card-header>
-                }
-
                 <ion-card-content>
-                    {{entry.text}}
+                    Verfasst: {{formatDatetime(entry.date, entry.written)}}
+                    <br>
+                    <app-entry-text [entry]="entry"></app-entry-text>
                 </ion-card-content>
             }
         </ion-card>
-        <!--
-        <ion-card>
-            <ion-card-header>
-                <ion-card-title>{{formatDate(entry.date)}}</ion-card-title>
-                <ion-card-subtitle>Verfasst: {{formatDatetime(entry.date, entry.written)}}</ion-card-subtitle>
-            </ion-card-header>
-
-            <ion-card-content>
-                {{entry.text}}
-            </ion-card-content>
-
-            <ion-button (click)="delete(entry)" fill="clear">
-                <ion-label>Löschen</ion-label>
-                <ion-icon name="trash-outline"></ion-icon>
-            </ion-button>
-        </ion-card>
-        -->
+    } @empty {
+        @if (!entriesLoading) {
+            <div class="no-entries-container">
+                <div class="no-entries-headline">
+                    Für diesen Tag gibt es noch keine Einträge
+                </div>
+                <ion-button expand="block" class="ion-padding-horizontal">
+                    Für {{thisYear()}} hinzufügen
+                </ion-button>
+            </div>
+        }
     }
-
-    <!--
-    <ion-card>
-        <ion-card-header>
-            <ion-card-title>17.05.2025, Samstag</ion-card-title>
-        </ion-card-header>
-
-        <ion-card-header>
-            <ion-card-title>Verfasst: Heute</ion-card-title>
-        </ion-card-header>
-
-        <ion-card-content>
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-        </ion-card-content>
-    </ion-card>
-
-    <ion-card>
-        <ion-card-header>
-            <ion-card-title>16.05.2025, Freitag</ion-card-title>
-        </ion-card-header>
-
-        <ion-card-header>
-            <ion-card-title>Verfasst: Heute</ion-card-title>
-        </ion-card-header>
-
-        <ion-card-content>
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-        </ion-card-content>
-    </ion-card>
-    -->
 
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button (click)="openNewEntryModal()">
