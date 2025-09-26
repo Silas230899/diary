@@ -137,34 +137,12 @@ export class DatabaseService {
     return currentMax + 1
   }
   
+  /**
+   * does not return entries that are marked as pending_delete
+   */
   async getEntriesByDate(date: string) {
-    let entries: EntryViewRecord[] = []
-    const res = await this.database.select("SELECT * FROM entry WHERE strftime('%m-%d', date) = strftime('%m-%d', '$1')", [date])
-    for(const entry of res as any[]) {
-      const decryptedText = await this.crypto.decryptBase64StringToString(entry["text"])
-      const referencedImages = (entry["referencedImages"] as string).length === 0 ? [] : (entry["referencedImages"] as string).split(",")
-      const imagePromises: Promise<ImageView>[] = referencedImages.map(async (imageName) => {
-        const imageFile = await readFile("images/" + imageName, { baseDir: BaseDirectory.AppData })
-        const base64ImageData = "data:image/png;base64," + this.byteArrayToBase64(imageFile)
-        return new ImageView(imageName, base64ImageData)
-      })
-      
-      const images: ImageView[] = await Promise.all(imagePromises)
-      
-      const entryObject = new EntryViewRecord(
-        entry["id"],
-        entry["date"],
-        entry["written"],
-        entry["entryIndex"],
-        decryptedText,
-        entry["sync"],
-        images,
-        entry["syncStatus"],
-        entry["driveFileId"])
-      
-      entries.push(entryObject)
-    }
-    return entries
+    const res: any[] = await this.database.select("SELECT * FROM entry WHERE strftime('%m-%d', date) = strftime('%m-%d', $1) AND syncStatus != 'pending_delete'", [date])
+    return await this.transformEntryDatabaseResultsToEntryViewRecords(res)
   }
   
   private getFileExtension(filename: string): string | null {
@@ -223,6 +201,10 @@ export class DatabaseService {
       entry["driveFileId"])
   }
   
+  private transformReferencedImageStringToArray(referencedImages: string) {
+    return referencedImages.length === 0 ? [] : referencedImages.split(",")
+  }
+  
   /**
    * does not return entries that are marked as pending_delete
    */
@@ -234,10 +216,17 @@ export class DatabaseService {
     } else console.log("entry cash hit")
     return this.entries.get(date)!
     */
-    const res = await this.database.select("SELECT * FROM entry WHERE date = date($1) AND syncStatus != 'pending_delete'", [date])
-    const entryPromises: Promise<EntryViewRecord>[] = (res as any[]).map(async entry => {
+    const res: any[] = await this.database.select("SELECT * FROM entry WHERE date = date($1) AND syncStatus != 'pending_delete'", [date])
+    return await this.transformEntryDatabaseResultsToEntryViewRecords(res)
+  }
+  
+  /**
+   * does not return entries that are marked as pending_delete
+   */
+  private async transformEntryDatabaseResultsToEntryViewRecords(databaseRecords: any[]) {
+    const entries = databaseRecords.map(async entry => {
       const decryptedText = await this.crypto.decryptBase64StringToString(entry["text"])
-      const referencedImages = (entry["referencedImages"] as string).length === 0 ? [] : (entry["referencedImages"] as string).split(",")
+      const referencedImages = this.transformReferencedImageStringToArray(entry["referencedImages"])
       const imagePromises: Promise<ImageView>[] = referencedImages.map(async (imageName) => {
         return new ImageView(imageName, await this.getImage(imageName))
       })
@@ -253,8 +242,7 @@ export class DatabaseService {
         entry["syncStatus"],
         entry["driveFileId"])
     })
-    const entries = await Promise.all(entryPromises)
-    return entries
+    return await Promise.all(entries)
   }
   
   byteArrayToBase64(bytes: Uint8Array): string {
