@@ -20,6 +20,7 @@ import {EntryViewRecord} from "../models/entry-view-record";
 import {NewEntry} from "../models/new-entry";
 import {NewEntryWithoutEntryIndex} from "../models/new-entry-without-entry-index";
 import {SynchronizationService} from "../services/synchronization.service";
+import {EntryTextComponent} from "../components/entry-text/entry-text.component";
 
 type EntryPart = { type: "text", value: string }
   | { type: "newline" }
@@ -32,7 +33,7 @@ type EntryPart = { type: "text", value: string }
   templateUrl: './specific-day.page.html',
   styleUrls: ['./specific-day.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonIcon, IonDatetimeButton, IonModal, IonDatetime, IonLabel, IonPopover, IonList, IonItem, IonButtons, NavBarComponent, IonImg, IonProgressBar]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonIcon, IonDatetimeButton, IonModal, IonDatetime, IonLabel, IonPopover, IonList, IonItem, IonButtons, NavBarComponent, IonImg, IonProgressBar, EntryTextComponent]
 })
 export class SpecificDayPage implements OnInit {
 
@@ -188,8 +189,7 @@ export class SpecificDayPage implements OnInit {
     await popover.present()
   }
 
-  // @ts-ignore
-  async selectedDate($event) {
+  async selectedDate($event: any) {
     this.date = $event.detail.value;
     await this.populateEntries(this.date)
   }

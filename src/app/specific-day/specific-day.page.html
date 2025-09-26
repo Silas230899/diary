@@ -12,17 +12,17 @@
             </ion-button>
         </ion-buttons>
 
-        <ion-datetime-button datetime="whichdate"></ion-datetime-button>
+        <ion-datetime-button datetime="specificDate"></ion-datetime-button>
 
         <ion-modal [keepContentsMounted]="true">
             <ng-template>
-                <ion-datetime id="whichdate"
+                <ion-datetime id="specificDate"
                               presentation="date"
                               [formatOptions]="{
                             date: {
-                              weekday: 'long',
                               month: 'long',
                               day: '2-digit',
+                              year: 'numeric'
                             }
                           }"
                               [(ngModel)]="date"
@@ -43,7 +43,7 @@
     }
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content>
 
     @if (!entriesLoading && entries.length > 0) {
         <div style="width: 100%; display: flex; justify-content: center;">
@@ -59,33 +59,17 @@
                 <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
             </ion-button>
             <ion-card-content>
-                @for (part of splitEntryText(entry); track $index) {
-                    @if (part.type === "text") {
-                        {{ part.value }}
-                    } @else if (part.type === "newline") {
-                        <br>
-                    } @else if (part.type === "image") {
-                        <div class="imageContainer">
-                            <img [src]="part.value">
-                        </div>
-                    } @else if (part.type === "images") {
-                        <div class="imageContainer">
-                            @for (image of part.value; track image) {
-                                <img [src]="image">
-                            }
-                        </div>
-                    } @else if (part.type === "chat") {
-                        <span style="background-color: darkseagreen;">
-                            {{ part.value }}
-                        </span>
-                    }
-                }
+                Verfasst: {{formatTime(entry.written)}} Uhr
+                <br>
+                <app-entry-text [entry]="entry"></app-entry-text>
             </ion-card-content>
+            <!--
             <ion-card-header style="position: absolute; right: 0; bottom: 0">
                 <ion-card-subtitle>
                     {{formatTime(entry.written)}} Uhr
                 </ion-card-subtitle>
             </ion-card-header>
+            -->
         </ion-card>
         @if ($index < $count) {
             <div style="width: 100%; display: flex; justify-content: center">
@@ -96,8 +80,8 @@
         }
     } @empty {
         @if (!entriesLoading) {
-            <div class="container">
-                <div class="headline">
+            <div class="no-entries-container">
+                <div class="no-entries-headline">
                     Noch kein Eintrag
                 </div>
                 <ion-button (click)="openNewEntryModal(null, null)" expand="block" class="ion-padding-horizontal">

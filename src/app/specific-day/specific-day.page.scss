@@ -1,4 +1,4 @@
-.container {
+.no-entries-container {
   position: absolute;
   left: 0;
   right: 0;
@@ -8,14 +8,13 @@
   margin: auto;
 }
 
-.container > .headline {
+.no-entries-container > .no-entries-headline {
   font-weight: bold;
   font-size: 20px;
   line-height: 26px;
   text-align: center;
   text-wrap: balance;
 }
-
 
 .imageContainer {
   max-width: 100%;

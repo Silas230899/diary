@@ -1,7 +1,16 @@
 <ion-content>
     <ion-list>
-        <ion-item button detail="false" (click)="delete()">
+        <ion-item button (click)="delete()">
+            <ion-icon slot="start" name="trash-outline"></ion-icon>
             Delete
+        </ion-item>
+        <ion-item button>
+            <ion-icon slot="start" name="pencil-outline"></ion-icon>
+            Bearbeiten
+        </ion-item>
+        <ion-item button>
+            <ion-icon slot="start" name="information-circle-outline"></ion-icon>
+            Informationen
         </ion-item>
     </ion-list>
 </ion-content>
