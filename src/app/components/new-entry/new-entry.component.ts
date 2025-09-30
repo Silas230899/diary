@@ -3,7 +3,7 @@ import {
   IonButton,
   IonButtons,
   IonContent, IonDatetime, IonDatetimeButton,
-  IonHeader, IonIcon, IonImg, IonLabel,
+  IonHeader, IonIcon, IonItem, IonLabel, IonList,
   IonModal, IonNote, IonSkeletonText, IonTextarea, IonThumbnail,
   IonTitle, IonToggle,
   IonToolbar, ModalController, NavController
@@ -20,19 +20,20 @@ import {
   todayOutline,
   checkmarkOutline,
   closeOutline,
-  camera
+  camera,
+  cloudDoneOutline,
+  cloudOfflineOutline,
+  timeOutline,
 } from "ionicons/icons";
 import {DatabaseService} from "../../services/database.service";
 import {CryptoService} from "../../services/crypto.service";
 import imageBlobReduce from 'image-blob-reduce';
 import { v4 as uuidv4 } from 'uuid';
-import {BaseDirectory, create, exists, mkdir} from "@tauri-apps/plugin-fs";
-import {NewEntry} from "../../models/new-entry";
 import {NewEntryWithoutEntryIndex} from "../../models/new-entry-without-entry-index";
 import {ImageView} from "../../models/image-view";
 import {ImageDb} from "../../models/image-db";
 import {ActionSheetController} from "@ionic/angular";
-import {image} from "@tauri-apps/api";
+import {SyncStatus} from "../../models/syncStatusTypes";
 
 @Component({
   selector: 'app-new-entry',
@@ -54,9 +55,10 @@ import {image} from "@tauri-apps/api";
     IonToggle,
     IonNote,
     IonLabel,
-    IonImg,
     IonSkeletonText,
-    IonThumbnail
+    IonThumbnail,
+    IonList,
+    IonItem
   ],
   standalone: true
 })
@@ -72,13 +74,12 @@ export class NewEntryComponent  implements OnInit {
   @ViewChild("textarea") textarea!: IonTextarea
 
   constructor(private modalCtrl: ModalController,
-              private navController: NavController,
-              private dbService: DatabaseService,
-              private crypto: CryptoService,
               private actionSheetCtrl: ActionSheetController) {
-    addIcons({ camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
-    this.date = new Date().toISOString()
-    this.written = new Date().toISOString()
+    addIcons({ timeOutline, cloudDoneOutline, cloudOfflineOutline, camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
+    let currentDate = new Date()
+    currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
+    this.date = currentDate.toISOString()
+    this.written = currentDate.toISOString()
   }
   
   async ionViewDidEnter() {
@@ -90,7 +91,8 @@ export class NewEntryComponent  implements OnInit {
   }
 
   async confirm() {
-    const newEntry = new NewEntryWithoutEntryIndex(this.date, this.written, this.text, this.sync, this.imagesDb)
+    const syncStatus: SyncStatus = this.sync ? 'pending_upload' : "keep_local"
+    const newEntry = new NewEntryWithoutEntryIndex(this.date, this.written, this.text, this.imagesDb, syncStatus)
     
     const everyImageUsed = this.imagesViews.every(image => this.text.includes(`![image](${image.filename})`))
     
@@ -172,10 +174,11 @@ export class NewEntryComponent  implements OnInit {
     const imageView = new ImageView(newFilename, "")
     this.imagesViews.push(imageView)
     
-    const imagefile = event.target.files[0]
+    const imagefile: File = event.target.files[0]
+    console.log("bildgröße vorher: " + imagefile.size)
     
-    const downscaled = await imageBlobReduce().toCanvas(imagefile, { max: 5000 })
-    console.log(downscaled.width, downscaled.height)
+    const downscaled = await imageBlobReduce().toCanvas(imagefile, { max: 750 })
+    //console.log(downscaled.width, downscaled.height)
     const downscaledWebpBlob: Blob = await new Promise((resolve, reject) => {
       downscaled.toBlob((blob) => {
           if (blob) resolve(blob);
@@ -184,7 +187,7 @@ export class NewEntryComponent  implements OnInit {
         "image/webp",
         0.9)
     })
-    console.log((await downscaledWebpBlob.arrayBuffer()).byteLength)
+    console.log("Bildgröße nachher: " + (await downscaledWebpBlob.arrayBuffer()).byteLength)
     this.imagesDb.push(new ImageDb(newFilename, downscaledWebpBlob))
     const imageUrl = URL.createObjectURL(downscaledWebpBlob)
     //this.imagesViews.push(new ImageView(newFilename, imageUrl))

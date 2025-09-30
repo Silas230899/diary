@@ -14,15 +14,17 @@
     </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding" [fullscreen]="true">
-    Datum:
-    <ion-datetime-button datetime="date" style="display: inline"></ion-datetime-button>
-
-    <ion-modal [keepContentsMounted]="true" class="test">
-        <ng-template>
-            <ion-datetime id="date"
-                          presentation="date"
-                          [formatOptions]="{
+<ion-content>
+    <ion-list lines="none">
+        <ion-item>
+            <ion-icon class="_8px-margin-inline-end" name="calendar-number-outline" slot="start"></ion-icon>
+            <ion-label>Datum</ion-label>
+            <ion-datetime-button datetime="date"></ion-datetime-button>
+            <ion-modal [keepContentsMounted]="true" class="test">
+                <ng-template>
+                    <ion-datetime id="date"
+                                  presentation="date"
+                                  [formatOptions]="{
                             date: {
                               weekday: 'long',
                               month: 'long',
@@ -30,21 +32,22 @@
                               year: 'numeric'
                             }
                           }"
-                          [(ngModel)]="date"
-            ></ion-datetime>
-        </ng-template>
-    </ion-modal>
-
-    <br>
-
-    Verfasst:
-    <ion-datetime-button datetime="datetime" style="display: inline; margin-top: 8px"></ion-datetime-button>
-
-    <ion-modal [keepContentsMounted]="true" class="test">
-        <ng-template>
-            <ion-datetime id="datetime"
-                          presentation="date-time"
-                          [formatOptions]="{
+                                  [(ngModel)]="date"
+                    ></ion-datetime>
+                </ng-template>
+            </ion-modal>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="_8px-margin-inline-end" name="time-outline" slot="start"></ion-icon>
+            <ion-label>
+                Verfasst
+            </ion-label>
+            <ion-datetime-button datetime="datetime"></ion-datetime-button>
+            <ion-modal [keepContentsMounted]="true" class="test">
+                <ng-template>
+                    <ion-datetime id="datetime"
+                                  presentation="date-time"
+                                  [formatOptions]="{
                             date: {
                               weekday: 'long',
                               month: 'long',
@@ -56,59 +59,67 @@
                               minute: '2-digit',
                             }
                           }"
-                          [(ngModel)]="written"
-            ></ion-datetime>
-        </ng-template>
-    </ion-modal>
-
-    <br>
-
-    <ion-toggle [(ngModel)]="sync" style="margin-top: 8px">Synchronisieren</ion-toggle>
-
-    @if (!sync) {
-        <br>
-        <ion-note style="margin-top: 8px">Dieser Eintrag wird nur lokal gespeichert</ion-note>
-    }
-
-    <br>
-
-    <ion-textarea
-            #textarea
-            style="margin-top: 8px"
-            autoGrow="true"
-            rows="5"
-            labelPlacement="floating"
-            label="Eintrag"
-            fill="outline"
-            [(ngModel)]="text">
-    </ion-textarea>
+                                  [(ngModel)]="written"
+                    ></ion-datetime>
+                </ng-template>
+            </ion-modal>
+        </ion-item>
+        <ion-item>
+            @if (sync) {
+                <ion-icon class="_8px-margin-inline-end" name="cloud-done-outline" slot="start"></ion-icon>
+            } @else {
+                <ion-icon class="_8px-margin-inline-end" name="cloud-offline-outline" slot="start"></ion-icon>
+            }
+            <ion-toggle [(ngModel)]="sync" justify="space-between">
+                Synchronisieren
+                @if (!sync) {
+                    <br>
+                    <ion-note>Dieser Eintrag wird nur lokal gespeichert</ion-note>
+                }
+            </ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-textarea
+                #textarea
+                style="margin-top: 8px"
+                autoGrow="true"
+                rows="5"
+                labelPlacement="floating"
+                label="Eintrag"
+                fill="outline"
+                [(ngModel)]="text">
+            </ion-textarea>
+        </ion-item>
+        <ion-item>
+            @if (imagesViews.length === 0) {
+                <ion-button (click)="openFileDialog()" size="default">
+                    <ion-icon name="add" slot="start"></ion-icon>
+                    <ion-label>Bild</ion-label>
+                    <ion-icon slot="end" icon="camera"></ion-icon>
+                </ion-button>
+                <br>
+            } @else {
+                <div class="imageContainer">
+                    <div id="addAnotherImageButtonContainer">
+                        <ion-button shape="round" fill="outline" size="large" (click)="openFileDialog()">
+                            <ion-icon slot="icon-only" name="add"></ion-icon>
+                        </ion-button>
+                    </div>
+                    @for (img of imagesViews; track img.filename) {
+                        @if (img.localImageUrl === "") {
+                            <ion-thumbnail><ion-skeleton-text [animated]="true"></ion-skeleton-text></ion-thumbnail>
+                        } @else {
+                            <img [src]="img.localImageUrl" (click)="reference(img)">
+                        }
+                    }
+                </div>
+            }
+        </ion-item>
+    </ion-list>
 
     <input type="file" id="file-upload" style="display: none" (change)="setImage($event)">
 
-    @if (imagesViews.length === 0) {
-        <br>
-        <ion-button (click)="openFileDialog()">
-            <ion-label>Bild</ion-label>
-            <ion-icon slot="end" icon="camera"></ion-icon>
-        </ion-button>
-        <br>
-    } @else {
-        <br>
-        <div class="imageContainer">
-            <div id="addAnotherImageButtonContainer">
-                <ion-button shape="round" fill="outline" size="large" (click)="openFileDialog()">
-                    <ion-icon slot="icon-only" name="add"></ion-icon>
-                </ion-button>
-            </div>
-            @for (img of imagesViews; track img.filename) {
-                @if (img.localImageUrl === "") {
-                    <ion-thumbnail><ion-skeleton-text [animated]="true"></ion-skeleton-text></ion-thumbnail>
-                } @else {
-                    <img [src]="img.localImageUrl" (click)="reference(img)">
-                }
-            }
-        </div>
-    }
+
 
     <!--
     <br>
