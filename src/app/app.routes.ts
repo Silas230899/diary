@@ -24,7 +24,11 @@ export const routes: Routes = [
   {
     path: 'onboarding',
     loadComponent: () => import('./onboarding/onboarding.page').then( m => m.OnboardingPage)
+  },  {
+    path: 'search',
+    loadComponent: () => import('./search/search.page').then( m => m.SearchPage)
   },
+
 
 
 
