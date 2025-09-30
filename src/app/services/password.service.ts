@@ -1,6 +1,9 @@
 import {Injectable} from '@angular/core';
 import {BaseDirectory, create, exists, readFile} from "@tauri-apps/plugin-fs";
 import {CryptoService} from "./crypto.service";
+import {platform} from "@tauri-apps/plugin-os";
+import {BiometryType, checkStatus} from "@tauri-apps/plugin-biometric";
+import {retrieve, store, remove} from "@impierce/tauri-plugin-keystore";
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +17,26 @@ export class PasswordService {
   async initMasterKeyIfPossible() {
     const saltExists = await this.saltExists()
     if(saltExists) {
-      const password = "?0@5Ue2YbCx)BP:i)Pu#KzxyK)WE)h)nN0K7+k*)!627_QCzLLxM9Mj!%5)-~fHMevjawB#P,t%qDBRR"
+      let password: string | null = null
+      if(platform() === "android") {
+        /*
+        await store("?0@5Ue2YbCx)BP:i)Pu#KzxyK)WE)h)nN0K7+k*)!627_QCzLLxM9Mj!%5)-~fHMevjawB#P,t%qDBRR", {
+          keyAlias: "password",
+          promptTitle: "Passwort autorisieren",
+          promptSubtitle: "",
+          promptNegativeButtonText: "Abbrechen"
+        })
+        */
+        password = await retrieve("password")
+      } else {
+        console.log("enter password:")
+      }
+      if(password === null) {
+        password = "?0@5Ue2YbCx)BP:i)Pu#KzxyK)WE)h)nN0K7+k*)!627_QCzLLxM9Mj!%5)-~fHMevjawB#P,t%qDBRR"
+        //return false
+      }
+      
+      //const password = "?0@5Ue2YbCx)BP:i)Pu#KzxyK)WE)h)nN0K7+k*)!627_QCzLLxM9Mj!%5)-~fHMevjawB#P,t%qDBRR"
       const salt = await this.readSalt()
       await this.crypto.initMasterKey(password, salt)
       return true

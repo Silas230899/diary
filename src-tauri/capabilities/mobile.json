@@ -1,0 +1,16 @@
+{
+  "identifier": "mobile-capability",
+  "platforms": [
+    "android",
+    "iOS"
+  ],
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "biometric:default",
+    "keystore:allow-store",
+    "keystore:allow-retrieve",
+    "keystore:allow-remove"
+  ]
+}
