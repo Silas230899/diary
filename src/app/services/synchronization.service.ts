@@ -5,11 +5,14 @@ import {openUrl} from "@tauri-apps/plugin-opener";
 import {EntryDbRecord} from "../models/entry-db-record";
 import {ImageDb} from "../models/image-db";
 import {DatabaseService} from "./database.service";
+import { fetch as taurifetch } from "@tauri-apps/plugin-http";
 
 @Injectable({
   providedIn: 'root'
 })
 export class SynchronizationService {
+  
+  isProbablyOffline = true
   
   allFiles: any[] = []
   
@@ -23,6 +26,7 @@ export class SynchronizationService {
   private startPageToken: string | null = null
   
   constructor(private dbService: DatabaseService) {
+    const internetAccessCheck = this.checkInternetAccess()
     const accessToken = localStorage.getItem("drive_access_token")
     const refreshToken = localStorage.getItem("drive_refresh_token")
     const accessTokenExpiration = localStorage.getItem("drive_access_token_expiration")
@@ -33,18 +37,47 @@ export class SynchronizationService {
       this.refreshToken = refreshToken
       this.accessTokenExpiration = accessTokenExpiration
       this.startPageToken = startPageToken
-      this.downloadRemoteChanges().then(() => console.log("successfully downloaded remote changes"))
+      internetAccessCheck.then(async () => {
+        if(!this.isProbablyOffline) {
+          await this.downloadRemoteChanges()
+          console.log("successfully downloaded remote changes")
+          setTimeout(async () => {
+            await this.uploadLocalChanges()
+            console.log("successfully uploaded local changes")
+          }, 1000)
+        }
+      })
+      //if(!this.isProbablyOffline) this.downloadRemoteChanges().then(() => console.log("successfully downloaded remote changes"))
     }
   }
   
-  async uploadLocalChanges() {
-    // upload changes from local db
-    const entries = await this.dbService.getAllUnsyncedSyncEntriesRaw()
+  async checkInternetAccess() {
+    const hasInternetAccess = await this.hasInternetAccess()
+    this.isProbablyOffline = !hasInternetAccess
+  }
+  
+  private async hasInternetAccess() {
+    try {
+      const response = await taurifetch("https://www.google.com/favicon.ico", {
+        method: "GET",
+      });
+      return response.status === 200;
+    } catch {
+      return false;
+    }
+  }
+  
+  async getLocalChanges() {
+    return await this.dbService.getAllUnsyncedSyncEntriesRaw()
+  }
+  
+  async upload(entries: EntryDbRecord[]) {
+    if(entries.length === 0) console.log("nothing to upload")
     for(let entry of entries) {
       if(entry.syncStatus === "pending_delete" && entry.driveFileId !== null) {
         await this.deleteFile(entry.driveFileId)
-        await this.dbService.deleteEntry(entry.id)
-        console.log("deleted entry " + entry.id)
+        await this.dbService.deleteEntry(entry.uuidv7)
+        console.log("deleted entry " + entry.uuidv7)
         for(const filename of entry.referencedImages) {
           await this.dbService.deleteImage(filename)
           const driveFileId = await this.getDriveFileIdOfImageByFilename(filename)
@@ -52,13 +85,14 @@ export class SynchronizationService {
           await this.deleteFile(driveFileId.id)
           console.log("deleted image " + filename + ", " + driveFileId)
         }
-      } else if(entry.syncStatus === "pending_create") {
+      } else if(entry.syncStatus === "pending_upload") {
         console.log(entry.syncStatus)
         entry.syncStatus = "synced"
+        // TODO better query and set id beforehand
         const entryDriveFileId = await this.uploadEntry(entry)
         entry.driveFileId = entryDriveFileId
-        await this.dbService.setDriveFileId(entry.id, entry.driveFileId)
-        await this.dbService.setSyncStatus(entry.id, entry.syncStatus)
+        await this.dbService.setDriveFileId(entry.uuidv7, entry.driveFileId)
+        await this.dbService.setSyncStatus(entry.uuidv7, entry.syncStatus)
         
         console.log(entry.referencedImages)
         for(let filename of entry.referencedImages) {
@@ -69,7 +103,14 @@ export class SynchronizationService {
     }
   }
   
+  async uploadLocalChanges() {
+    // upload changes from local db
+    const entries = await this.dbService.getAllUnsyncedSyncEntriesRaw()
+    await this.upload(entries)
+  }
+  
   async downloadRemoteChanges() {
+    await this.checkToken()
     // download changes from drive
     const changesList = await this.listChanges()
     console.log(changesList)
@@ -77,8 +118,8 @@ export class SynchronizationService {
       if(change.removed) {
         const entry = await this.dbService.getEntryByDriveFileId(change.fileId)
         if(entry !== null) {
-          await this.dbService.deleteEntry(entry.id)
-          console.log("deleted entry with id " + entry.id)
+          await this.dbService.deleteEntry(entry.uuidv7)
+          console.log("deleted entry with id " + entry.uuidv7)
           for(const filename of entry.referencedImages) {
             await this.dbService.deleteImage(filename)
             console.log("deleted image " + filename)
@@ -89,9 +130,15 @@ export class SynchronizationService {
           const existsAlready = await this.dbService.entryExistsWithDriveFileId(change.fileId)
           if(!existsAlready) {
             const entry = await this.downloadEntry(change.file.id)
-            console.log("download entry: " + entry)
+            if(entry.syncStatus === "keep_local" || entry.syncStatus === "pending_upload") {
+              throw new Error("downgeloadeter eintrag kann nicht lokal oder pending upload sein?!?!")
+            }
+            console.log("download entry: " + JSON.stringify(entry))
+            entry.driveFileId = change.file.id
             await this.dbService.insertRawEntry(entry)
-          } else console.log("entry '" + change.file.name + "' exists already")
+          } else {
+            console.log("entry '" + change.file.name + "' exists already")
+          }
         } else if(change.file.mimeType === "image/webp") {
           if(!await this.dbService.imageFileExists(change.file.name)) {
             const imageData = await this.downloadImage(change.file.id)
@@ -102,8 +149,12 @@ export class SynchronizationService {
         }
       }
     }
-    this.startPageToken = await changesList.newStartPageToken
-    localStorage.setItem("drive_start_page_token", this.startPageToken!)
+    if(changesList.newStartPageToken !== undefined) {
+      this.startPageToken = changesList.newStartPageToken
+      localStorage.setItem("drive_start_page_token", this.startPageToken!)
+    } else {
+      console.log("error with new startpage token: " + changesList.newStartPageToken)
+    }
   }
   
   async synchronizeEverything() {
@@ -242,7 +293,7 @@ export class SynchronizationService {
     
     // 1. Teil: Metadaten
     const metadata = {
-      name: "entry-" + entry.id,
+      name: "entry-" + entry.uuidv7,
       mimeType: "application/json",
       parents: ["appDataFolder"],
     };
@@ -274,7 +325,7 @@ export class SynchronizationService {
     
     const result = await res.json();
     console.log("text file uploaded:", result);
-    return result.id
+    return result.id as string
   }
   
   async downloadEntry(id: string) {
@@ -637,11 +688,13 @@ export class SynchronizationService {
     const files = await this.listDriveFiles();
     this.allFiles = files;
     console.log(files);
+    /*
     for(let file of files) {
       console.log(file.name + ":");
       const f = await this.getFile(file.id)
       console.log(f)
     }
+    */
   }
   
   async deleteFile(driveFileId: string) {
