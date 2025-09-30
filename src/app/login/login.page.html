@@ -1,0 +1,10 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Login</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-input label="Passwort" [(ngModel)]="password"></ion-input>
+  <ion-button (click)="login()" [disabled]="password.length === 0">Einloggen</ion-button>
+</ion-content>
