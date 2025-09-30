@@ -23,7 +23,15 @@ export class SpecificDayPopoverComponent  implements OnInit {
 
   ngOnInit() {}
   
-  delete() {
-    return this.popoverCtrl.dismiss("", 'confirm');
+  async delete() {
+    return await this.popoverCtrl.dismiss("", 'delete');
+  }
+  
+  async edit() {
+    return await this.popoverCtrl.dismiss("", 'edit');
+  }
+  
+  async info() {
+    return await this.popoverCtrl.dismiss("", 'info');
   }
 }

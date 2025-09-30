@@ -12,7 +12,8 @@ import {addIcons} from "ionicons";
 import {
   barChartOutline,
   homeOutline,
-  todayOutline
+  todayOutline,
+  searchOutline
 } from "ionicons/icons";
 
 @Component({
@@ -34,7 +35,7 @@ export class NavBarComponent  implements OnInit {
   @Input() host!: string
 
   constructor(private navController: NavController) {
-    addIcons({ todayOutline, barChartOutline, homeOutline })
+    addIcons({ todayOutline, barChartOutline, homeOutline, searchOutline })
   }
 
   async navigate(dst: string) {

@@ -2,10 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
+  IonBackButton,
   IonButton, IonButtons,
-  IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle,
+  IonCard, IonCardContent, IonCardHeader, IonCardTitle,
   IonContent, IonDatetime, IonDatetimeButton,
-  IonHeader, IonIcon, IonImg, IonItem, IonLabel, IonList, IonModal, IonPopover, IonProgressBar,
+  IonHeader, IonIcon, IonModal, IonProgressBar,
   IonTitle,
   IonToolbar, ModalController,
   NavController, PopoverController
@@ -17,10 +18,16 @@ import {DatabaseService} from "../services/database.service";
 import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
 import {NewEntryComponent} from "../components/new-entry/new-entry.component";
 import {EntryViewRecord} from "../models/entry-view-record";
-import {NewEntry} from "../models/new-entry";
 import {NewEntryWithoutEntryIndex} from "../models/new-entry-without-entry-index";
 import {SynchronizationService} from "../services/synchronization.service";
 import {EntryTextComponent} from "../components/entry-text/entry-text.component";
+import {ActivatedRoute} from "@angular/router";
+import {EntryDbRecord} from "../models/entry-db-record";
+import {v7} from "uuid";
+import {PasswordService} from "../services/password.service";
+import {platform} from "@tauri-apps/plugin-os";
+import {BiometryType, checkStatus} from "@tauri-apps/plugin-biometric";
+import {retrieve, store} from "@impierce/tauri-plugin-keystore";
 
 type EntryPart = { type: "text", value: string }
   | { type: "newline" }
@@ -33,65 +40,33 @@ type EntryPart = { type: "text", value: string }
   templateUrl: './specific-day.page.html',
   styleUrls: ['./specific-day.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonIcon, IonDatetimeButton, IonModal, IonDatetime, IonLabel, IonPopover, IonList, IonItem, IonButtons, NavBarComponent, IonImg, IonProgressBar, EntryTextComponent]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonDatetimeButton, IonModal, IonDatetime, IonButtons, NavBarComponent, IonProgressBar, EntryTextComponent, IonBackButton]
 })
 export class SpecificDayPage implements OnInit {
 
   date: string
   entries: EntryViewRecord[] = []
   entriesLoading = true
-  
-  splitEntryText(entry: EntryViewRecord) {
-    let res: EntryPart[] = []
-    for(let line of entry.text.split(/\n/)) {
-      if(line.startsWith("![image](")) {
-        const filename = line.substring(9, line.length-1)
-        const img = entry.images.filter(value => value.filename == filename)[0]
-        if(res.length > 0) {
-          const last = res[res.length-1]
-          if(last.type === "image") {
-            res = res.slice(0, res.length-1)
-            res.push({ type: "images", value: [last.value, img.localImageUrl] })
-          } else if(last.type === "images") {
-            last.value.push(img.localImageUrl)
-          } else {
-            res.push({ type: "image", value: img.localImageUrl })
-          }
-        } else {
-          res.push({ type: "image", value: img.localImageUrl })
-        }
-      } else if(line.startsWith("![chat]")) {
-        res.push({ type: "chat", value: line.substring(7) })
-      } else {
-        if(line.length === 0) {
-          res.push({ type: "newline" })
-        } else {
-          res.push({ type: "text", value: line })
-        }
-      }
-      //res.push({ type: "newline" })
-    }
-    let res2: EntryPart[] = []
-    for(let r of res) {
-      res2.push(r)
-      res2.push({ type: "newline" })
-    }
-    res2 = res2.slice(0, res2.length-1)
-    return res2
-  }
 
   constructor(private navController: NavController,
               private popoverController: PopoverController,
               private dbService: DatabaseService,
               private modalCtrl: ModalController,
-              private sync: SynchronizationService) {
+              private sync: SynchronizationService,
+              private route: ActivatedRoute,
+              private passwordService: PasswordService,) {
     addIcons({ add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline })
-    let currentDate = new Date();
-    currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
-    currentDate.setUTCHours(0, 0, 0, 0)
-    this.date = currentDate.toISOString()
+    
+    const date = this.route.snapshot.queryParamMap.get("date");
+    if(date !== null) {
+      this.date = date
+    } else {
+      let currentDate = new Date();
+      currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
+      this.date = currentDate.toISOString()
+    }
 
-    this.populateEntries(this.date).then(() => this.entriesLoading = false)
+    this.populateEntries(this.date)
     
     const size = 1024; // 1 KB
     const randomBytes = crypto.getRandomValues(new Uint8Array(size));
@@ -103,8 +78,6 @@ export class SpecificDayPage implements OnInit {
       message: "Hallo von der Drive-API!",
     };
     //this.sync.uploadJsonFile(jsonData)
-    
-    //this.sync.listFiles()
     
     /*
     const allFiles = this.sync.listDriveFiles()
@@ -150,6 +123,7 @@ export class SpecificDayPage implements OnInit {
     */
     
     //this.sync.deleteAll()
+    //this.sync.listFiles()
     
     //this.passwordService.readSalt().then(async salt => await this.sync.uploadBinary("masterPasswordSalt.bin", salt))
     
@@ -157,16 +131,26 @@ export class SpecificDayPage implements OnInit {
   }
 
   async populateEntries(date: string) {
+    this.entriesLoading = true
     let entries: EntryViewRecord[] = await this.dbService.getEntriesBySpecificDate(date)
     entries.sort((a, b) => a.entryIndex-b.entryIndex)
     this.entries = entries
+    this.entriesLoading = false
   }
 
-  ngOnInit() {
-  }
+  ngOnInit() { }
 
   formatTime(date: string) {
     return new Date(date).toLocaleTimeString(undefined, {timeStyle: "short"});
+  }
+  
+  formatToday() {
+    const options: Intl.DateTimeFormatOptions = {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    }
+    return new Date(this.date).toLocaleDateString(undefined, options);
   }
 
   async createPopover($event: MouseEvent, entry: EntryViewRecord) {
@@ -177,13 +161,13 @@ export class SpecificDayPage implements OnInit {
     })
     popover.onDidDismiss().then(async e => {
       const { data, role } = e
-      if(role === "confirm") {
-        await this.dbService.setSyncStatus(entry.id, "pending_delete")
-        await this.sync.uploadLocalChanges()
+      if(role === "delete") {
+        await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
         //const entryDeletionPromise = this.dbService.deleteEntry(entry.id)
         //const imageDeletionPromises = entry.images.map(image => this.dbService.deleteImage(image.filename))
         //await Promise.all([...imageDeletionPromises, entryDeletionPromise])
         await this.populateEntries(this.date)
+        //await this.sync.uploadLocalChanges()
       }
     })
     await popover.present()
@@ -216,21 +200,24 @@ export class SpecificDayPage implements OnInit {
     modal.onDidDismiss().then(async e => {
       const { data, role } = e
       if(role === "confirm") {
+        const uuidv7 = v7()
         const newEntryWithoutEntryIndex = data as NewEntryWithoutEntryIndex
-        const newEntry = new NewEntry(
+        const newEntry = new EntryDbRecord(
+          uuidv7,
           newEntryWithoutEntryIndex.date,
           newEntryWithoutEntryIndex.written,
           entryIndex,
           newEntryWithoutEntryIndex.text,
-          newEntryWithoutEntryIndex.sync,
-          newEntryWithoutEntryIndex.images.map(image => image.filename)
+          newEntryWithoutEntryIndex.images.map(image => image.filename),
+          newEntryWithoutEntryIndex.syncStatus,
+          null
         )
         let imagePromises = newEntryWithoutEntryIndex.images.map(image => this.dbService.addImage(image))
         const entryPromise = this.dbService.addEntry(newEntry)
         imagePromises = [...imagePromises, entryPromise]
         await Promise.all(imagePromises)
         await this.populateEntries(this.date)
-        this.sync.uploadLocalChanges() // dont wait for upload
+        if(!this.sync.isProbablyOffline) this.sync.uploadLocalChanges() // dont wait for upload
       }
     })
     
@@ -239,24 +226,24 @@ export class SpecificDayPage implements OnInit {
 
   async gotoYesterday() {
     const yesterday = new Date(new Date(this.date).getTime() - 24*60*60*1000)
-    yesterday.setUTCHours(0, 0, 0, 0)
+    //yesterday.setUTCHours(0, 0, 0, 0)
     this.date = yesterday.toISOString()
     await this.populateEntries(this.date)
   }
 
   async gotoTomorrow() {
     const yesterday = new Date(new Date(this.date).getTime() + 24*60*60*1000)
-    yesterday.setUTCHours(0, 0, 0, 0)
+    //yesterday.setUTCHours(0, 0, 0, 0)
     this.date = yesterday.toISOString()
     await this.populateEntries(this.date)
   }
 
   getYesterdate() {
-    return new Date(new Date(this.date).getTime() - 24*60*60*1000).getDate()
+    return new Date(new Date(this.date).getTime() - 24*60*60*1000).getUTCDate()
   }
 
   getTomorrowdate() {
-    return new Date(new Date(this.date).getTime() + 24*60*60*1000).getDate()
+    return new Date(new Date(this.date).getTime() + 24*60*60*1000).getUTCDate()
   }
 
 }

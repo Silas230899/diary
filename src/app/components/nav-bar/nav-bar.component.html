@@ -5,15 +5,25 @@
                 <div class="toolbarButtonWrapper">
                     <ion-icon name="home-outline" class="toolbarIcon"></ion-icon>
                     <ion-label class="toolbarLabel">
-                        Home
+                        An diesem Tag
                     </ion-label>
                 </div>
             </ion-button>
+            <!--
             <ion-button class="toolbarButton" (click)="navigate('specific-day')" [color]="host === 'specific' ? 'primary' : 'dark'">
                 <div class="toolbarButtonWrapper">
                     <ion-icon name="today-outline" class="toolbarIcon"></ion-icon>
                     <ion-label class="toolbarLabel">
-                        Specific
+                        Bestimmter Tag
+                    </ion-label>
+                </div>
+            </ion-button>
+            -->
+            <ion-button class="toolbarButton" (click)="navigate('search')" [color]="host === 'search' ? 'primary' : 'dark'">
+                <div class="toolbarButtonWrapper">
+                    <ion-icon name="search-outline" class="toolbarIcon"></ion-icon>
+                    <ion-label class="toolbarLabel">
+                        Suchen
                     </ion-label>
                 </div>
             </ion-button>
@@ -21,7 +31,7 @@
                 <div class="toolbarButtonWrapper">
                     <ion-icon name="bar-chart-outline" class="toolbarIcon"></ion-icon>
                     <ion-label class="toolbarLabel">
-                        Stats
+                        Statistiken
                     </ion-label>
                 </div>
             </ion-button>

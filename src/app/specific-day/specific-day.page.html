@@ -1,9 +1,13 @@
 <ion-header>
     <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
         <ion-title>
-            Bestimmter Tag
+            {{formatToday()}}
         </ion-title>
     </ion-toolbar>
+    <!--
     <ion-toolbar color="primary">
         <ion-buttons slot="start">
             <ion-button (click)="gotoYesterday()">
@@ -37,10 +41,11 @@
                 <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
             </ion-button>
         </ion-buttons>
+        @if (entriesLoading) {
+            <ion-progress-bar color="light"></ion-progress-bar>
+        }
     </ion-toolbar>
-    @if (entriesLoading) {
-        <ion-progress-bar></ion-progress-bar>
-    }
+    -->
 </ion-header>
 
 <ion-content>
@@ -58,9 +63,12 @@
             <ion-button (click)="createPopover($event, entry)" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
                 <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
             </ion-button>
+            <ion-card-header>
+                <ion-card-title>
+                    Verfasst: {{formatTime(entry.written)}} Uhr
+                </ion-card-title>
+            </ion-card-header>
             <ion-card-content>
-                Verfasst: {{formatTime(entry.written)}} Uhr
-                <br>
                 <app-entry-text [entry]="entry"></app-entry-text>
             </ion-card-content>
             <!--
@@ -92,5 +100,3 @@
     }
 
 </ion-content>
-
-<app-nav-bar [host]="'specific'"></app-nav-bar>
