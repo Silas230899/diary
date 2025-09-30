@@ -111,4 +111,12 @@ export class OnboardingPage implements OnInit {
   async download() {
     await this.sync.downloadRemoteChanges()
   }
+  
+  deleteStorage() {
+    localStorage.clear()
+  }
+  
+  async upload() {
+    await this.sync.uploadLocalChanges()
+  }
 }
