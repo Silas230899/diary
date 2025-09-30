@@ -1,32 +1,30 @@
 import {ImageView} from "./image-view";
+import {SyncStatus} from "./syncStatusTypes";
 
 export class EntryViewRecord {
   
-  id: number
+  uuidv7: string
   date: string
   written: string
   entryIndex: number
   text: string
-  sync: boolean
   images: ImageView[]
-  syncStatus: "pending_create" | "synced" | "pending_delete" = "pending_create"
-  driveFileId: string
+  syncStatus: SyncStatus
+  driveFileId: string | null
   
-  constructor(id: number,
+  constructor(uuidv7: string,
               date: string,
               written: string,
               entryIndex: number,
               text: string,
-              sync: boolean,
               images: ImageView[],
-              syncStatus: "pending_create" | "synced" | "pending_delete" = "pending_create",
-              driveFileId: string) {
-    this.id = id;
+              syncStatus: SyncStatus,
+              driveFileId: string | null) {
+    this.uuidv7 = uuidv7;
     this.date = date;
     this.written = written;
     this.entryIndex = entryIndex;
     this.text = text;
-    this.sync = sync;
     this.images = images;
     this.syncStatus = syncStatus;
     this.driveFileId = driveFileId;
