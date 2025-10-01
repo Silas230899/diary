@@ -41,10 +41,6 @@ import {v7} from "uuid";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
 import {ToastController} from "@ionic/angular";
 import {Router} from "@angular/router";
-import {BiometryType, checkStatus, Status} from "@tauri-apps/plugin-biometric";
-import {platform} from "@tauri-apps/plugin-os";
-import {retrieve, store} from "@impierce/tauri-plugin-keystore";
-//import {retrieve, store, remove} from "@impierce/tauri-plugin-keystore";
 
 type Day = EntryViewRecord[]
 
@@ -77,103 +73,6 @@ export class HomePage {
     this.date = currentDate.toISOString()
     
     this.populateEntries(this.date)
-    
-    //console.log("gude")
-    /*
-    const test = async () => {
-      store("hallo", { keyAlias: "test", promptTitle: "MollO", promptSubtitle: "gollo", promptNegativeButtonText: "hollo" }).then(() => {
-        alert("stored")
-        try {
-          retrieve("test").then(pw => {
-            alert(pw)
-            console.log(pw)
-          })
-        } catch (e) {
-          alert(JSON.stringify(e));
-        }
-      })
-    }
-    test()
-    */
-    /*
-    alert("Mollo")
-    const currentPlatform = platform()
-    if(currentPlatform === "windows") {
-      alert("cant check biometry")
-      console.log("query for password")
-    } else if(currentPlatform === "android") {
-      alert("is on android")
-      checkStatus().then(biometryStatus => {
-        if(biometryStatus.biometryType !== BiometryType.None) {
-          alert("has biometry")
-          try {
-            store("hallo", { keyAlias: "test" }).then(() => {
-              alert("stored")
-              try {
-                retrieve("test").then(pw => {
-                  alert(pw)
-                  console.log(pw)
-                })
-              } catch (e) {
-                alert(JSON.stringify(e));
-              }
-            })
-          } catch (e) {
-            alert(JSON.stringify(e));
-          }
-        } else alert("has no biometry")
-      })
-    }
-    */
-    
-    //this.sync.google()
-    //this.sync.listFiles()
-    /*
-    this.sync.getNewToken(this.sync.refreshToken).then(value => {
-      console.log(value)
-      this.sync.accessToken = value.access_token
-    })
-    */
-
-    //const entries = this.dbService.getEntriesByDate(new Date().toISOString())
-
-    /*
-    const db = dbService.database
-
-    const res2 = db.select("SELECT * FROM entry")
-    
-    res2.then(async (res) => {
-
-      const entriesByDay: Map<string, EntryDbRecord[]> = new Map()
-
-      for(const entry of res as any[]) {
-        
-        const text = await crypto.decryptBase64StringToString(entry["text"])
-        
-        const referencedImages = (entry["referencedImages"] as string).split(",")
-
-        const entryObject = new EntryDbRecord(
-          entry["id"],
-          entry["date"],
-          entry["written"],
-          entry["entryIndex"],
-          text,
-          entry["sync"],
-          referencedImages,
-          entry["syncStatus"],
-          entry["driveFileId"])
-        const day = entriesByDay.get(entryObject.date)
-        if(day) day.push(entryObject)
-        else entriesByDay.set(entryObject.date, [entryObject])
-      }
-
-      this.entries = Array.from(entriesByDay)
-          .sort((a, b) => new Date(b[0]).getTime()-new Date(a[0]).getTime())
-          .map(value => value[1])
-
-      this.entries.forEach(entry => {entry.sort((a, b) => a.entryIndex-b.entryIndex)})
-    })
-    */
   }
   
   async populateEntries(date: string) {

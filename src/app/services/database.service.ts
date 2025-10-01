@@ -247,14 +247,6 @@ export class DatabaseService {
     return await Promise.all(entries)
   }
   
-  byteArrayToBase64(bytes: Uint8Array): string {
-    let binary = '';
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary); // btoa() gibt Base64 zurück
-  }
-  
   async clearDb() {
     await this.database.select("DELETE FROM entry")
   }

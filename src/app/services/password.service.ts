@@ -1,9 +1,6 @@
 import {Injectable} from '@angular/core';
 import {BaseDirectory, create, exists, readFile} from "@tauri-apps/plugin-fs";
 import {CryptoService} from "./crypto.service";
-import {platform} from "@tauri-apps/plugin-os";
-import {BiometryType, checkStatus} from "@tauri-apps/plugin-biometric";
-import {retrieve, store, remove} from "@impierce/tauri-plugin-keystore";
 
 @Injectable({
   providedIn: 'root'

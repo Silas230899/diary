@@ -47,7 +47,6 @@ export class SynchronizationService {
           }, 1000)
         }
       })
-      //if(!this.isProbablyOffline) this.downloadRemoteChanges().then(() => console.log("successfully downloaded remote changes"))
     }
   }
   
@@ -500,51 +499,6 @@ export class SynchronizationService {
     console.log("File uploaded:", result);
   }
   
-  async uploadFile() {
-    await this.checkToken()
-    
-    const fileName = "file"
-    const fileContent = "testinhalt"
-    
-    const url =
-      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
-    
-    // FormData automatisch bauen lassen
-    const form = new FormData();
-    
-    // 1. Teil: Metadaten als Blob (JSON)
-    const metadata = {
-      name: fileName,
-      mimeType: "text/plain",
-      parents: ["appDataFolder"],
-    };
-    form.append(
-      "metadata",
-      new Blob([JSON.stringify(metadata)], { type: "application/json" })
-    );
-    
-    // 2. Teil: Dateiinhalt als Blob
-    form.append("file", new Blob([fileContent], { type: "text/plain" }));
-    
-    // Fetch mit automatisch gesetztem Content-Type + Boundary
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-      },
-      body: form,
-    });
-    
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Upload failed: ${errText}`);
-    }
-    
-    const result = await res.json();
-    console.log("File uploaded:", result);
-  }
-  
-  
   async google() {
     const unlisten = await listen("diary://new-url", async (event) => {
       console.log("Deep Link empfangen:", event.payload);
@@ -560,12 +514,8 @@ export class SynchronizationService {
       }
     })
     
-    
-    
-    
     const localAddress = await invoke<string>('get_free_local_address');
     const redirectUri = `http://${localAddress}/`;
-    //const redirectUri = "http://127.0.0.1:12345"; // oder myapp://oauth
     
     const { codeVerifier, codeChallenge } = await this.generatePKCE();
     
@@ -576,25 +526,6 @@ export class SynchronizationService {
     authUrl.searchParams.set("scope", "https://www.googleapis.com/auth/drive.appfolder");
     authUrl.searchParams.set("code_challenge", codeChallenge);
     authUrl.searchParams.set("code_challenge_method", "S256");
-    
-    
-    
-    //console.log(await getCurrent())
-    
-    /*
-    console.log(redirectUri)
-    const authUrl =
-        `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `client_id=15828861697-dgl8nsejs1jbmefj39gcaeud9occkgrj.apps.googleusercontent.com` +
-        `&redirect_uri=${redirectUri}` +
-        `&response_type=code` +
-        `&scope=https://www.googleapis.com/auth/drive.file` +
-        `&access_type=offline` +
-        `&prompt=consent`;
-
-     */
-    
-    
     
     const server = invoke('start_oauth_server', {address: localAddress})
     
@@ -629,27 +560,6 @@ export class SynchronizationService {
     localStorage.setItem("drive_refresh_token", refreshToken);
     localStorage.setItem("drive_access_token_expiration", driveAccessTokenExpiration);
     localStorage.setItem("drive_start_page_token", startPageToken)
-    
-    //const redirectUri = await invoke<string>('start_oauth_server');
-    
-    
-    
-    //const clientId = "15828861697-dgl8nsejs1jbmefj39gcaeud9occkgrj.apps.googleusercontent.com";
-    //const client = new OAuth2Client({clientId: clientId, clientSecret: "xyz"});
-    /*
-    // Auth-URL mit Drive-Scope generieren
-          const authUrl = client.generateAuthUrl({
-              access_type: "offline",
-              scope: [
-                  "https://www.googleapis.com/auth/drive.file" // Zugriff nur auf von der App erstellte Dateien
-                  // oder "https://www.googleapis.com/auth/drive" für vollen Zugriff
-              ],
-          });
-    
-    // Browser öffnen (System-Browser oder neues Tauri-Window)
-          await openPath(authUrl)
-    
-          console.log("success")*/
   }
   
   async listChanges() {
@@ -700,13 +610,6 @@ export class SynchronizationService {
     const files = await this.listDriveFiles();
     this.allFiles = files;
     console.log(files);
-    /*
-    for(let file of files) {
-      console.log(file.name + ":");
-      const f = await this.getFile(file.id)
-      console.log(f)
-    }
-    */
   }
   
   async deleteFile(driveFileId: string) {

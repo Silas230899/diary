@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import {DatabaseService} from "./database.service";
 
 @Injectable({
   providedIn: 'root'
@@ -102,7 +101,6 @@ export class CryptoService {
   async decryptUint8ArrayToArrayBuffer(encryptedData: Uint8Array) {
     if (!this.masterKeyRaw) throw new Error("Master-Key nicht initialisiert!");
 
-    //const encryptedDataBuff = this.base64_to_buf(encryptedData);
     const fileId = encryptedData.slice(0, 16);
     const iv = encryptedData.slice(16, 28);
     const ciphertext = encryptedData.slice(28);

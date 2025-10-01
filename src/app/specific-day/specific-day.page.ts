@@ -25,15 +25,6 @@ import {ActivatedRoute} from "@angular/router";
 import {EntryDbRecord} from "../models/entry-db-record";
 import {v7} from "uuid";
 import {PasswordService} from "../services/password.service";
-import {platform} from "@tauri-apps/plugin-os";
-import {BiometryType, checkStatus} from "@tauri-apps/plugin-biometric";
-import {retrieve, store} from "@impierce/tauri-plugin-keystore";
-
-type EntryPart = { type: "text", value: string }
-  | { type: "newline" }
-  | { type: "image", value: string }
-  | { type: "images", value: string[] }
-  | { type: "chat", value: string }
 
 @Component({
   selector: 'app-specific-day',
