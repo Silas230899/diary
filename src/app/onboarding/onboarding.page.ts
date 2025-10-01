@@ -18,6 +18,7 @@ import {ImageDb} from "../models/image-db";
 import {DatabaseService} from "../services/database.service";
 import {CryptoService} from "../services/crypto.service";
 import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
+import {store} from "@impierce/tauri-plugin-keystore";
 
 @Component({
   selector: 'app-onboarding',
@@ -31,6 +32,7 @@ export class OnboardingPage implements OnInit {
   password = ""
   googleInitialized: boolean
   googleInitializing = false
+  downloadingEntries = false
   done = 0
   all = 0
 
@@ -40,6 +42,7 @@ export class OnboardingPage implements OnInit {
               private dbService: DatabaseService,
               private crypto: CryptoService,) {
     this.googleInitialized = this.sync.isGoogleInitialized()
+    console.log("gorre")
   }
 
   ngOnInit() {
@@ -47,6 +50,8 @@ export class OnboardingPage implements OnInit {
   
   async initializeGoogle() {
     this.googleInitializing = true
+    
+    this.deleteStorage()
     
     await this.sync.google()
     
@@ -67,14 +72,17 @@ export class OnboardingPage implements OnInit {
     await this.passwordService.initMasterKeyIfPossible()
     
     this.googleInitialized = this.sync.isGoogleInitialized()
+    this.googleInitializing = false
   }
   
   async clearDb() {
     await this.dbService.clearDb()
+    alert("cleared db")
   }
   
   async setPassword() {
     await this.passwordService.setPassword(this.password);
+    await this.storePw()
     if(this.googleInitialized) {
       await this.sync.uploadBinary("masterPasswordSalt.bin", await this.passwordService.readSalt())
     }
@@ -82,6 +90,7 @@ export class OnboardingPage implements OnInit {
   }
   
   async downloadEverything() {
+    this.downloadingEntries = true
     const allFiles = await this.sync.listDriveFiles()
     this.all = allFiles.length
     let done = 0
@@ -106,6 +115,7 @@ export class OnboardingPage implements OnInit {
       console.log(done + "/" + allFiles.length)
       this.done = done
     }
+    this.downloadingEntries = false
   }
   
   async download() {
@@ -118,5 +128,27 @@ export class OnboardingPage implements OnInit {
   
   async upload() {
     await this.sync.uploadLocalChanges()
+  }
+  
+  async storePw() {
+    await store("?0@5Ue2YbCx)BP:i)Pu#KzxyK)WE)h)nN0K7+k*)!627_QCzLLxM9Mj!%5)-~fHMevjawB#P,t%qDBRR", {
+      keyAlias: "password",
+      promptTitle: "Passwort autorisieren",
+      promptSubtitle: "",
+      promptNegativeButtonText: "Abbrechen"
+    })
+  }
+  
+  async initMasterKey() {
+    await this.passwordService.initMasterKeyIfPossible()
+  }
+  
+  async uploadSalt() {
+    const salt = await this.passwordService.readSalt()
+    await this.sync.uploadBinary("masterPasswordSalt.bin", salt)
+  }
+  
+  async deleteCloud() {
+    await this.sync.deleteAll()
   }
 }

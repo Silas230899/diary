@@ -6,5 +6,7 @@
 
 <ion-content class="ion-padding">
   <ion-input label="Passwort" [(ngModel)]="password"></ion-input>
-  <ion-button (click)="login()" [disabled]="password.length === 0">Einloggen</ion-button>
+  <ion-button (click)="login(password)" [disabled]="password.length === 0">Einloggen</ion-button>
+  <br>
+  <ion-button (click)="openBiometry()">Mit Biometrie einloggen</ion-button>
 </ion-content>

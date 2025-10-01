@@ -23,7 +23,7 @@
 
     <br>
     <br>
-    @if (googleInitializing && all !== 0 && !googleInitialized) {
+    @if (downloadingEntries && all !== 0) {
         <ion-progress-bar [value]="done/all"></ion-progress-bar>
         <br>
         {{done}}/{{all}}
@@ -44,6 +44,22 @@
     <br>
     <br>
     <ion-button (click)="deleteStorage()">Delete storage</ion-button>
+
+    <br>
+    <br>
+    <ion-button (click)="storePw()">put pw in safe</ion-button>
+
+    <br>
+    <br>
+    <ion-button (click)="initMasterKey()">init master key</ion-button>
+
+    <br>
+    <br>
+    <ion-button (click)="uploadSalt()">upload salt</ion-button>
+
+    <br>
+    <br>
+    <ion-button (click)="deleteCloud()">delete cloud</ion-button>
 
 </ion-content>
 
