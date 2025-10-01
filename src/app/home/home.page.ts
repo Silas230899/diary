@@ -278,7 +278,10 @@ export class HomePage {
           newEntryWithoutEntryIndex.syncStatus,
           null
         )
-        await this.dbService.addEntry(newEntry)
+        let imagePromises = newEntryWithoutEntryIndex.images.map(image => this.dbService.addImage(image))
+        const entryPromise = this.dbService.addEntry(newEntry)
+        const allPromises = [...imagePromises, entryPromise]
+        await Promise.all(allPromises)
         await this.populateEntries(this.date)
         if(!this.sync.isProbablyOffline) this.sync.uploadLocalChanges() // dont wait for upload
       }
@@ -363,12 +366,24 @@ export class HomePage {
     popover.onDidDismiss().then(async e => {
       const { data, role } = e
       if(role === "delete") {
+        const toast = await this.toastController.create({
+          message: 'Ganzen Tag löschen ist noch nicht möglich',
+          duration: 2000,
+          position: "bottom",
+        });
+        await toast.present()
         // TODO delete all entries of day
         //await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
         //await this.populateEntries(this.date)
       } else if(role === "edit") {
         await this.openEntry(date)
       } else if(role === "info") {
+        const toast = await this.toastController.create({
+          message: 'Informationen können noch nicht angezeigt werden',
+          duration: 2000,
+          position: "bottom",
+        });
+        await toast.present()
         console.log(JSON.stringify(data))
       }
       /*

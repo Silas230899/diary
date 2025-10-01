@@ -224,10 +224,16 @@ export class DatabaseService {
     const entries = databaseRecords.map(async entry => {
       const decryptedText = await this.crypto.decryptBase64StringToString(entry["text"])
       const referencedImages = this.transformReferencedImageStringToArray(entry["referencedImages"])
-      const imagePromises: Promise<ImageView>[] = referencedImages.map(async (imageName) => {
-        return new ImageView(imageName, await this.getImage(imageName))
-      })
-      const images: ImageView[] = await Promise.all(imagePromises)
+      const imagePromises = referencedImages.map(async (imageName) => {
+        try {
+          const img = await this.getImage(imageName);
+          return new ImageView(imageName, img);
+        } catch {
+          return null; // Fehler → später rausfiltern
+        }
+      });
+      const results = await Promise.all(imagePromises);
+      const images: ImageView[] = results.filter((imageResult): imageResult is ImageView => imageResult !== null);
       return new EntryViewRecord(
         entry["uuidv7"],
         entry["date"],

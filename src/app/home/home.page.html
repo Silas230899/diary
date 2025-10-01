@@ -91,7 +91,7 @@
                 <div class="no-entries-headline">
                     Für diesen Tag gibt es noch keine Einträge
                 </div>
-                <ion-button expand="block" class="ion-padding-horizontal">
+                <ion-button (click)="openNewEntryModal()" expand="block" class="ion-padding-horizontal">
                     Für {{thisYear()}} hinzufügen
                 </ion-button>
             </div>

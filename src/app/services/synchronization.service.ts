@@ -238,19 +238,29 @@ export class SynchronizationService {
   }
   
   private async fetchTokens(code: string, codeVerifier: string, redirectUri: string, clientId: string) {
-    const res = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: clientId,
-        client_secret: this.clientSecret,
-        code,
-        code_verifier: codeVerifier,
-        grant_type: "authorization_code",
-        redirect_uri: redirectUri,
-      }),
-    });
-    return await res.json(); // enthält access_token, refresh_token
+    try {
+      const res = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: this.clientSecret,
+          code,
+          code_verifier: codeVerifier,
+          grant_type: "authorization_code",
+          redirect_uri: redirectUri,
+        }),
+      });
+      
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Fehler bei fetchTokens (${res.status}): ${text}`);
+      }
+      
+      return await res.json(); // enthält access_token, refresh_token
+    } catch (e) {
+    
+    }
   }
   
   private async checkToken() {
@@ -595,6 +605,8 @@ export class SynchronizationService {
     console.log("code: " + code)
     
     unlisten()
+    
+    console.log("start fetching")
     
     const hm = await this.fetchTokens(code, codeVerifier, redirectUri, this.clientId);
     

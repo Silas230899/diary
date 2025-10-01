@@ -214,8 +214,8 @@ export class SpecificDayPage implements OnInit {
         )
         let imagePromises = newEntryWithoutEntryIndex.images.map(image => this.dbService.addImage(image))
         const entryPromise = this.dbService.addEntry(newEntry)
-        imagePromises = [...imagePromises, entryPromise]
-        await Promise.all(imagePromises)
+        const allPromises = [...imagePromises, entryPromise]
+        await Promise.all(allPromises)
         await this.populateEntries(this.date)
         if(!this.sync.isProbablyOffline) this.sync.uploadLocalChanges() // dont wait for upload
       }

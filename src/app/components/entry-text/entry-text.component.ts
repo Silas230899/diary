@@ -25,7 +25,8 @@ export class EntryTextComponent  implements OnInit {
       if(line.startsWith("![image](")) {
         const filename = line.substring(9, line.length-1)
         const img = this.entry.images.filter(value => value.filename == filename)[0]
-        if(res.length > 0) {
+        if(img === undefined) res.push({ type: "text", value: `Could not find ${filename}` })
+        else if(res.length > 0) {
           const last = res[res.length-1]
           if(last.type === "image") {
             res = res.slice(0, res.length-1)
