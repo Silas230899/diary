@@ -14,48 +14,11 @@ export class PasswordService {
   
   constructor(private crypto: CryptoService) {}
   
-  async initMasterKeyIfPossible() {
-    const saltExists = await this.saltExists()
-    if(saltExists) {
-      let password: string | null = null
-      /*
-      if(platform() === "android") {
-        /-*
-        await store("?0@5Ue2YbCx)BP:i)Pu#KzxyK)WE)h)nN0K7+k*)!627_QCzLLxM9Mj!%5)-~fHMevjawB#P,t%qDBRR", {
-          keyAlias: "password",
-          promptTitle: "Passwort autorisieren",
-          promptSubtitle: "",
-          promptNegativeButtonText: "Abbrechen"
-        })
-        *-/
-        try {
-          password = await retrieve("password")
-        }catch(err) {
-          console.log(err)
-        }
-        
-      } else {
-        console.log("enter password:")
-      }
-      */
-      if(password === null) {
-        console.log("set default pw")
-        password = "?0@5Ue2YbCx)BP:i)Pu#KzxyK)WE)h)nN0K7+k*)!627_QCzLLxM9Mj!%5)-~fHMevjawB#P,t%qDBRR"
-        //return false
-      }
-      
-      //const password = "?0@5Ue2YbCx)BP:i)Pu#KzxyK)WE)h)nN0K7+k*)!627_QCzLLxM9Mj!%5)-~fHMevjawB#P,t%qDBRR"
-      const salt = await this.readSalt()
-      await this.crypto.initMasterKey(password, salt)
-      return true
-    } else return false
-  }
-  
   async saltExists() {
     return await exists(this.saltFilename, {baseDir: BaseDirectory.AppData})
   }
   
-  private async createSalt() {
+  async createSalt() {
     const salt = crypto.getRandomValues(new Uint8Array(16))
     await this.writeSalt(salt)
     return salt

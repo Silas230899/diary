@@ -1,13 +1,35 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
     <ion-title>onboarding</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
-    <ion-input label="Passwort" [(ngModel)]="password"></ion-input>
-    <ion-button (click)="setPassword()" [disabled]="password.length === 0">Setzen</ion-button>
+<ion-content class="ion-padding">
 
+    @if (!googleInitialized) {
+        <ion-button (click)="initializeGoogle()" [disabled]="googleInitializing">Google Drive initialisieren</ion-button>
+    } @else {
+        <ion-note>Google Drive is initialized</ion-note>
+        <br>
+        <br>
+        <ion-input label="Passwort" [(ngModel)]="password"></ion-input>
+        <ion-button (click)="createAccount()" [disabled]="password.length === 0">Account erstellen</ion-button>
+    }
+
+    @if (downloadingEntries && all !== 0) {
+        <br>
+        <ion-progress-bar [value]="done/all"></ion-progress-bar>
+        <br>
+        {{done}}/{{all}}
+    }
+
+    <br>
+    <br>
+    <ion-button (click)="deleteCloud()">delete cloud</ion-button>
+
+
+
+    <!--
     <br><br>
 
     @if (!googleInitialized) {
@@ -47,10 +69,6 @@
 
     <br>
     <br>
-    <ion-button (click)="storePw()">put pw in safe</ion-button>
-
-    <br>
-    <br>
     <ion-button (click)="initMasterKey()">init master key</ion-button>
 
     <br>
@@ -60,6 +78,7 @@
     <br>
     <br>
     <ion-button (click)="deleteCloud()">delete cloud</ion-button>
+    -->
 
 </ion-content>
 
