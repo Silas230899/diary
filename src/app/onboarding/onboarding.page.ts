@@ -20,6 +20,7 @@ import {CryptoService} from "../services/crypto.service";
 import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
 import {store} from "@impierce/tauri-plugin-keystore";
 import {platform} from "@tauri-apps/plugin-os";
+import {ToastController} from "@ionic/angular";
 
 @Component({
   selector: 'app-onboarding',
@@ -42,7 +43,8 @@ export class OnboardingPage implements OnInit {
               private sync: SynchronizationService,
               private dbService: DatabaseService,
               private crypto: CryptoService,
-              private navCtrl: NavController,) {
+              private navCtrl: NavController,
+              private toastController: ToastController,) {
     this.googleInitialized = this.sync.isGoogleInitialized()
   }
 
@@ -161,5 +163,33 @@ export class OnboardingPage implements OnInit {
   
   async deleteCloud() {
     await this.sync.deleteAll()
+  }
+  
+  async dump() {
+    const entries = await this.dbService.getAllEntries()
+    const jsonStr = JSON.stringify(entries, null, 2)
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const filename = `dump-${new Date().toISOString()}.json`
+    
+    // Virtuellen Download-Link erzeugen
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    
+    // Klick auslösen
+    a.click();
+    
+    // Speicher freigeben
+    URL.revokeObjectURL(url);
+    
+    const toast = await this.toastController.create({
+      message: `Datei gespeichert in Downloads als ${filename}!`,
+      duration: 2000,
+      position: "bottom",
+    });
+    
+    await toast.present();
   }
 }
