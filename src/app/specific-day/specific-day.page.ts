@@ -25,6 +25,7 @@ import {ActivatedRoute} from "@angular/router";
 import {EntryDbRecord} from "../models/entry-db-record";
 import {v7} from "uuid";
 import {PasswordService} from "../services/password.service";
+import {formatDatetime} from "../utils/dateStuff";
 
 @Component({
   selector: 'app-specific-day',
@@ -130,10 +131,6 @@ export class SpecificDayPage implements OnInit {
   }
 
   ngOnInit() { }
-
-  formatTime(date: string) {
-    return new Date(date).toLocaleTimeString(undefined, {timeStyle: "short"});
-  }
   
   formatToday() {
     const options: Intl.DateTimeFormatOptions = {
@@ -197,6 +194,7 @@ export class SpecificDayPage implements OnInit {
           uuidv7,
           newEntryWithoutEntryIndex.date,
           newEntryWithoutEntryIndex.written,
+          newEntryWithoutEntryIndex.writtenHasTime,
           entryIndex,
           newEntryWithoutEntryIndex.text,
           newEntryWithoutEntryIndex.images.map(image => image.filename),
@@ -236,5 +234,6 @@ export class SpecificDayPage implements OnInit {
   getTomorrowdate() {
     return new Date(new Date(this.date).getTime() + 24*60*60*1000).getUTCDate()
   }
-
+  
+  protected readonly formatDatetime = formatDatetime;
 }

@@ -25,6 +25,13 @@
   border-radius: 50%;
 }
 
+ion-card-header {
+  width: calc(100vw - 20px);
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .red {
   background-color: red;
 }

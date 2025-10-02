@@ -65,7 +65,7 @@
             </ion-button>
             <ion-card-header>
                 <ion-card-title>
-                    Verfasst: {{formatTime(entry.written)}} Uhr
+                    Verfasst: {{formatDatetime(entry.date, entry.written, entry.writtenHasTime)}}
                 </ion-card-title>
             </ion-card-header>
             <ion-card-content>

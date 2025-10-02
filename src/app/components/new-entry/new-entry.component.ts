@@ -4,7 +4,7 @@ import {
   IonButtons,
   IonContent, IonDatetime, IonDatetimeButton,
   IonHeader, IonIcon, IonItem, IonLabel, IonList,
-  IonModal, IonNote, IonSkeletonText, IonTextarea, IonThumbnail,
+  IonModal, IonNote, IonSegment, IonSegmentButton, IonSkeletonText, IonTextarea, IonThumbnail,
   IonTitle, IonToggle,
   IonToolbar, ModalController, NavController
 } from "@ionic/angular/standalone";
@@ -58,7 +58,9 @@ import {SyncStatus} from "../../models/syncStatusTypes";
     IonSkeletonText,
     IonThumbnail,
     IonList,
-    IonItem
+    IonItem,
+    IonSegment,
+    IonSegmentButton
   ],
   standalone: true
 })
@@ -92,7 +94,7 @@ export class NewEntryComponent  implements OnInit {
 
   async confirm() {
     const syncStatus: SyncStatus = this.sync ? 'pending_upload' : "keep_local"
-    const newEntry = new NewEntryWithoutEntryIndex(this.date, this.written, this.text, this.imagesDb, syncStatus)
+    const newEntry = new NewEntryWithoutEntryIndex(this.date, this.written, true, this.text, this.imagesDb, syncStatus)
     
     const everyImageUsed = this.imagesViews.every(image => this.text.includes(`![image](${image.filename})`))
     
@@ -168,13 +170,19 @@ export class NewEntryComponent  implements OnInit {
   
   
   async setImage(event: any) {
+    const imagefile: File = event.target.files[0]
+    
+    if(imagefile.name === undefined || imagefile.type === undefined || !imagefile.type.startsWith("image/")) {
+      console.log("dont use uploaded file bc it is not an image")
+      return
+    }
+    
     const uuid = uuidv4()
     const newFilename = uuid + "." + "webp"
     
     const imageView = new ImageView(newFilename, "")
     this.imagesViews.push(imageView)
     
-    const imagefile: File = event.target.files[0]
     console.log("bildgröße vorher: " + imagefile.size)
     
     const downscaled = await imageBlobReduce().toCanvas(imagefile, { max: 750 })

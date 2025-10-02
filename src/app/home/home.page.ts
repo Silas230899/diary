@@ -9,7 +9,7 @@ import {
   IonFab,
   IonFabButton,
   IonHeader,
-  IonIcon, IonInput, IonItem, IonLabel, IonList, IonModal, IonProgressBar, IonRefresher,
+  IonIcon, IonInput, IonItem, IonLabel, IonList, IonModal, IonNote, IonProgressBar, IonRefresher,
   IonRefresherContent, IonTextarea,
   IonTitle,
   IonToolbar, ModalController, NavController, PopoverController, RefresherCustomEvent
@@ -41,6 +41,7 @@ import {v7} from "uuid";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
 import {ToastController} from "@ionic/angular";
 import {Router} from "@angular/router";
+import {formatDatetime} from "../utils/dateStuff";
 
 type Day = EntryViewRecord[]
 
@@ -49,12 +50,12 @@ type Day = EntryViewRecord[]
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, IonCardSubtitle, IonLabel, IonInput, NavBarComponent, IonList, IonItem, IonTextarea, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, IonCardSubtitle, IonLabel, IonInput, NavBarComponent, IonList, IonItem, IonTextarea, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, IonNote],
 })
 export class HomePage {
   
   date: string
-  entries: Day[] = []
+  entries: { year: number, day: Day }[] = []
   entriesLoading = true
   hasEntriesForThisYear = false
 
@@ -79,36 +80,43 @@ export class HomePage {
     this.entriesLoading = true
     this.hasEntriesForThisYear = false
     let entries: EntryViewRecord[] = await this.dbService.getEntriesByDate(date)
-    const entriesByDay: Map<string, EntryViewRecord[]> = new Map()
+    
+    const thisYear = new Date().getUTCFullYear()
+    
+    const entriesByDay: Map<number, EntryViewRecord[]> = new Map()
+    if(entries.length > 0) {
+      const entriesMappedToYears = entries.map(entry => new Date(entry.date).getUTCFullYear())
+      const lowestYear = Math.min(...entriesMappedToYears)
+      for(let year = lowestYear; year <= thisYear; year++) {
+        entriesByDay.set(year, [])
+      }
+    }
     for(const entry of entries as any[]) {
-      let otherEntriesFromThatDay = entriesByDay.get(entry.date)
+      const entryYear = new Date(entry.date).getUTCFullYear()
+      let otherEntriesFromThatDay = entriesByDay.get(entryYear)
       if (otherEntriesFromThatDay !== undefined) {
         otherEntriesFromThatDay.push(entry)
-      } else entriesByDay.set(entry.date, [entry])
-    }
-    
-    // sort days
-    const entries2 = Array.from(entriesByDay)
-      .sort((a, b) => new Date(b[0]).getTime()-new Date(a[0]).getTime())
-      .map(value => value[1])
-    
-    
-    // sort entries within days
-    entries2.forEach(day => {
-      day.sort((a, b) => a.entryIndex-b.entryIndex)
-    })
-    
-    const thisYear = new Date().getFullYear()
-    outer: for(const day of entries2){
-      for(const entry of day){
-        if(new Date(entry.date).getFullYear() === thisYear) {
-          this.hasEntriesForThisYear = true
-          break outer;
-        }
+      } else {
+        console.error("sollte nie vorkommen")
+        entriesByDay.set(new Date(entry.date).getUTCFullYear(), [entry])
       }
     }
     
-    this.entries = entries2
+    // sort days
+    const yearWithDay = Array.from(entriesByDay)
+      .sort((a, b) => b[0]-a[0])
+      .map(([year, day]) => ({ year: year, day: day }))
+    
+    
+    // sort entries within days
+    yearWithDay.forEach(({ year, day }) => {
+      day.sort((a, b) => a.entryIndex-b.entryIndex)
+    })
+    
+    const entriesForThisYear = entriesByDay.get(thisYear)
+    this.hasEntriesForThisYear = entriesForThisYear === undefined ? false : entriesForThisYear.length > 0
+    
+    this.entries = yearWithDay
     this.entriesLoading = false
   }
 
@@ -124,34 +132,15 @@ export class HomePage {
 
   formatDate(date: string) {
     const dateObject = new Date(date)
-    return `${dateObject.getFullYear()}
+    return `${dateObject.getUTCFullYear()}
            (${dateObject.toLocaleDateString(undefined, {weekday: "long"})})`
   }
-
-  formatDatetime(date: string, written: string) {
-    let options = {}
-    if(this.isSameDay(new Date(date), new Date(written))) {
-      options = {
-        hour: "2-digit",
-        minute: "2-digit"}
-      return "Heute, " + new Date(written).toLocaleTimeString(undefined, options);
-    } else {
-      options = {
-        day: "numeric",
-        month: "short",
-        year: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit"}
-      return new Date(written).toLocaleDateString(undefined, options);
-    }
-  }
-
-  private isSameDay(date1: Date, date2: Date) {
-    return (
-        date1.getUTCDate() === date2.getUTCDate() &&
-        date1.getMonth() === date2.getMonth() &&
-        date1.getFullYear() === date2.getFullYear()
-    );
+  
+  formatDate2(year: number) {
+    const dateObject = new Date(this.date)
+    dateObject.setUTCFullYear(year)
+    return `${year}
+           (${dateObject.toLocaleDateString(undefined, {weekday: "long"})})`
   }
 
   async openNewEntryModal() {
@@ -171,6 +160,7 @@ export class HomePage {
           uuidv7,
           newEntryWithoutEntryIndex.date,
           newEntryWithoutEntryIndex.written,
+          newEntryWithoutEntryIndex.writtenHasTime,
           entryIndex,
           newEntryWithoutEntryIndex.text,
           newEntryWithoutEntryIndex.images.map(image => image.filename),
@@ -217,7 +207,7 @@ export class HomePage {
   }
   
   thisYear() {
-    return new Date().getFullYear()
+    return new Date().getUTCFullYear()
   }
   
   async openEntry(date: string) {
@@ -298,4 +288,6 @@ export class HomePage {
     })
     await popover.present()
   }
+  
+  protected readonly formatDatetime = formatDatetime;
 }

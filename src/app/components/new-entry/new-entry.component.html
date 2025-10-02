@@ -25,13 +25,13 @@
                     <ion-datetime id="date"
                                   presentation="date"
                                   [formatOptions]="{
-                            date: {
-                              weekday: 'long',
-                              month: 'long',
-                              day: '2-digit',
-                              year: 'numeric'
-                            }
-                          }"
+                                                    date: {
+                                                      weekday: 'short',
+                                                      month: 'long',
+                                                      day: 'numeric',
+                                                      year: 'numeric'
+                                                    }
+                                                  }"
                                   [(ngModel)]="date"
                     ></ion-datetime>
                 </ng-template>
@@ -42,23 +42,19 @@
             <ion-label>
                 Verfasst
             </ion-label>
-            <ion-datetime-button datetime="datetime"></ion-datetime-button>
+            <ion-datetime-button datetime="written"></ion-datetime-button>
             <ion-modal [keepContentsMounted]="true" class="test">
                 <ng-template>
-                    <ion-datetime id="datetime"
+                    <ion-datetime id="written"
                                   presentation="date-time"
                                   [formatOptions]="{
-                            date: {
-                              weekday: 'long',
-                              month: 'long',
-                              day: '2-digit',
-                              year: 'numeric'
-                            },
-                            time: {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            }
-                          }"
+                                                    date: {
+                                                      weekday: 'short',
+                                                      month: 'long',
+                                                      day: 'numeric',
+                                                      year: 'numeric'
+                                                    }
+                                                  }"
                                   [(ngModel)]="written"
                     ></ion-datetime>
                 </ng-template>

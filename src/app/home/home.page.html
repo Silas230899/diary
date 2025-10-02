@@ -19,7 +19,7 @@
                               [formatOptions]="{
                             date: {
                               month: 'long',
-                              day: '2-digit',
+                              day: '2-digit'
                             }
                           }"
                               [(ngModel)]="date"
@@ -57,36 +57,43 @@
     }
     -->
 
-    @for (day of entries; track $index) {
-        <ion-card-header style="padding-bottom: 4px">
-            <ion-card-title>{{formatDate(day[0].date)}}</ion-card-title>
-        </ion-card-header>
-        <ion-card>
-            <ion-button (click)="createPopover($event, day[0].date)" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
-                <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
-            </ion-button>
-            @for (entry of day; track entry.uuidv7) {
-                <ion-card-content>
-                    <!--
-                    @if (entry.syncStatus === "keep_local") {
-                        <ion-icon name="cloud-offline-outline" style="position: absolute; right: 8px; top: 8px; width: 16px; height: 16px;"></ion-icon>
-                    } @else if (entry.syncStatus === "pending_upload") {
-                        <ion-icon name="cloud-upload-outline" style="position: absolute; right: 8px; top: 8px; width: 16px; height: 16px;"></ion-icon>
-                    } @else if (entry.syncStatus === "synced") {
-                        <ion-icon name="cloud-done-outline" style="position: absolute; right: 8px; top: 8px; width: 16px; height: 16px;"></ion-icon>
+    @if (!entriesLoading) {
+        @for (yearWithDay of entries; track $index) {
+            <ion-card-header style="padding-bottom: 4px">
+                <!--<ion-card-title>{{formatDate(yearWithDay.day[0].date)}}</ion-card-title>-->
+                @if (yearWithDay.day.length > 0) {
+                    <ion-card-title color="dark">{{formatDate2(yearWithDay.year)}}</ion-card-title>
+                } @else {
+                    <ion-card-title color="medium">{{formatDate2(yearWithDay.year)}}</ion-card-title>
+                }
+            </ion-card-header>
+            @if (yearWithDay.day.length > 0) {
+                <ion-card>
+                    <ion-button (click)="createPopover($event, yearWithDay.day[0].date)" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
+                        <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
+                    </ion-button>
+                    @for (entry of yearWithDay.day; track entry.uuidv7) {
+                        <ion-card-content>
+                            <!--
+                            @if (entry.syncStatus === "keep_local") {
+                                <ion-icon name="cloud-offline-outline" style="position: absolute; right: 8px; top: 8px; width: 16px; height: 16px;"></ion-icon>
+                            } @else if (entry.syncStatus === "pending_upload") {
+                                <ion-icon name="cloud-upload-outline" style="position: absolute; right: 8px; top: 8px; width: 16px; height: 16px;"></ion-icon>
+                            } @else if (entry.syncStatus === "synced") {
+                                <ion-icon name="cloud-done-outline" style="position: absolute; right: 8px; top: 8px; width: 16px; height: 16px;"></ion-icon>
+                            }
+                            -->
+                            @if (sync.isProbablyOffline) {
+                                <div class="dot" [class.red]="entry.syncStatus === 'keep_local'" [class.orange]="entry.syncStatus === 'pending_upload'" [class.green]="entry.syncStatus === 'synced'"></div>
+                            }
+                            Verfasst: {{formatDatetime(entry.date, entry.written, entry.writtenHasTime)}}
+                            <br>
+                            <app-entry-text [entry]="entry"></app-entry-text>
+                        </ion-card-content>
                     }
-                    -->
-                    @if (sync.isProbablyOffline) {
-                        <div class="dot" [class.red]="entry.syncStatus === 'keep_local'" [class.orange]="entry.syncStatus === 'pending_upload'" [class.green]="entry.syncStatus === 'synced'"></div>
-                    }
-                    Verfasst: {{formatDatetime(entry.date, entry.written)}} Uhr
-                    <br>
-                    <app-entry-text [entry]="entry"></app-entry-text>
-                </ion-card-content>
+                </ion-card>
             }
-        </ion-card>
-    } @empty {
-        @if (!entriesLoading) {
+        } @empty {
             <div class="no-entries-container">
                 <div class="no-entries-headline">
                     Für diesen Tag gibt es noch keine Einträge
