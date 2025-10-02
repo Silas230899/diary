@@ -5,7 +5,8 @@ export class EntryViewRecord {
   
   uuidv7: string
   date: string
-  written: string
+  written: string | null
+  writtenHasTime: boolean | null
   entryIndex: number
   text: string
   images: ImageView[]
@@ -14,7 +15,8 @@ export class EntryViewRecord {
   
   constructor(uuidv7: string,
               date: string,
-              written: string,
+              written: string | null,
+              writtenHasTime: boolean | null,
               entryIndex: number,
               text: string,
               images: ImageView[],
@@ -23,6 +25,7 @@ export class EntryViewRecord {
     this.uuidv7 = uuidv7;
     this.date = date;
     this.written = written;
+    this.writtenHasTime = writtenHasTime;
     this.entryIndex = entryIndex;
     this.text = text;
     this.images = images;

@@ -4,7 +4,8 @@ export class EntryDbRecord {
     
     uuidv7: string
     date: string
-    written: string
+    written: string | null
+    writtenHasTime: boolean | null
     entryIndex: number
     text: string
     referencedImages: string[]
@@ -13,7 +14,8 @@ export class EntryDbRecord {
 
     constructor(uuidv7: string,
                 date: string,
-                written: string,
+                written: string | null,
+                writtenHasTime: boolean | null,
                 entryIndex: number,
                 text: string,
                 referencedImages: string[],
@@ -22,6 +24,7 @@ export class EntryDbRecord {
         this.uuidv7 = uuidv7;
         this.date = date;
         this.written = written;
+        this.writtenHasTime = writtenHasTime;
         this.entryIndex = entryIndex;
         this.text = text;
         this.referencedImages = referencedImages;

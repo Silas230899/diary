@@ -25,8 +25,9 @@ export class DatabaseService {
     
     const entryTableCreation = this.db.execute("CREATE TABLE IF NOT EXISTS entry(" +
       "uuidv7 TEXT PRIMARY KEY NOT NULL, " +
-      "date DATE NOT NULL, " +
-      "written DATETIME, " +
+      "date TEXT NOT NULL, " +
+      "written TEXT, " +
+      "writtenHasTime BOOLEAN, " +
       "entryIndex INTEGER NOT NULL," +
       "text TEXT NOT NULL," +
       "referencedImages TEXT NOT NULL," +
@@ -101,9 +102,9 @@ export class DatabaseService {
     const referencedImagesString = entry.referencedImages.join(",")
     const encryptedText = await this.crypto.encryptStringToBase64String(entry.text)
     await this.database.execute(
-      `INSERT into entry (uuidv7, date, written, entryIndex, text, referencedImages, syncStatus, driveFileId)
-      VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8)`,
-      [entry.uuidv7, entry.date, entry.written, entry.entryIndex, encryptedText, referencedImagesString, entry.syncStatus, entry.driveFileId]
+      `INSERT into entry (uuidv7, date, written, writtenHasTime, entryIndex, text, referencedImages, syncStatus, driveFileId)
+      VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8, $9)`,
+      [entry.uuidv7, entry.date, entry.written, entry.writtenHasTime, entry.entryIndex, encryptedText, referencedImagesString, entry.syncStatus, entry.driveFileId]
     );
     this.entries.delete(entry.date) // TODO verbessern
   }
@@ -111,9 +112,9 @@ export class DatabaseService {
   async insertRawEntry(entry: EntryDbRecord) {
     const referencedImagesString = entry.referencedImages.join(",")
     await this.database.execute(
-      `INSERT into entry (uuidv7, date, written, entryIndex, text, referencedImages, syncStatus, driveFileId)
-      VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8)`,
-      [entry.uuidv7, entry.date, entry.written, entry.entryIndex, entry.text, referencedImagesString, entry.syncStatus, entry.driveFileId]
+      `INSERT into entry (uuidv7, date, written, writtenHasTime, entryIndex, text, referencedImages, syncStatus, driveFileId)
+      VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8, $9)`,
+      [entry.uuidv7, entry.date, entry.written, entry.writtenHasTime, entry.entryIndex, entry.text, referencedImagesString, entry.syncStatus, entry.driveFileId]
     );
   }
   
@@ -157,6 +158,7 @@ export class DatabaseService {
         entry["uuidv7"],
         entry["date"],
         entry["written"],
+        entry["writtenHasTime"],
         entry["entryIndex"],
         entry["text"],
         referencedImages,
@@ -191,6 +193,7 @@ export class DatabaseService {
       entry["uuidv7"],
       entry["date"],
       entry["written"],
+      entry["writtenHasTime"],
       entry["entryIndex"],
       decryptedText,
       referencedImages,
@@ -200,6 +203,29 @@ export class DatabaseService {
   
   private transformReferencedImageStringToArray(referencedImages: string) {
     return referencedImages.length === 0 ? [] : referencedImages.split(",")
+  }
+  
+  /**
+   * doesnt return pending_delete entries
+   */
+  async getAllEntries() {
+    const res: any[] = await this.database.select("SELECT * FROM entry WHERE syncStatus != 'pending_delete'")
+    const entriesPromises = res.map(async entry => {
+      const decryptedText = await this.crypto.decryptBase64StringToString(entry["text"])
+      const referencedImages = this.transformReferencedImageStringToArray(entry["referencedImages"])
+      return new EntryDbRecord(
+        entry["uuidv7"],
+        entry["date"],
+        entry["written"],
+        entry["writtenHasTime"],
+        entry["entryIndex"],
+        decryptedText,
+        referencedImages,
+        entry["syncStatus"],
+        entry["driveFileId"])
+    })
+    const entries = Promise.all(entriesPromises)
+    return entries
   }
   
   /**
@@ -238,6 +264,7 @@ export class DatabaseService {
         entry["uuidv7"],
         entry["date"],
         entry["written"],
+        entry["writtenHasTime"],
         entry["entryIndex"],
         decryptedText,
         images,
