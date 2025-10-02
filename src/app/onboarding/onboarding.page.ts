@@ -9,7 +9,7 @@ import {
   IonInput,
   IonNote, IonProgressBar,
   IonTitle,
-  IonToolbar
+  IonToolbar, NavController
 } from '@ionic/angular/standalone';
 import {PasswordService} from "../services/password.service";
 import {Router} from "@angular/router";
@@ -19,6 +19,7 @@ import {DatabaseService} from "../services/database.service";
 import {CryptoService} from "../services/crypto.service";
 import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
 import {store} from "@impierce/tauri-plugin-keystore";
+import {platform} from "@tauri-apps/plugin-os";
 
 @Component({
   selector: 'app-onboarding',
@@ -40,9 +41,9 @@ export class OnboardingPage implements OnInit {
               private router: Router,
               private sync: SynchronizationService,
               private dbService: DatabaseService,
-              private crypto: CryptoService,) {
+              private crypto: CryptoService,
+              private navCtrl: NavController,) {
     this.googleInitialized = this.sync.isGoogleInitialized()
-    console.log("gorre")
   }
 
   ngOnInit() {
@@ -69,10 +70,24 @@ export class OnboardingPage implements OnInit {
     }
     */
     
-    await this.passwordService.initMasterKeyIfPossible()
-    
     this.googleInitialized = this.sync.isGoogleInitialized()
     this.googleInitializing = false
+  }
+  
+  async createAccount() {
+    let salt
+    if(await this.passwordService.saltExists()) {
+      salt = await this.passwordService.readSalt()
+      console.log("worked with existing salt")
+    } else {
+      salt = await this.passwordService.createSalt()
+      await this.sync.uploadBinary("masterPasswordSalt.bin", salt)
+      console.log("created and uploaded new salt")
+    }
+    if(platform() === "android" || platform() === "ios") {
+      await this.storePw(this.password)
+    }
+    await this.crypto.initMasterKey(this.password, salt)
   }
   
   async clearDb() {
@@ -82,11 +97,11 @@ export class OnboardingPage implements OnInit {
   
   async setPassword() {
     await this.passwordService.setPassword(this.password);
-    await this.storePw()
+    await this.storePw(this.password)
     if(this.googleInitialized) {
       await this.sync.uploadBinary("masterPasswordSalt.bin", await this.passwordService.readSalt())
     }
-    await this.router.navigate(['/home'], { replaceUrl: true });
+    //await this.router.navigate(['/home'], { replaceUrl: true });
   }
   
   async downloadEverything() {
@@ -130,17 +145,13 @@ export class OnboardingPage implements OnInit {
     await this.sync.uploadLocalChanges()
   }
   
-  async storePw() {
-    await store("?0@5Ue2YbCx)BP:i)Pu#KzxyK)WE)h)nN0K7+k*)!627_QCzLLxM9Mj!%5)-~fHMevjawB#P,t%qDBRR", {
+  async storePw(password: string) {
+    await store(password, {
       keyAlias: "password",
       promptTitle: "Passwort autorisieren",
       promptSubtitle: "",
       promptNegativeButtonText: "Abbrechen"
     })
-  }
-  
-  async initMasterKey() {
-    await this.passwordService.initMasterKeyIfPossible()
   }
   
   async uploadSalt() {
