@@ -46,10 +46,16 @@
 }
 
 ion-card {
-  width: calc(100vw - 20px);
+  //width: calc(100vw - 20px);
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
+}
+
+@media (max-width: 808px) {
+  ion-card {
+    width: calc(100vw - 8px);
+  }
 }
 
 // necessary! (used internally only)
@@ -60,4 +66,22 @@ ion-input.has-focus, ion-textarea.has-focus {
 
 ._8px-margin-inline-end {
   margin-inline-end: 8px;
+}
+
+.no-entries-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: max(30%, 400px);
+  margin: auto;
+}
+
+.no-entries-container > .no-entries-headline {
+  font-weight: bold;
+  font-size: 20px;
+  line-height: 26px;
+  text-align: center;
+  text-wrap: balance;
 }

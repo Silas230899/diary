@@ -1,10 +1,41 @@
 <ion-header>
     <ion-toolbar color="primary">
-        <ion-searchbar placeholder="Suchen"></ion-searchbar>
+        <ion-searchbar placeholder="Suchen" (ionInput)="search($event)" debounce="1000"></ion-searchbar>
     </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content>
+
+    <ion-toggle>Einzelne Einträge</ion-toggle>
+    <ion-toggle>Case sensitive</ion-toggle>
+    <ion-toggle>Nur ganze Wörter</ion-toggle>
+
+    @if (resultCount > 0) {
+        <ion-list>
+            @if (results.length > 0) {
+                <ion-list-header>
+                    {{resultCount}} Ergebnisse in {{results.length}} Einträgen
+                </ion-list-header>
+            }
+            @for (entry of results; track entry.uuidv7) {
+                <ion-item button detail="true" (click)="openEntry(entry.date)">
+                <span slot="start">
+                    {{formatDate(entry.date)}}
+                </span>
+                    <ion-label class="ion-text-nowrap">
+                        {{entry.text}}
+                    </ion-label>
+                </ion-item>
+            }
+        </ion-list>
+    } @else {
+        <div class="no-entries-container">
+            <div class="no-entries-headline">
+                Keine Ergebnisse
+            </div>
+        </div>
+    }
+
 
 </ion-content>
 

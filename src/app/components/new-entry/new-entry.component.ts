@@ -25,8 +25,6 @@ import {
   cloudOfflineOutline,
   timeOutline,
 } from "ionicons/icons";
-import {DatabaseService} from "../../services/database.service";
-import {CryptoService} from "../../services/crypto.service";
 import imageBlobReduce from 'image-blob-reduce';
 import { v4 as uuidv4 } from 'uuid';
 import {NewEntryWithoutEntryIndex} from "../../models/new-entry-without-entry-index";
@@ -69,6 +67,7 @@ export class NewEntryComponent  implements OnInit {
   text = ""
   @Input() date: string
   written: string
+  customWrittenDate = false
   sync = true
   imagesViews: ImageView[] = []
   imagesDb: ImageDb[] = []
@@ -82,6 +81,14 @@ export class NewEntryComponent  implements OnInit {
     currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
     this.date = currentDate.toISOString()
     this.written = currentDate.toISOString()
+    const newEntryText = localStorage.getItem("newEntryTextarea")
+    if(newEntryText !== null) {
+      this.text = newEntryText
+    }
+  }
+  
+  customCounterFormatter(inputLength: number, maxLength: number) {
+    return `${inputLength} Zeichen`;
   }
   
   async ionViewDidEnter() {
@@ -94,7 +101,13 @@ export class NewEntryComponent  implements OnInit {
 
   async confirm() {
     const syncStatus: SyncStatus = this.sync ? 'pending_upload' : "keep_local"
-    const newEntry = new NewEntryWithoutEntryIndex(this.date, this.written, true, this.text, this.imagesDb, syncStatus)
+    let writtenDate = this.written
+    if(!this.customWrittenDate) {
+      let currentDate = new Date()
+      currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
+      writtenDate = currentDate.toISOString()
+    }
+    const newEntry = new NewEntryWithoutEntryIndex(this.date, writtenDate, true, this.text, this.imagesDb, syncStatus)
     
     const everyImageUsed = this.imagesViews.every(image => this.text.includes(`![image](${image.filename})`))
     
@@ -121,6 +134,7 @@ export class NewEntryComponent  implements OnInit {
     } else {
       await this.modalCtrl.dismiss(newEntry, 'confirm');
     }
+    localStorage.removeItem("newEntryTextarea")
   }
 
   ngOnInit() {}
@@ -258,5 +272,16 @@ export class NewEntryComponent  implements OnInit {
   reference(img: ImageView) {
     this.text += `\n![image](${img.filename})`
     console.log(img.filename)
+  }
+  
+  setCustomWrittenDate(flag: boolean) {
+    this.customWrittenDate = flag
+    let currentDate = new Date()
+    currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
+    this.written = currentDate.toISOString()
+  }
+  
+  textareaInput($event: any) {
+    localStorage.setItem("newEntryTextarea", $event.detail.value)
   }
 }

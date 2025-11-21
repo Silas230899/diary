@@ -155,7 +155,7 @@ export class SpecificDayPage implements OnInit {
         //const imageDeletionPromises = entry.images.map(image => this.dbService.deleteImage(image.filename))
         //await Promise.all([...imageDeletionPromises, entryDeletionPromise])
         await this.populateEntries(this.date)
-        //await this.sync.uploadLocalChanges()
+        this.sync.uploadLocalChanges()
       }
     })
     await popover.present()

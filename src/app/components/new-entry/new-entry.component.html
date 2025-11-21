@@ -37,17 +37,18 @@
                 </ng-template>
             </ion-modal>
         </ion-item>
-        <ion-item>
-            <ion-icon class="_8px-margin-inline-end" name="time-outline" slot="start"></ion-icon>
-            <ion-label>
-                Verfasst
-            </ion-label>
-            <ion-datetime-button datetime="written"></ion-datetime-button>
-            <ion-modal [keepContentsMounted]="true" class="test">
-                <ng-template>
-                    <ion-datetime id="written"
-                                  presentation="date-time"
-                                  [formatOptions]="{
+        @if (customWrittenDate) {
+            <ion-item>
+                <ion-icon class="_8px-margin-inline-end" name="time-outline" slot="start"></ion-icon>
+                <ion-label>
+                    Verfasst
+                </ion-label>
+                <ion-datetime-button datetime="written"></ion-datetime-button>
+                <ion-modal [keepContentsMounted]="true" class="test">
+                    <ng-template>
+                        <ion-datetime id="written"
+                                      presentation="date-time"
+                                      [formatOptions]="{
                                                     date: {
                                                       weekday: 'short',
                                                       month: 'long',
@@ -55,11 +56,30 @@
                                                       year: 'numeric'
                                                     }
                                                   }"
-                                  [(ngModel)]="written"
-                    ></ion-datetime>
-                </ng-template>
-            </ion-modal>
-        </ion-item>
+                                      [(ngModel)]="written"
+                        ></ion-datetime>
+                    </ng-template>
+                </ion-modal>
+                <ion-button fill="clear" size="default" (click)="customWrittenDate = false">
+                    <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                </ion-button>
+            </ion-item>
+        } @else {
+            <ion-item>
+                <ion-icon class="_8px-margin-inline-end" name="time-outline" slot="start"></ion-icon>
+                <ion-label>
+                    Verfasst
+                </ion-label>
+                <ion-segment value="now" mode="ios" style="width: unset">
+                    <ion-segment-button value="now" (click)="customWrittenDate = false">
+                        <ion-label>Jetzt</ion-label>
+                    </ion-segment-button>
+                    <ion-segment-button value="custom" (click)="setCustomWrittenDate(true)">
+                        <ion-label>Custom</ion-label>
+                    </ion-segment-button>
+                </ion-segment>
+            </ion-item>
+        }
         <ion-item>
             @if (sync) {
                 <ion-icon class="_8px-margin-inline-end" name="cloud-done-outline" slot="start"></ion-icon>
@@ -83,6 +103,10 @@
                 labelPlacement="floating"
                 label="Eintrag"
                 fill="outline"
+                [counter]="true"
+                maxlength="1000000"
+                [counterFormatter]="customCounterFormatter"
+                (ionInput)="textareaInput($event)"
                 [(ngModel)]="text">
             </ion-textarea>
         </ion-item>
@@ -103,7 +127,9 @@
                     </div>
                     @for (img of imagesViews; track img.filename) {
                         @if (img.localImageUrl === "") {
-                            <ion-thumbnail><ion-skeleton-text [animated]="true"></ion-skeleton-text></ion-thumbnail>
+                            <ion-thumbnail>
+                                <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+                            </ion-thumbnail>
                         } @else {
                             <img [src]="img.localImageUrl" (click)="reference(img)">
                         }
@@ -114,7 +140,6 @@
     </ion-list>
 
     <input type="file" id="file-upload" style="display: none" (change)="setImage($event)">
-
 
 
     <!--

@@ -44,7 +44,7 @@ export class SynchronizationService {
           setTimeout(async () => {
             await this.uploadLocalChanges()
             console.log("successfully uploaded local changes")
-          }, 1000)
+          }, 750)
         }
       })
     }
@@ -74,16 +74,22 @@ export class SynchronizationService {
     if(entries.length === 0) console.log("nothing to upload")
     for(let entry of entries) {
       if(entry.syncStatus === "pending_delete" && entry.driveFileId !== null) {
-        await this.deleteFile(entry.driveFileId)
+        // delete locally
         await this.dbService.deleteEntry(entry.uuidv7)
-        console.log("deleted entry " + entry.uuidv7)
         for(const filename of entry.referencedImages) {
           await this.dbService.deleteImage(filename)
+        }
+        
+        // delete remote
+        await this.deleteFile(entry.driveFileId)
+        for(const filename of entry.referencedImages) {
           const driveFileId = await this.getDriveFileIdOfImageByFilename(filename)
           if(driveFileId === null) throw new Error(`file ${filename} not found`)
           await this.deleteFile(driveFileId.id)
-          console.log("deleted image " + filename + ", " + driveFileId)
+          //console.log("deleted image " + filename + ", " + driveFileId)
         }
+        
+        console.log("deleted entry " + entry.uuidv7)
       } else if(entry.syncStatus === "pending_upload") {
         console.log(entry.syncStatus)
         entry.syncStatus = "synced"
@@ -263,6 +269,7 @@ export class SynchronizationService {
   }
   
   private async checkToken() {
+    if(this.accessTokenExpiration === null) throw new Error("Acces Token Expiration is undefined")
     if(new Date(this.accessTokenExpiration!).getTime() < new Date().getTime()) {
       const res = await this.getNewToken(this.refreshToken!)
       console.log("refreshed token")
@@ -560,6 +567,8 @@ export class SynchronizationService {
     localStorage.setItem("drive_refresh_token", refreshToken);
     localStorage.setItem("drive_access_token_expiration", driveAccessTokenExpiration);
     localStorage.setItem("drive_start_page_token", startPageToken)
+    
+    console.log("Done setting localStorage")
   }
   
   async listChanges() {

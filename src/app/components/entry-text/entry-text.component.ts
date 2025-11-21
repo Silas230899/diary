@@ -3,6 +3,7 @@ import {EntryViewRecord} from "../../models/entry-view-record";
 
 type EntryPart = { type: "text", value: string }
   | { type: "newline" }
+  | { type: "emptyline" }
   | { type: "image", value: string }
   | { type: "images", value: string[] }
   | { type: "chat", value: string }
@@ -43,7 +44,7 @@ export class EntryTextComponent  implements OnInit {
         res.push({ type: "chat", value: line.substring(7) })
       } else {
         if(line.length === 0) {
-          res.push({ type: "newline" })
+          res.push({ type: "emptyline" })
         } else {
           res.push({ type: "text", value: line })
         }
@@ -53,9 +54,11 @@ export class EntryTextComponent  implements OnInit {
     let res2: EntryPart[] = []
     for(let r of res) {
       res2.push(r)
-      res2.push({ type: "newline" })
+      if(r.type !== "emptyline") {
+        res2.push({ type: "newline" })
+      }
     }
-    this.entryParts = res2.slice(0, res2.length-1)
+    this.entryParts = res2.slice(0, res2.length-1) // letzten linebreak entfernen weil unnötig
   }
 
 }

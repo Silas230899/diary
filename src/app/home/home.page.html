@@ -69,20 +69,19 @@
             </ion-card-header>
             @if (yearWithDay.day.length > 0) {
                 <ion-card>
-                    <ion-button (click)="createPopover($event, yearWithDay.day[0].date)" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
+                    <ion-button (click)="createPopover($event, yearWithDay.day[0])" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
                         <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
                     </ion-button>
                     @for (entry of yearWithDay.day; track entry.uuidv7) {
                         <ion-card-content>
-                            <!--
                             @if (entry.syncStatus === "keep_local") {
-                                <ion-icon name="cloud-offline-outline" style="position: absolute; right: 8px; top: 8px; width: 16px; height: 16px;"></ion-icon>
+                                <ion-icon class="cloudIndicator" [class.firstCloudIndicator]="$first" name="cloud-offline-outline"></ion-icon>
                             } @else if (entry.syncStatus === "pending_upload") {
-                                <ion-icon name="cloud-upload-outline" style="position: absolute; right: 8px; top: 8px; width: 16px; height: 16px;"></ion-icon>
+                                <ion-icon class="cloudIndicator" [class.firstCloudIndicator]="$first" name="cloud-upload-outline"></ion-icon>
                             } @else if (entry.syncStatus === "synced") {
-                                <ion-icon name="cloud-done-outline" style="position: absolute; right: 8px; top: 8px; width: 16px; height: 16px;"></ion-icon>
+                                <ion-icon class="cloudIndicator" [class.firstCloudIndicator]="$first" name="cloud-done-outline"></ion-icon>
                             }
-                            -->
+
                             @if (sync.isProbablyOffline) {
                                 <div class="dot" [class.red]="entry.syncStatus === 'keep_local'" [class.orange]="entry.syncStatus === 'pending_upload'" [class.green]="entry.syncStatus === 'synced'"></div>
                             }

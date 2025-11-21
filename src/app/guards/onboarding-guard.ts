@@ -9,6 +9,14 @@ export const onboardingGuard: CanActivateFn = async (route, state) => {
   const crypto = inject(CryptoService);
   if(crypto.isMasterKeyInitialized()) return true
   else if(await passwordService.saltExists()) {
+    const password = localStorage.getItem("password")
+    if(password !== null) {
+      const salt = await passwordService.readSalt()
+      localStorage.setItem("password", password)
+      await crypto.initMasterKey(password, salt)
+      //await this.navCtrl.navigateRoot("home")
+      return true
+    }
     // account is created, login with biometry or password
     const loginPath = router.parseUrl("/login")
     return new RedirectCommand(loginPath)

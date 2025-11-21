@@ -5,8 +5,18 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-input label="Passwort" [(ngModel)]="password"></ion-input>
-  <ion-button (click)="login(password)" [disabled]="password.length === 0">Einloggen</ion-button>
+    <form (submit)="submit()">
+        <ion-input
+            #passwordField
+            label="Passwort"
+            labelPlacement="floating"
+            fill="outline"
+            name="first"
+            [(ngModel)]="password">
+        </ion-input>
+        <ion-button (click)="login(password)" [disabled]="password.length === 0">Einloggen</ion-button>
+    </form>
+
   <br>
-  <ion-button (click)="openBiometry()">Mit Biometrie einloggen</ion-button>
+  <ion-button (click)="openBiometry()" [disabled]="!biometryAvailable">Mit Biometrie einloggen</ion-button>
 </ion-content>

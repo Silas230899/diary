@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton,
   IonContent,
   IonHeader,
-  IonInput,
+  IonInput, IonTextarea,
   IonTitle,
   IonToolbar,
   NavController
@@ -21,10 +21,14 @@ import {checkStatus} from "@tauri-apps/plugin-biometric";
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonInput, IonButton]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonInput, IonButton, IonTextarea]
 })
 export class LoginPage implements OnInit {
+  
+  @ViewChild("passwordField") passwordField!: IonInput
+  
   password = ""
+  biometryAvailable = false
 
   constructor(private passwordService: PasswordService,
               private crypto: CryptoService,
@@ -37,6 +41,7 @@ export class LoginPage implements OnInit {
       // only mobile has biometry plugin
       const status = await checkStatus()
       if(status.isAvailable) {
+        this.biometryAvailable = true;
         // biometry must be available
         const result = await retrieve("password")
         if(result !== null) {
@@ -45,13 +50,30 @@ export class LoginPage implements OnInit {
       }
     }
   }
+  
+  async ionViewDidEnter() {
+    if(platform() === "android" || platform() === "ios") {
+      // only mobile has biometry plugin
+      const status = await checkStatus()
+      if(!status.isAvailable) {
+        await this.passwordField.setFocus()
+      }
+    } else {
+      await this.passwordField.setFocus()
+    }
+  }
 
   ngOnInit() {
   }
   
   async login(password: string) {
     const salt = await this.passwordService.readSalt()
+    localStorage.setItem("password", password)
     await this.crypto.initMasterKey(password, salt)
     await this.navCtrl.navigateRoot("home")
+  }
+  
+  async submit() {
+    if(this.password.length !== 0) await this.login(this.password)
   }
 }

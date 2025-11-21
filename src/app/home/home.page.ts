@@ -10,7 +10,7 @@ import {
   IonFabButton,
   IonHeader,
   IonIcon, IonInput, IonItem, IonLabel, IonList, IonModal, IonNote, IonProgressBar, IonRefresher,
-  IonRefresherContent, IonTextarea,
+  IonRefresherContent, IonSpinner, IonTextarea,
   IonTitle,
   IonToolbar, ModalController, NavController, PopoverController, RefresherCustomEvent
 } from '@ionic/angular/standalone';
@@ -50,7 +50,7 @@ type Day = EntryViewRecord[]
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, IonCardSubtitle, IonLabel, IonInput, NavBarComponent, IonList, IonItem, IonTextarea, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, IonNote],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, IonCardSubtitle, IonLabel, IonInput, NavBarComponent, IonList, IonItem, IonTextarea, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, IonNote, IonSpinner],
 })
 export class HomePage {
   
@@ -74,6 +74,14 @@ export class HomePage {
     this.date = currentDate.toISOString()
     
     this.populateEntries(this.date)
+    
+    this.sync.checkInternetAccess().then(() => {
+      if (!this.sync.isProbablyOffline) {
+        this.sync.downloadRemoteChanges().then(() => {
+          this.populateEntries(this.date)
+        })
+      }
+    })
   }
   
   async populateEntries(date: string) {
@@ -145,10 +153,13 @@ export class HomePage {
 
   async openNewEntryModal() {
     const modal = await this.modalCtrl.create({
-      component: NewEntryComponent
+      component: NewEntryComponent,
+      componentProps: {
+        date: this.date
+      }
     });
     
-    modal.onDidDismiss().then(async e => {
+    modal.onWillDismiss().then(async e => {
       const { data, role } = e
       if(role === "confirm") {
         const newEntryWithoutEntryIndex = data as NewEntryWithoutEntryIndex
@@ -216,43 +227,40 @@ export class HomePage {
   }
   
   async handleRefresh($event: RefresherCustomEvent) {
+    await this.sync.checkInternetAccess()
     if(this.sync.isProbablyOffline) {
-      await this.sync.checkInternetAccess()
-      if(this.sync.isProbablyOffline) {
-        const toast = await this.toastController.create({
-          message: 'Du hast keinen Internetzugriff!',
-          duration: 2000,
-          position: "bottom",
-        });
-        
-        await toast.present();
-        await $event.target.complete()
-        return
-      }
-    }
-    await this.sync.downloadRemoteChanges()
-    const localChanges = await this.sync.getLocalChanges()
-    if(localChanges.length > 0) {
-      setTimeout(async () => {
-        console.log("also uploading local changes")
-        await this.sync.upload(localChanges)
-        await this.populateEntries(this.date)
-        await $event.target.complete()
-      }, 750)
-    } else {
-      await this.populateEntries(this.date)
+      const toast = await this.toastController.create({
+        message: 'Du hast keinen Internetzugriff!',
+        duration: 2000,
+        position: "bottom",
+      });
+      
+      await toast.present();
       await $event.target.complete()
-      console.log("downloaded remote changes without uploading local changes")
+    } else {
+      await this.sync.downloadRemoteChanges()
+      await this.populateEntries(this.date) // für uploading changes eig nicht nötig
+      const localChanges = await this.sync.getLocalChanges()
+      if(localChanges.length > 0) {
+        setTimeout(async () => {
+          console.log("also uploading local changes")
+          await this.sync.upload(localChanges)
+          await $event.target.complete()
+        }, 750)
+      } else {
+        await $event.target.complete()
+        console.log("downloaded remote changes without uploading local changes")
+      }
     }
   }
   
-  async createPopover($event: MouseEvent, date: string) {
+  async createPopover($event: MouseEvent, entry: EntryViewRecord) {
     const popover = await this.popoverController.create({
       component: SpecificDayPopoverComponent,
       event: $event,
       reference: "event"
     })
-    popover.onDidDismiss().then(async e => {
+    popover.onWillDismiss().then(async e => {
       const { data, role } = e
       if(role === "delete") {
         const toast = await this.toastController.create({
@@ -265,7 +273,7 @@ export class HomePage {
         //await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
         //await this.populateEntries(this.date)
       } else if(role === "edit") {
-        await this.openEntry(date)
+        await this.openEntry(entry.date)
       } else if(role === "info") {
         const toast = await this.toastController.create({
           message: 'Informationen können noch nicht angezeigt werden',
@@ -273,7 +281,7 @@ export class HomePage {
           position: "bottom",
         });
         await toast.present()
-        console.log(JSON.stringify(data))
+        console.log(entry.text.length)
       }
       /*
       if(role === "confirm") {

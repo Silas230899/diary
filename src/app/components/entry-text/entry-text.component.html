@@ -3,6 +3,8 @@
         {{ part.value }}
     } @else if (part.type === "newline") {
         <br>
+    } @else if (part.type === "emptyline") {
+        <br>
     } @else if (part.type === "image") {
         <div class="imageContainer">
             <img [src]="part.value">

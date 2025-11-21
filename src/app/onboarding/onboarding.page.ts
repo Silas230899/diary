@@ -73,6 +73,7 @@ export class OnboardingPage implements OnInit {
     */
     
     this.googleInitialized = this.sync.isGoogleInitialized()
+    console.log("googleInitialized: " + this.googleInitialized)
     this.googleInitializing = false
   }
   
