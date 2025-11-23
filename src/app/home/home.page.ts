@@ -75,6 +75,7 @@ export class HomePage {
     
     this.populateEntries(this.date)
     
+    /*
     this.sync.checkInternetAccess().then(() => {
       if (!this.sync.isProbablyOffline) {
         this.sync.downloadRemoteChanges().then(() => {
@@ -82,6 +83,7 @@ export class HomePage {
         })
       }
     })
+     */
   }
   
   async populateEntries(date: string) {
