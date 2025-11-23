@@ -114,11 +114,7 @@ export class SynchronizationService {
     await this.upload(entries)
   }
   
-  async downloadRemoteChanges() {
-    await this.checkToken()
-    // download changes from drive
-    const changesList = await this.listChanges()
-    console.log(changesList)
+  async processChangesList(changesList: any) {
     for(const change of changesList.changes) {
       if(change.removed) {
         const entry = await this.dbService.getEntryByDriveFileId(change.fileId)
@@ -154,9 +150,25 @@ export class SynchronizationService {
         }
       }
     }
+  }
+  
+  async downloadRemoteChanges() {
+    await this.checkToken()
+    // download changes from drive
+    let changesList
+    do {
+      changesList = await this.listChanges()
+      console.log(changesList)
+      await this.processChangesList(changesList)
+      this.startPageToken = changesList.nextPageToken
+      localStorage.setItem("drive_start_page_token", this.startPageToken!)
+      console.log("set token: " + this.startPageToken)
+    } while (changesList.nextPageToken !== undefined)
+    
     if(changesList.newStartPageToken !== undefined) {
       this.startPageToken = changesList.newStartPageToken
       localStorage.setItem("drive_start_page_token", this.startPageToken!)
+      console.log("set token: " + this.startPageToken)
     } else {
       console.log("error with new startpage token: " + changesList.newStartPageToken)
     }
