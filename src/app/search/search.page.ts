@@ -152,17 +152,53 @@ export class SearchPage implements OnInit {
         count += thisCount
         resultFrequencies.set(entry, thisCount)
       }
-      const sortedEntries = Array.of(...resultFrequencies.entries())
+      const entriesSortedByFrequency = Array.of(...resultFrequencies.entries())
         .filter(entry => entry[1] > 0)
         .sort((a, b) => a[1] - b[1])
         .map(entry => entry[0])
-      this.results = sortedEntries
+      this.results = entriesSortedByFrequency
       //console.log(count)
       this.resultCount = count
       
+      const sameDaysCombined = new Map<string, number>
+      const sorted = Array.of(...resultFrequencies.entries())
+        .map(entry => entry[0])
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      let earliest = new Date(sorted[0].date)
+      earliest = new Date().getTime() - earliest.getTime() > 365*24*60*60*1000
+        ? new Date(new Date().getTime() - 365*24*60*60*1000)
+        : new Date(earliest.getTime())
+      const latest = new Date()
+      while(earliest.getTime() <= latest.getTime()) {
+        sameDaysCombined.set(earliest.toISOString(), 0)
+        //console.log(earliest.toISOString())
+        earliest = new Date(earliest.getTime() + 24*60*60*1000)
+      }
+      sameDaysCombined.set(latest.toISOString(), 0)
+      for(const entry of resultFrequencies.entries()) {
+        const current = sameDaysCombined.get(entry[0].date)
+        if(current !== undefined) {
+          sameDaysCombined.set(entry[0].date, current + entry[1])
+        } else {
+          sameDaysCombined.set(entry[0].date, entry[1])
+        }
+      }
+      
+      for(const x of Array.of(...sameDaysCombined.entries())) {
+        //if(x[1] > 0) console.log(x[0])
+      }
+      
+      console.log(sameDaysCombined.size)
+      
+      const entriesSortedByDate = Array.of(...sameDaysCombined.entries())
+        .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
+        .map(entry => entry[0])
+      
+      /*
       const entriesSortedByDate = Array.of(...resultFrequencies.entries())
         .sort((a, b) => new Date(a[0].date).getTime() - new Date(b[0].date).getTime())
         .map(entry => entry[0])
+      */
       
       const ctx = this.chart.nativeElement
       this.graph.destroy()
@@ -170,17 +206,17 @@ export class SearchPage implements OnInit {
         type: this.lineChartType,
         data: {
           datasets: [{
-            data: entriesSortedByDate.map(entry => resultFrequencies.get(entry)),
+            data: entriesSortedByDate.map(entry => sameDaysCombined.get(entry)),
             label: "labeeel",
             steppedLine: true,
             backgroundColor: "#556677",
             borderColor: "#550099",
             fill: false,
             pointStyle: false,
-            type: 'line',
+            type: 'bar',
             cubicInterpolationMode: 'monotone',
           } as any],
-          labels: entriesSortedByDate.map(entry => new Date(entry.date).toLocaleDateString()),
+          labels: entriesSortedByDate.map(entry => new Date(entry).toLocaleDateString()),
         },
         options: this.lineChartOptions
       });

@@ -10,7 +10,9 @@
     <ion-toggle [(ngModel)]="caseSensitive" (ionChange)="search()">Case sensitive</ion-toggle>
     <ion-toggle [(ngModel)]="fullWords" (ionChange)="search()">Nur ganze Wörter</ion-toggle>
 
-    <canvas #baseChart style="width: 400px; height: 275px"></canvas>
+    <div class="canvasParent" [class.canvasHidden]="resultCount === 0">
+        <canvas #baseChart></canvas>
+    </div>
 
     @if (resultCount > 0) {
         <ion-list>
