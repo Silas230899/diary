@@ -24,6 +24,7 @@ import {
   cloudDoneOutline,
   cloudOfflineOutline,
   timeOutline,
+  logoWhatsapp
 } from "ionicons/icons";
 import imageBlobReduce from 'image-blob-reduce';
 import { v7 as uuidv7 } from 'uuid';
@@ -78,7 +79,7 @@ export class NewEntryComponent  implements OnInit {
   constructor(private modalCtrl: ModalController,
               private actionSheetCtrl: ActionSheetController,
               private route: ActivatedRoute,) {
-    addIcons({ timeOutline, cloudDoneOutline, cloudOfflineOutline, camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
+    addIcons({ logoWhatsapp, timeOutline, cloudDoneOutline, cloudOfflineOutline, camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
     let currentDate = new Date()
     currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
     this.date = currentDate.toISOString()
@@ -275,6 +276,10 @@ export class NewEntryComponent  implements OnInit {
   reference(img: ImageView) {
     this.text += `\n![image](${img.filename})`
     console.log(img.filename)
+  }
+  
+  addChat() {
+    this.text += `![chat]()`
   }
   
   setCustomWrittenDate(flag: boolean) {

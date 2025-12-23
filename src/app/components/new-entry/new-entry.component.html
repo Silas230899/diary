@@ -139,6 +139,13 @@
                 </div>
             }
         </ion-item>
+        <ion-item>
+            <ion-button (click)="addChat()" size="default">
+                <ion-icon name="add" slot="start"></ion-icon>
+                <ion-label>Chat</ion-label>
+                <ion-icon slot="end" icon="logo-whatsapp"></ion-icon>
+            </ion-button>
+        </ion-item>
     </ion-list>
 
     <input type="file" id="file-upload" style="display: none" (change)="setImage($event)">
