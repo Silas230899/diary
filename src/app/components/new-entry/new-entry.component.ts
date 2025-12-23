@@ -6,7 +6,7 @@ import {
   IonHeader, IonIcon, IonItem, IonLabel, IonList,
   IonModal, IonNote, IonSegment, IonSegmentButton, IonSkeletonText, IonTextarea, IonThumbnail,
   IonTitle, IonToggle,
-  IonToolbar, ModalController, NavController
+  IonToolbar, ModalController
 } from "@ionic/angular/standalone";
 import {FormsModule} from "@angular/forms";
 import {addIcons} from "ionicons";
@@ -26,12 +26,13 @@ import {
   timeOutline,
 } from "ionicons/icons";
 import imageBlobReduce from 'image-blob-reduce';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import {NewEntryWithoutEntryIndex} from "../../models/new-entry-without-entry-index";
 import {ImageView} from "../../models/image-view";
 import {ImageDb} from "../../models/image-db";
 import {ActionSheetController} from "@ionic/angular";
 import {SyncStatus} from "../../models/syncStatusTypes";
+import {ActivatedRoute} from "@angular/router";
 
 @Component({
   selector: 'app-new-entry',
@@ -64,18 +65,19 @@ import {SyncStatus} from "../../models/syncStatusTypes";
 })
 export class NewEntryComponent  implements OnInit {
 
-  text = ""
+  @Input() text = ""
   @Input() date: string
-  written: string
-  customWrittenDate = false
-  sync = true
-  imagesViews: ImageView[] = []
+  @Input() written: string
+  @Input() customWrittenDate = false
+  @Input() sync = true
+  @Input() imagesViews: ImageView[] = []
   imagesDb: ImageDb[] = []
   
   @ViewChild("textarea") textarea!: IonTextarea
 
   constructor(private modalCtrl: ModalController,
-              private actionSheetCtrl: ActionSheetController) {
+              private actionSheetCtrl: ActionSheetController,
+              private route: ActivatedRoute,) {
     addIcons({ timeOutline, cloudDoneOutline, cloudOfflineOutline, camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
     let currentDate = new Date()
     currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
@@ -85,6 +87,9 @@ export class NewEntryComponent  implements OnInit {
     if(newEntryText !== null) {
       this.text = newEntryText
     }
+  }
+  
+  ngOnInit() {
   }
   
   customCounterFormatter(inputLength: number, maxLength: number) {
@@ -136,8 +141,6 @@ export class NewEntryComponent  implements OnInit {
     }
     localStorage.removeItem("newEntryTextarea")
   }
-
-  ngOnInit() {}
   
   openFileDialog() {
     // @ts-ignore
@@ -191,7 +194,7 @@ export class NewEntryComponent  implements OnInit {
       return
     }
     
-    const uuid = uuidv4()
+    const uuid = uuidv7()
     const newFilename = uuid + "." + "webp"
     
     const imageView = new ImageView(newFilename, "")

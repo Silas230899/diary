@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ViewChild} from '@angular/core';
 import {
   IonButton, IonButtons,
   IonCard,
@@ -39,7 +39,7 @@ import {EntryViewRecord} from "../models/entry-view-record";
 import {EntryTextComponent} from "../components/entry-text/entry-text.component";
 import {v7} from "uuid";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
-import {ToastController} from "@ionic/angular";
+import {LoadingController, ToastController} from "@ionic/angular";
 import {Router} from "@angular/router";
 import {formatDatetime} from "../utils/dateStuff";
 
@@ -54,6 +54,7 @@ type Day = EntryViewRecord[]
 })
 export class HomePage {
   
+  @ViewChild(IonContent) content!: IonContent;
   date: string
   entries: { year: number, day: Day }[] = []
   entriesLoading = true
@@ -66,7 +67,8 @@ export class HomePage {
               private crypto: CryptoService,
               protected sync: SynchronizationService,
               private toastController: ToastController,
-              private router: Router) {
+              private router: Router,
+              private loadingCtrl: LoadingController) {
     addIcons({ cloudDoneOutline, cloudOfflineOutline, cloudUploadOutline, add, pencil, createOutline, trashOutline, chevronBackOutline, chevronForwardOutline, ellipsisVerticalOutline })
     
     let currentDate = new Date();
@@ -74,6 +76,8 @@ export class HomePage {
     this.date = currentDate.toISOString()
     
     this.populateEntries(this.date)
+    
+    this.showLoading()
     
     /*
     this.sync.checkInternetAccess().then(() => {
@@ -84,6 +88,26 @@ export class HomePage {
       }
     })
      */
+  }
+  
+  /*
+  async ionViewWillEnter() {
+    await this.content.scrollByPoint(0, 50, 0)
+  }
+  */
+  
+  async showLoading() {
+    if(this.sync.initialDownloadSyncDone) return
+    
+    const loading = await this.loadingCtrl.create({
+      message: 'Laden...',
+      //duration: 3000,
+    });
+    await loading.present();
+    this.sync.initialDownloadSync.finally(async () => {
+      await this.populateEntries(this.date)
+      await loading.dismiss()
+    })
   }
   
   async populateEntries(date: string) {
@@ -180,6 +204,7 @@ export class HomePage {
           newEntryWithoutEntryIndex.syncStatus,
           null
         )
+        
         let imagePromises = newEntryWithoutEntryIndex.images.map(image => this.dbService.addImage(image))
         const entryPromise = this.dbService.addEntry(newEntry)
         const allPromises = [...imagePromises, entryPromise]

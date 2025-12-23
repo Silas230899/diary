@@ -5,8 +5,8 @@ import {
   IonBackButton,
   IonButton, IonButtons,
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonContent, IonDatetime, IonDatetimeButton,
-  IonHeader, IonIcon, IonModal, IonProgressBar,
+  IonContent,
+  IonHeader, IonIcon,
   IonTitle,
   IonToolbar, ModalController,
   NavController, PopoverController
@@ -15,7 +15,6 @@ import {addIcons} from "ionicons";
 import {add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline } from "ionicons/icons";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
 import {DatabaseService} from "../services/database.service";
-import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
 import {NewEntryComponent} from "../components/new-entry/new-entry.component";
 import {EntryViewRecord} from "../models/entry-view-record";
 import {NewEntryWithoutEntryIndex} from "../models/new-entry-without-entry-index";
@@ -32,7 +31,7 @@ import {formatDatetime} from "../utils/dateStuff";
   templateUrl: './specific-day.page.html',
   styleUrls: ['./specific-day.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonDatetimeButton, IonModal, IonDatetime, IonButtons, NavBarComponent, IonProgressBar, EntryTextComponent, IonBackButton]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonButtons, EntryTextComponent, IonBackButton]
 })
 export class SpecificDayPage implements OnInit {
 
@@ -155,7 +154,67 @@ export class SpecificDayPage implements OnInit {
         //const imageDeletionPromises = entry.images.map(image => this.dbService.deleteImage(image.filename))
         //await Promise.all([...imageDeletionPromises, entryDeletionPromise])
         await this.populateEntries(this.date)
-        this.sync.uploadLocalChanges()
+        if(!this.sync.isProbablyOffline) this.sync.uploadLocalChanges()
+      } else if(role === "edit") {
+        if(entry.images.length > 0) {
+          alert("einträge mit bildern können noch nicht bearbeitet werden")
+          return;
+        }
+        
+        const modal = await this.modalCtrl.create({
+          component: NewEntryComponent,
+          componentProps: {
+            text: entry.text,
+            date: entry.date,
+            written: entry.written,
+            customWrittenDate: true,
+            sync: entry.syncStatus !== "keep_local",
+            imagesViews: entry.images
+          }
+        });
+        
+        modal.onWillDismiss().then(async e => {
+          const { data, role } = e
+          if(role === "confirm") {
+            const newEntryWithoutEntryIndex = data as NewEntryWithoutEntryIndex
+            
+            const newUuidv7 = v7()
+            const newEntryIndex = entry.entryIndex
+            
+            let newImages = newEntryWithoutEntryIndex.images.map(image => image.filename)
+            if(entry.images.length !== newEntryWithoutEntryIndex.images.length) {
+              for(const image of newEntryWithoutEntryIndex.images) {
+                if(entry.images.map(img => img.filename).includes(image.filename)) {
+                  //entry.images.
+                }
+              }
+            }
+            
+            const newEntry = new EntryDbRecord(
+              newUuidv7,
+              newEntryWithoutEntryIndex.date,
+              newEntryWithoutEntryIndex.written,
+              newEntryWithoutEntryIndex.writtenHasTime,
+              newEntryIndex,
+              newEntryWithoutEntryIndex.text,
+              newImages,
+              newEntryWithoutEntryIndex.syncStatus,
+              null
+            )
+            
+            let imagePromises = newEntryWithoutEntryIndex.images.map(image => this.dbService.addImage(image))
+            const entryPromise = this.dbService.addEntry(newEntry)
+            const allPromises = [...imagePromises, entryPromise]
+            await Promise.all(allPromises)
+            
+            await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
+            
+            await this.populateEntries(this.date)
+            if(!this.sync.isProbablyOffline) this.sync.uploadLocalChanges() // dont wait for upload
+          }
+        })
+        
+        await modal.present();
       }
     })
     await popover.present()

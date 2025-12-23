@@ -16,8 +16,10 @@
             <ng-template>
                 <ion-datetime id="whichdate"
                               presentation="date"
+                              [firstDayOfWeek]="1"
                               [formatOptions]="{
                             date: {
+                              weekday: 'long',
                               month: 'long',
                               day: '2-digit'
                             }

@@ -24,6 +24,7 @@
                 <ng-template>
                     <ion-datetime id="date"
                                   presentation="date"
+                                  [firstDayOfWeek]="1"
                                   [formatOptions]="{
                                                     date: {
                                                       weekday: 'short',
@@ -48,6 +49,7 @@
                     <ng-template>
                         <ion-datetime id="written"
                                       presentation="date-time"
+                                      [firstDayOfWeek]="1"
                                       [formatOptions]="{
                                                     date: {
                                                       weekday: 'short',
@@ -71,11 +73,11 @@
                     Verfasst
                 </ion-label>
                 <ion-segment value="now" mode="ios" style="width: unset">
-                    <ion-segment-button value="now" (click)="customWrittenDate = false">
-                        <ion-label>Jetzt</ion-label>
-                    </ion-segment-button>
                     <ion-segment-button value="custom" (click)="setCustomWrittenDate(true)">
                         <ion-label>Custom</ion-label>
+                    </ion-segment-button>
+                    <ion-segment-button value="now" (click)="customWrittenDate = false">
+                        <ion-label>Jetzt</ion-label>
                     </ion-segment-button>
                 </ion-segment>
             </ion-item>

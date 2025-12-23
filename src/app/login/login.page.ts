@@ -69,6 +69,7 @@ export class LoginPage implements OnInit {
   async login(password: string) {
     const salt = await this.passwordService.readSalt()
     localStorage.setItem("password", password)
+    localStorage.setItem("passwordExpirationDate", new Date(new Date().getTime() + 10 * 60 * 1000).toISOString())
     await this.crypto.initMasterKey(password, salt)
     await this.navCtrl.navigateRoot("home")
   }

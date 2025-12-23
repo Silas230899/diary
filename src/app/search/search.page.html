@@ -1,14 +1,16 @@
 <ion-header>
     <ion-toolbar color="primary">
-        <ion-searchbar placeholder="Suchen" (ionInput)="search($event)" debounce="1000"></ion-searchbar>
+        <ion-searchbar placeholder="Suchen" (ionInput)="search()" debounce="1000" [(ngModel)]="searchString"></ion-searchbar>
     </ion-toolbar>
 </ion-header>
 
 <ion-content>
 
     <ion-toggle>Einzelne Einträge</ion-toggle>
-    <ion-toggle>Case sensitive</ion-toggle>
-    <ion-toggle>Nur ganze Wörter</ion-toggle>
+    <ion-toggle [(ngModel)]="caseSensitive" (ionChange)="search()">Case sensitive</ion-toggle>
+    <ion-toggle [(ngModel)]="fullWords" (ionChange)="search()">Nur ganze Wörter</ion-toggle>
+
+    <canvas #baseChart style="width: 400px; height: 275px"></canvas>
 
     @if (resultCount > 0) {
         <ion-list>

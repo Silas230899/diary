@@ -16,6 +16,9 @@ export class SynchronizationService {
   
   allFiles: any[] = []
   
+  initialDownloadSync!: Promise<void>
+  initialDownloadSyncDone = false
+  
   private readonly clientSecret = "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";
   private readonly clientId = "15828861697-4hsmsq4fhdktkd05hrceipvl2ak64jnc.apps.googleusercontent.com";
   
@@ -39,15 +42,24 @@ export class SynchronizationService {
       this.startPageToken = startPageToken
       internetAccessCheck.then(async () => {
         if(!this.isProbablyOffline) {
-          await this.downloadRemoteChanges()
-          console.log("successfully downloaded remote changes")
+          this.initialDownloadSync = new Promise<void>(async (resolve, reject) => {
+            try {
+              await this.downloadRemoteChanges();
+              console.log("successfully downloaded remote changes");
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          });
+          await this.initialDownloadSync
+          this.initialDownloadSyncDone = true
           setTimeout(async () => {
-            await this.uploadLocalChanges()
-            console.log("successfully uploaded local changes")
-          }, 750)
-        }
-      })
-    }
+            await this.uploadLocalChanges();
+            console.log("successfully uploaded local changes");
+          }, 750);
+        } else this.initialDownloadSync = Promise.resolve()
+      }).catch(() => this.initialDownloadSync = Promise.resolve())
+    } else this.initialDownloadSync = Promise.resolve()
   }
   
   async checkInternetAccess() {

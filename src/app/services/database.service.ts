@@ -156,8 +156,8 @@ export class DatabaseService {
       const referencedImages = (entry["referencedImages"] as string).length === 0 ? [] : (entry["referencedImages"] as string).split(",")
       return new EntryDbRecord(
         entry["uuidv7"],
-        entry["date"],
-        entry["written"],
+        new Date(entry["date"]).toISOString(),
+        entry["written"] === null ? null : new Date(entry["written"]).toISOString(),
         entry["writtenHasTime"],
         entry["entryIndex"],
         entry["text"],
@@ -191,8 +191,8 @@ export class DatabaseService {
     const referencedImages = (entry["referencedImages"] as string).length === 0 ? [] : (entry["referencedImages"] as string).split(",")
     return new EntryDbRecord(
       entry["uuidv7"],
-      entry["date"],
-      entry["written"],
+      new Date(entry["date"]).toISOString(),
+      entry["written"] === null ? null : new Date(entry["written"]).toISOString(),
       entry["writtenHasTime"],
       entry["entryIndex"],
       decryptedText,
@@ -215,8 +215,8 @@ export class DatabaseService {
       const referencedImages = this.transformReferencedImageStringToArray(entry["referencedImages"])
       return new EntryDbRecord(
         entry["uuidv7"],
-        entry["date"],
-        entry["written"],
+        new Date(entry["date"]).toISOString(),
+        entry["written"] === null ? null : new Date(entry["written"]).toISOString(),
         entry["writtenHasTime"],
         entry["entryIndex"],
         decryptedText,
@@ -262,8 +262,8 @@ export class DatabaseService {
       const images: ImageView[] = results.filter((imageResult): imageResult is ImageView => imageResult !== null);
       return new EntryViewRecord(
         entry["uuidv7"],
-        entry["date"],
-        entry["written"],
+        new Date(entry["date"]).toISOString(),
+        entry["written"] === null ? null : new Date(entry["written"]).toISOString(),
         entry["writtenHasTime"],
         entry["entryIndex"],
         decryptedText,
