@@ -37,3 +37,12 @@ ion-card-header {
 .firstCloudIndicator:first-of-type {
   right: 32px;
 }
+
+.customModal {
+  --width: fit-content;
+  //--min-width: min(325px, 95%); // mindestgröße soll 325px sein, außer das wäre größer als 95%
+  --max-width: 400px;
+  --height: fit-content;
+  --border-radius: 6px;
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+}

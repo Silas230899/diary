@@ -3,14 +3,14 @@ import {
   IonButton, IonButtons,
   IonCard,
   IonCardContent,
-  IonCardHeader, IonCardSubtitle,
+  IonCardHeader,
   IonCardTitle,
   IonContent, IonDatetime, IonDatetimeButton,
   IonFab,
   IonFabButton,
   IonHeader,
-  IonIcon, IonInput, IonItem, IonLabel, IonList, IonModal, IonNote, IonProgressBar, IonRefresher,
-  IonRefresherContent, IonSpinner, IonTextarea,
+  IonIcon, IonModal, IonProgressBar, IonRefresher,
+  IonRefresherContent, IonSpinner,
   IonTitle,
   IonToolbar, ModalController, NavController, PopoverController, RefresherCustomEvent
 } from '@ionic/angular/standalone';
@@ -32,14 +32,13 @@ import {DatabaseService} from "../services/database.service";
 import {EntryDbRecord} from "../models/entry-db-record";
 import {NewEntryComponent} from "../components/new-entry/new-entry.component";
 import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
-import {CryptoService} from "../services/crypto.service";
 import {NewEntryWithoutEntryIndex} from "../models/new-entry-without-entry-index";
 import {SynchronizationService} from "../services/synchronization.service";
 import {EntryViewRecord} from "../models/entry-view-record";
 import {EntryTextComponent} from "../components/entry-text/entry-text.component";
 import {v7} from "uuid";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
-import {LoadingController, ToastController} from "@ionic/angular";
+import {ToastController} from "@ionic/angular";
 import {Router} from "@angular/router";
 import {formatDatetime} from "../utils/dateStuff";
 
@@ -50,7 +49,7 @@ type Day = EntryViewRecord[]
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, IonCardSubtitle, IonLabel, IonInput, NavBarComponent, IonList, IonItem, IonTextarea, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, IonNote, IonSpinner],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, IonSpinner],
 })
 export class HomePage {
   
@@ -59,16 +58,16 @@ export class HomePage {
   entries: { year: number, day: Day }[] = []
   entriesLoading = true
   hasEntriesForThisYear = false
+  protected readonly formatDatetime = formatDatetime;
+  protected loadingModalOpen = false
 
   constructor(private navController: NavController,
               private popoverController: PopoverController,
               private dbService: DatabaseService,
               private modalCtrl: ModalController,
-              private crypto: CryptoService,
               protected sync: SynchronizationService,
               private toastController: ToastController,
-              private router: Router,
-              private loadingCtrl: LoadingController) {
+              private router: Router) {
     addIcons({ cloudDoneOutline, cloudOfflineOutline, cloudUploadOutline, add, pencil, createOutline, trashOutline, chevronBackOutline, chevronForwardOutline, ellipsisVerticalOutline })
     
     let currentDate = new Date();
@@ -78,16 +77,6 @@ export class HomePage {
     this.populateEntries(this.date)
     
     this.showLoading()
-    
-    /*
-    this.sync.checkInternetAccess().then(() => {
-      if (!this.sync.isProbablyOffline) {
-        this.sync.downloadRemoteChanges().then(() => {
-          this.populateEntries(this.date)
-        })
-      }
-    })
-     */
   }
   
   /*
@@ -99,14 +88,11 @@ export class HomePage {
   async showLoading() {
     if(this.sync.initialDownloadSyncDone) return
     
-    const loading = await this.loadingCtrl.create({
-      message: 'Laden...',
-      //duration: 3000,
-    });
-    await loading.present();
+    this.loadingModalOpen = true
+    
     this.sync.initialDownloadSync.finally(async () => {
       await this.populateEntries(this.date)
-      await loading.dismiss()
+      this.loadingModalOpen = false
     })
   }
   
@@ -324,5 +310,4 @@ export class HomePage {
     await popover.present()
   }
   
-  protected readonly formatDatetime = formatDatetime;
 }
