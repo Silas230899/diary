@@ -16,7 +16,10 @@ export class SynchronizationService {
   
   allFiles: any[] = []
   
-  initialDownloadSync!: Promise<void>
+  initialDownloadSync: Promise<void>
+  private resolveInitialDownloadSync!: () => void
+  private rejectInitialDownloadSync!: (err?: any) => void
+  
   initialDownloadSyncDone = false
   
   private readonly clientSecret = "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";
@@ -34,12 +37,22 @@ export class SynchronizationService {
     const refreshToken = localStorage.getItem("drive_refresh_token")
     const accessTokenExpiration = localStorage.getItem("drive_access_token_expiration")
     const startPageToken = localStorage.getItem("drive_start_page_token")
+    
+    this.initialDownloadSync = new Promise<void>((resolve, reject) => {
+      this.resolveInitialDownloadSync = resolve
+      this.rejectInitialDownloadSync = reject
+    })
+    
     if(accessToken !== null && refreshToken !== null && accessTokenExpiration !== null && startPageToken !== null) {
       console.log("drive is initialized")
       this.accessToken = accessToken
       this.refreshToken = refreshToken
       this.accessTokenExpiration = accessTokenExpiration
       this.startPageToken = startPageToken
+      
+      this.init(internetAccessCheck)
+      
+      /*
       internetAccessCheck.then(async () => {
         if(!this.isProbablyOffline) {
           this.initialDownloadSync = new Promise<void>(async (resolve, reject) => {
@@ -59,7 +72,32 @@ export class SynchronizationService {
           }, 750);
         } else this.initialDownloadSync = Promise.resolve()
       }).catch(() => this.initialDownloadSync = Promise.resolve())
-    } else this.initialDownloadSync = Promise.resolve()
+      */
+    } else this.resolveInitialDownloadSync()
+  }
+  
+  private async init(internetAccessCheck: Promise<void>) {
+    try {
+      await internetAccessCheck
+      
+      if (this.isProbablyOffline) {
+        this.resolveInitialDownloadSync()
+        return
+      }
+      
+      await this.downloadRemoteChanges()
+      console.log("successfully downloaded remote changes");
+      this.initialDownloadSyncDone = true
+      this.resolveInitialDownloadSync()
+      
+      setTimeout(async () => {
+        await this.uploadLocalChanges()
+        console.log("successfully uploaded local changes");
+      }, 750)
+      
+    } catch (err) {
+      this.rejectInitialDownloadSync(err)
+    }
   }
   
   async checkInternetAccess() {
