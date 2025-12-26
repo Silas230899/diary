@@ -20,7 +20,7 @@
             <ion-icon class="_8px-margin-inline-end" name="calendar-number-outline" slot="start"></ion-icon>
             <ion-label>Datum</ion-label>
             <ion-datetime-button datetime="date"></ion-datetime-button>
-            <ion-modal [keepContentsMounted]="true" class="test">
+            <ion-modal [keepContentsMounted]="true" class="modalInModalBackdrop">
                 <ng-template>
                     <ion-datetime id="date"
                                   presentation="date"
@@ -45,7 +45,7 @@
                     Verfasst
                 </ion-label>
                 <ion-datetime-button datetime="written"></ion-datetime-button>
-                <ion-modal [keepContentsMounted]="true" class="test">
+                <ion-modal [keepContentsMounted]="true" class="modalInModalBackdrop">
                     <ng-template>
                         <ion-datetime id="written"
                                       presentation="date-time"
