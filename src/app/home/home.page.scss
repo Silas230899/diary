@@ -40,7 +40,7 @@ ion-card-header {
 
 .customModal {
   --width: fit-content;
-  //--min-width: min(325px, 95%); // mindestgröße soll 325px sein, außer das wäre größer als 95%
+  --min-width: min(325px, 95%); // mindestgröße soll 325px sein, außer das wäre größer als 95%
   --max-width: 400px;
   --height: fit-content;
   --border-radius: 6px;

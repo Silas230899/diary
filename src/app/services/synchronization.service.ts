@@ -25,11 +25,14 @@ export class SynchronizationService {
   private readonly clientSecret = "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";
   private readonly clientId = "15828861697-4hsmsq4fhdktkd05hrceipvl2ak64jnc.apps.googleusercontent.com";
   
-  private accessToken: string | null = null// = "ya29.a0AQQ_BDTXmdCJxMx-3-mrKNmg13ejoAPwaqF4ItxSw524wHI9bC8oGxwbguG3_OTrB9GHnCyhioyRnrLuabyY7yfBGbFky83mjHB-yV_Oavl4yJ3k5TIe2APZXQD9YkcTznNVjyvmbKC9sGcX7mjYAxUQeVTY2HPGB4iRBI2iCaPiOeelvSPz066gYN_ke4gKvE_k9QIaCgYKAZ0SARQSFQHGX2Mi85gBy_79wkNEz7_P6H4WNA0206"
-  private refreshToken: string | null = null// = "1//03qU0-NY0pA5DCgYIARAAGAMSNwF-L9IrIKlSiciaApTey1YUVqZmNuf4KhksBE7anFxUChlhaz453m5mER-BsS71YIdrj-lpOOU"
+  private accessToken: string | null = null
+  private refreshToken: string | null = null
   private accessTokenExpiration: string | null = null
   
   private startPageToken: string | null = null
+  
+  remoteChangesCount: number | null = null
+  remoteChangesDownloadedCount: number | null = null
   
   constructor(private dbService: DatabaseService) {
     const internetAccessCheck = this.checkInternetAccess()
@@ -199,16 +202,24 @@ export class SynchronizationService {
           } else console.log("image '" + change.file.name + "' exists already")
         }
       }
+      this.remoteChangesDownloadedCount!++
     }
   }
   
   async downloadRemoteChanges() {
+    this.remoteChangesCount = null
+    this.remoteChangesDownloadedCount = null
+    
     await this.checkToken()
     // download changes from drive
     let changesList
     do {
       changesList = await this.listChanges()
+      this.remoteChangesCount = 0
+      this.remoteChangesDownloadedCount = 0
       console.log(changesList)
+      console.log("no. of changes: " + changesList.changes.length)
+      this.remoteChangesCount += changesList.changes.length
       await this.processChangesList(changesList)
       this.startPageToken = changesList.nextPageToken
       localStorage.setItem("drive_start_page_token", this.startPageToken!)

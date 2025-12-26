@@ -46,9 +46,25 @@
 
     <ion-modal [isOpen]="loadingModalOpen" [canDismiss]="!loadingModalOpen" class="customModal">
         <ng-template>
-            <div class="ion-padding" style="display: flex; align-items: center">
-                <ion-spinner name="crescent"></ion-spinner>
-                <div style="margin-left: 8px">Laden...</div>
+            <div class="ion-padding">
+                <!--
+                <div style="display: flex; align-items: center">
+                    <ion-spinner name="crescent"></ion-spinner>
+                    <div style="margin-left: 8px">Laden...</div>
+                </div>
+                -->
+                Aktualisieren...
+                <br>
+                <br>
+                <div style="display: flex; align-items: center; gap: 8px">
+                    <ion-progress-bar
+                            [type]="(sync.remoteChangesCount === null || sync.remoteChangesCount === 0 || sync.remoteChangesDownloadedCount === 0) ? 'indeterminate' : 'determinate'"
+                            [value]="sync.remoteChangesDownloadedCount!/sync.remoteChangesCount!">
+                    </ion-progress-bar>
+                    @if (sync.remoteChangesCount !== null && sync.remoteChangesCount > 0) {
+                        {{sync.remoteChangesDownloadedCount}}/{{sync.remoteChangesCount}}
+                    }
+                </div>
             </div>
         </ng-template>
     </ion-modal>

@@ -247,7 +247,6 @@ export class HomePage {
         duration: 2000,
         position: "bottom",
       });
-      
       await toast.present();
       await $event.target.complete()
     } else {
