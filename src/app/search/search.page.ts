@@ -4,9 +4,9 @@ import { FormsModule } from '@angular/forms';
 import {
   IonButton,
   IonContent,
-  IonDatetime,
+  IonDatetime, IonDatetimeButton,
   IonHeader, IonItem, IonLabel,
-  IonList, IonListHeader,
+  IonList, IonListHeader, IonModal,
   IonSearchbar,
   IonTitle, IonToggle,
   IonToolbar
@@ -24,28 +24,13 @@ Chart.register(...registerables);
   templateUrl: './search.page.html',
   styleUrls: ['./search.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonButton, IonToggle]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonButton, IonToggle, IonDatetimeButton, IonModal]
 })
 export class SearchPage implements OnInit {
   
   entries
   results: EntryDbRecord[] = []
   resultCount = 0
-  
-  public lineChartData: ChartConfiguration['data'] = {
-    datasets: [{
-      data: [5,2,3],
-      label: "labeeel",
-      steppedLine: true,
-      backgroundColor: "#556677",
-      borderColor: "#550099",
-      fill: false,
-      pointStyle: false,
-      type: 'line',
-      cubicInterpolationMode: 'monotone',
-    } as any],
-    labels: ["test", "hi", "mollo"],
-  };
   
   public lineChartOptions: ChartConfiguration['options'] = {
     //indexAxis: "y",
@@ -105,23 +90,15 @@ export class SearchPage implements OnInit {
   fullWords = true
   searchString = ""
   protected caseSensitive = false;
+  protected startDate: string;
 
   constructor(private dbService: DatabaseService,
               private router: Router) {
+    this.startDate = new Date(new Date().getTime() - 365*24*60*60*1000).toISOString()
     this.entries = this.dbService.getAllEntries()
     this.entries.then(entries => {
       console.log(entries.length)
     })
-  }
-  
-  ngAfterViewInit() {
-    const ctx = this.chart.nativeElement
-    
-    this.graph = new Chart(ctx, {
-      type: this.lineChartType,
-      data: this.lineChartData,
-      options: this.lineChartOptions
-    });
   }
   
   async search() {
@@ -134,6 +111,10 @@ export class SearchPage implements OnInit {
     }
     const resultFrequencies = new Map<EntryDbRecord, number>()
     if(search.length > 0) {
+      const satzzeichen = [",", ";", ".", ":", "-", "_", "#", "'", "*", "\"", "%", "@", "€", "(", ")", "/", "\\", "{", "}", "[", "]"]
+        .filter(satzzeichen => !search.includes(satzzeichen))
+        .map(satzzeichen => `\\${satzzeichen}`)
+      const satzzeichenjoined = satzzeichen.join("")
       let count = 0
       for (const entry of await this.entries) {
         let s1 = ""
@@ -142,12 +123,13 @@ export class SearchPage implements OnInit {
         } else {
           s1 = entry.text.toLowerCase()
         }
+        s1 = s1.replaceAll(new RegExp(`[${satzzeichenjoined}]`, "g"), " ")
         let thisCount = 0
         if(this.fullWords) {
           const allWords = s1.split(" ")
           thisCount = allWords.filter(word => word === search).length
         } else {
-          thisCount = (s1.match(new RegExp(search, "g")) || []).length;
+          thisCount = (s1.match(new RegExp(search)) || []).length;
         }
         count += thisCount
         resultFrequencies.set(entry, thisCount)
@@ -168,6 +150,7 @@ export class SearchPage implements OnInit {
       earliest = new Date().getTime() - earliest.getTime() > 365*24*60*60*1000
         ? new Date(new Date().getTime() - 365*24*60*60*1000)
         : new Date(earliest.getTime())
+      earliest = new Date(this.startDate)
       const latest = new Date()
       while(earliest.getTime() <= latest.getTime()) {
         sameDaysCombined.set(earliest.toISOString(), 0)
@@ -188,8 +171,6 @@ export class SearchPage implements OnInit {
         //if(x[1] > 0) console.log(x[0])
       }
       
-      console.log(sameDaysCombined.size)
-      
       const entriesSortedByDate = Array.of(...sameDaysCombined.entries())
         .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
         .map(entry => entry[0])
@@ -201,16 +182,16 @@ export class SearchPage implements OnInit {
       */
       
       const ctx = this.chart.nativeElement
-      this.graph.destroy()
+      if(this.graph) this.graph.destroy()
       this.graph = new Chart(ctx, {
         type: this.lineChartType,
         data: {
           datasets: [{
             data: entriesSortedByDate.map(entry => sameDaysCombined.get(entry)),
-            label: "labeeel",
+            label: "Anzahl",
             steppedLine: true,
-            backgroundColor: "#556677",
-            borderColor: "#550099",
+            backgroundColor: "#e129c6",
+            //borderColor: "#550099",
             fill: false,
             pointStyle: false,
             type: 'bar',

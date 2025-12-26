@@ -10,6 +10,25 @@
     <ion-toggle [(ngModel)]="caseSensitive" (ionChange)="search()">Case sensitive</ion-toggle>
     <ion-toggle [(ngModel)]="fullWords" (ionChange)="search()">Nur ganze Wörter</ion-toggle>
 
+    <ion-datetime-button datetime="date"></ion-datetime-button>
+    <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+            <ion-datetime id="date"
+                          presentation="date"
+                          [firstDayOfWeek]="1"
+                          [formatOptions]="{
+                                            date: {
+                                              weekday: 'short',
+                                              month: 'long',
+                                              day: 'numeric',
+                                              year: 'numeric'
+                                            }
+                                          }"
+                          [(ngModel)]="startDate"
+            ></ion-datetime>
+        </ng-template>
+    </ion-modal>
+
     <div class="canvasParent" [class.canvasHidden]="resultCount === 0">
         <canvas #baseChart></canvas>
     </div>
