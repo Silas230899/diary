@@ -22,6 +22,6 @@ export const appConfig: ApplicationConfig = {
     */
     provideAppInitializer(async () => {await initDbFactory(inject(DatabaseService))}),
     provideIonicAngular(),
-    provideRouter(routes, withPreloading(PreloadAllModules)), provideIonicAngular({}),
+    provideRouter(routes, withPreloading(PreloadAllModules)),
   ],
 };
