@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {IonApp, IonRouterOutlet} from "@ionic/angular/standalone";
+import {IonApp, IonRouterOutlet, Platform} from "@ionic/angular/standalone";
+import {SynchronizationService} from "./services/synchronization.service";
 
 @Component({
   selector: 'app-root',
@@ -9,4 +10,6 @@ import {IonApp, IonRouterOutlet} from "@ionic/angular/standalone";
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {}
+export class AppComponent {
+  constructor(private sync: SynchronizationService) {}
+}
