@@ -96,9 +96,6 @@ export class SearchPage implements OnInit {
               private router: Router) {
     this.startDate = new Date(new Date().getTime() - 365*24*60*60*1000).toISOString()
     this.entries = this.dbService.getAllEntries()
-    this.entries.then(entries => {
-      console.log(entries.length)
-    })
   }
   
   async search() {
@@ -111,12 +108,17 @@ export class SearchPage implements OnInit {
     }
     const resultFrequencies = new Map<EntryDbRecord, number>()
     if(search.length > 0) {
+      let earliest = new Date(this.startDate)
+      earliest.setUTCHours(0, 0, 0, 0)
+      const entries = await this.entries
+      const entriesInRange = entries.filter(entry => new Date(entry.date).getTime() >= earliest.getTime())
+      
       const satzzeichen = [",", ";", ".", ":", "-", "_", "#", "'", "*", "\"", "%", "@", "€", "(", ")", "/", "\\", "{", "}", "[", "]"]
         .filter(satzzeichen => !search.includes(satzzeichen))
         .map(satzzeichen => `\\${satzzeichen}`)
       const satzzeichenjoined = satzzeichen.join("")
       let count = 0
-      for (const entry of await this.entries) {
+      for (const entry of entriesInRange) {
         let s1 = ""
         if(this.caseSensitive) {
           s1 = entry.text
@@ -143,18 +145,10 @@ export class SearchPage implements OnInit {
       this.resultCount = count
       
       const sameDaysCombined = new Map<string, number>
-      const sorted = Array.of(...resultFrequencies.entries())
-        .map(entry => entry[0])
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      let earliest = new Date(sorted[0].date)
-      earliest = new Date().getTime() - earliest.getTime() > 365*24*60*60*1000
-        ? new Date(new Date().getTime() - 365*24*60*60*1000)
-        : new Date(earliest.getTime())
-      earliest = new Date(this.startDate)
       const latest = new Date()
+      latest.setUTCHours(0, 0, 0, 0)
       while(earliest.getTime() <= latest.getTime()) {
         sameDaysCombined.set(earliest.toISOString(), 0)
-        //console.log(earliest.toISOString())
         earliest = new Date(earliest.getTime() + 24*60*60*1000)
       }
       sameDaysCombined.set(latest.toISOString(), 0)
@@ -167,19 +161,11 @@ export class SearchPage implements OnInit {
         }
       }
       
-      for(const x of Array.of(...sameDaysCombined.entries())) {
-        //if(x[1] > 0) console.log(x[0])
-      }
+      console.log(sameDaysCombined)
       
       const entriesSortedByDate = Array.of(...sameDaysCombined.entries())
         .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
         .map(entry => entry[0])
-      
-      /*
-      const entriesSortedByDate = Array.of(...resultFrequencies.entries())
-        .sort((a, b) => new Date(a[0].date).getTime() - new Date(b[0].date).getTime())
-        .map(entry => entry[0])
-      */
       
       const ctx = this.chart.nativeElement
       if(this.graph) this.graph.destroy()
