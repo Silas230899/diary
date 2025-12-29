@@ -76,7 +76,18 @@ export class HomePage {
     
     this.populateEntries(this.date)
     
-    this.showLoading()
+    /**
+     * normally it takes < 150ms for the initialDownloadSync promise to fulfill,
+     * so now modal is shown if there are no updates
+     */
+    if(!this.sync.initialDownloadSyncDone) {
+      setTimeout(async () => {
+        await this.showLoading()
+      }, 150)
+    } else {
+      this.showLoading()
+    }
+    
   }
   
   /*
