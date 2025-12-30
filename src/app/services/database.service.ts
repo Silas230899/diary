@@ -72,7 +72,7 @@ export class DatabaseService {
     await file.close()
   }
   
-  private async getImage(name: string) {
+  async getImageObjectURL(name: string) {
     if(!this.images.has(name)) {
       const encryptedImageFile = await readFile("images/" + name, { baseDir: BaseDirectory.AppData })
       const decryptedImageFile = await this.crypto.decryptUint8ArrayToArrayBuffer(encryptedImageFile)
@@ -157,7 +157,7 @@ export class DatabaseService {
       return new EntryDbRecord(
         entry["uuidv7"],
         new Date(entry["date"]).toISOString(),
-        entry["written"] === null ? null : new Date(entry["written"]).toISOString(),
+        this.writtenDateToIsoString(entry["written"]),
         entry["writtenHasTime"],
         entry["entryIndex"],
         entry["text"],
@@ -182,20 +182,20 @@ export class DatabaseService {
     return res.length === 1
   }
   
-  async getEntryByDriveFileId(id: string) {
+  async getRawEntryByDriveFileId(id: string) {
     const res = (await this.database.select("SELECT * FROM entry WHERE driveFileId = $1", [id])) as any[]
     if(res.length === 0) return null;
     
     const entry = res[0]
-    const decryptedText = await this.crypto.decryptBase64StringToString(entry["text"])
+    const rawText = entry["text"]
     const referencedImages = (entry["referencedImages"] as string).length === 0 ? [] : (entry["referencedImages"] as string).split(",")
     return new EntryDbRecord(
       entry["uuidv7"],
       new Date(entry["date"]).toISOString(),
-      entry["written"] === null ? null : new Date(entry["written"]).toISOString(),
+      this.writtenDateToIsoString(entry["written"]),
       entry["writtenHasTime"],
       entry["entryIndex"],
-      decryptedText,
+      rawText,
       referencedImages,
       entry["syncStatus"],
       entry["driveFileId"])
@@ -203,6 +203,15 @@ export class DatabaseService {
   
   private transformReferencedImageStringToArray(referencedImages: string) {
     return referencedImages.length === 0 ? [] : referencedImages.split(",")
+  }
+  
+  private writtenDateToIsoString(source: string | null) {
+    if(source === null) return null
+    else {
+      let written = new Date(source)
+      written = new Date(written.getTime() - written.getTimezoneOffset()*60*1000)
+      return written.toISOString()
+    }
   }
   
   /**
@@ -216,7 +225,7 @@ export class DatabaseService {
       return new EntryDbRecord(
         entry["uuidv7"],
         new Date(entry["date"]).toISOString(),
-        entry["written"] === null ? null : new Date(entry["written"]).toISOString(),
+        this.writtenDateToIsoString(entry["written"]),
         entry["writtenHasTime"],
         entry["entryIndex"],
         decryptedText,
@@ -252,7 +261,7 @@ export class DatabaseService {
       const referencedImages = this.transformReferencedImageStringToArray(entry["referencedImages"])
       const imagePromises = referencedImages.map(async (imageName) => {
         try {
-          const img = await this.getImage(imageName);
+          const img = await this.getImageObjectURL(imageName);
           return new ImageView(imageName, img);
         } catch {
           return null; // Fehler → später rausfiltern
@@ -263,7 +272,7 @@ export class DatabaseService {
       return new EntryViewRecord(
         entry["uuidv7"],
         new Date(entry["date"]).toISOString(),
-        entry["written"] === null ? null : new Date(entry["written"]).toISOString(),
+        this.writtenDateToIsoString(entry["written"]),
         entry["writtenHasTime"],
         entry["entryIndex"],
         decryptedText,

@@ -13,6 +13,7 @@ export function formatDatetime(date: string, written: string | null, writtenHasT
         const timeOptions: Intl.DateTimeFormatOptions = {
           hour: "2-digit",
           minute: "2-digit",
+          timeZone: "UTC",
         }
         return "Heute (" + new Date(written).toLocaleTimeString(undefined, timeOptions) + " Uhr)"
       } else {
@@ -24,10 +25,12 @@ export function formatDatetime(date: string, written: string | null, writtenHasT
           day: "2-digit",
           month: "long",
           year: "numeric",
+          timeZone: "UTC",
         }
         const timeOptions: Intl.DateTimeFormatOptions = {
           hour: "2-digit",
           minute: "2-digit",
+          timeZone: "UTC",
         }
         const dateString = new Date(written).toLocaleDateString(undefined, dateOptions)
         const timeString = new Date(written).toLocaleTimeString(undefined, timeOptions)
@@ -38,6 +41,7 @@ export function formatDatetime(date: string, written: string | null, writtenHasT
           day: "2-digit",
           month: "short",
           year: "numeric",
+          timeZone: "UTC",
         }
         return new Date(written).toLocaleDateString(undefined, options) + " (unbekannte Uhrzeit)"
       }

@@ -170,7 +170,7 @@ export class SynchronizationService {
   async processChangesList(changesList: any) {
     for(const change of changesList.changes) {
       if(change.removed) {
-        const entry = await this.dbService.getEntryByDriveFileId(change.fileId)
+        const entry = await this.dbService.getRawEntryByDriveFileId(change.fileId)
         if(entry !== null) {
           await this.dbService.deleteEntry(entry.uuidv7)
           console.log("deleted entry with id " + entry.uuidv7)
