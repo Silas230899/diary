@@ -72,7 +72,7 @@ export class NewEntryComponent  implements OnInit {
   @Input() customWrittenDate = false
   @Input() sync = true
   @Input() imagesViews: ImageView[] = []
-  imagesDb: ImageDb[] = []
+  @Input() imagesDb: ImageDb[] = []
   
   @ViewChild("textarea") textarea!: IonTextarea
 
@@ -90,8 +90,7 @@ export class NewEntryComponent  implements OnInit {
     }
   }
   
-  ngOnInit() {
-  }
+  ngOnInit() {}
   
   customCounterFormatter(inputLength: number, maxLength: number) {
     return `${inputLength} Zeichen`;
@@ -113,11 +112,16 @@ export class NewEntryComponent  implements OnInit {
       currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
       writtenDate = currentDate.toISOString()
     }
-    const newEntry = new NewEntryWithoutEntryIndex(this.date, writtenDate, true, this.text, this.imagesDb, syncStatus)
+    const newEntry = new NewEntryWithoutEntryIndex(this.date,
+      writtenDate,
+      true,
+      this.text.trim(),
+      this.imagesDb,
+      syncStatus)
     
-    const everyImageUsed = this.imagesViews.every(image => this.text.includes(`![image](${image.filename})`))
+    const unusedImages = this.imagesViews.filter(image => !this.text.includes(`![image](${image.filename})`))
     
-    if(!everyImageUsed) {
+    if(unusedImages.length > 0) {
       const actionSheet = await this.actionSheetCtrl.create({
         header: 'Du hast nicht alle Bilder benutzt. Trotzdem einfügen?',
         buttons: [
@@ -136,7 +140,13 @@ export class NewEntryComponent  implements OnInit {
       
       const { role } = await actionSheet.onWillDismiss();
       
-      if(role === "confirm") await this.modalCtrl.dismiss(newEntry, 'confirm');
+      if(role === "confirm") {
+        const unusedImageFilenames = unusedImages.map(image => image.filename);
+        
+        newEntry.images = this.imagesDb.filter(image => !unusedImageFilenames.includes(image.filename))
+        
+        await this.modalCtrl.dismiss(newEntry, 'confirm');
+      }
     } else {
       await this.modalCtrl.dismiss(newEntry, 'confirm');
     }

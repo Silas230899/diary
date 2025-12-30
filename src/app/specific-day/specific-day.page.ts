@@ -12,7 +12,7 @@ import {
   NavController, PopoverController
 } from '@ionic/angular/standalone';
 import {addIcons} from "ionicons";
-import {add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline } from "ionicons/icons";
+import {add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline, chevronCollapseOutline } from "ionicons/icons";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
 import {DatabaseService} from "../services/database.service";
 import {NewEntryComponent} from "../components/new-entry/new-entry.component";
@@ -22,9 +22,10 @@ import {SynchronizationService} from "../services/synchronization.service";
 import {EntryTextComponent} from "../components/entry-text/entry-text.component";
 import {ActivatedRoute} from "@angular/router";
 import {EntryDbRecord} from "../models/entry-db-record";
-import {v7} from "uuid";
+import {v7 as uuidv7, v7} from "uuid";
 import {PasswordService} from "../services/password.service";
 import {formatDatetime} from "../utils/dateStuff";
+import {ImageDb} from "../models/image-db";
 
 @Component({
   selector: 'app-specific-day',
@@ -46,7 +47,7 @@ export class SpecificDayPage implements OnInit {
               private sync: SynchronizationService,
               private route: ActivatedRoute,
               private passwordService: PasswordService,) {
-    addIcons({ add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline })
+    addIcons({ add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline, chevronCollapseOutline })
     
     const date = this.route.snapshot.queryParamMap.get("date");
     if(date !== null) {
@@ -58,67 +59,6 @@ export class SpecificDayPage implements OnInit {
     }
 
     this.populateEntries(this.date)
-    
-    const size = 1024; // 1 KB
-    const randomBytes = crypto.getRandomValues(new Uint8Array(size));
-    //this.sync.uploadBinary(randomBytes)
-    
-    const jsonData = {
-      timestamp: new Date().toISOString(),
-      value: Math.floor(Math.random() * 1000),
-      message: "Hallo von der Drive-API!",
-    };
-    //this.sync.uploadJsonFile(jsonData)
-    
-    /*
-    const allFiles = this.sync.listDriveFiles()
-    allFiles.then(async value => {
-      for(let res of value) {
-        if(res.name.endsWith(".webp")) {
-          const imageData = await this.sync.downloadImage(res.id)
-          const image = new ImageDb(res.name, imageData)
-          await this.dbService.addImage(image)
-        } else if(res.name.startsWith("entry-")) {
-          const entry = await this.sync.downloadEntry(res.id)
-          await this.dbService.insertEntry(entry)
-        }
-      }
-    })
-    */
-    
-    
-    //this.sync.getStartPageToken().then(res => console.log(res));
-    
-    //this.sync.listChanges("27841").then(changes => console.log(changes));
-    
-    /*
-    this.dbService.getEntriesBySpecificDate(this.date).then(async (entries) => {
-      const entryViewRecord = entries[0]
-      const entryDbRecord = new EntryDbRecord(
-        entryViewRecord.id,
-        entryViewRecord.date,
-        entryViewRecord.written,
-        entryViewRecord.entryIndex,
-        entryViewRecord.text,
-        entryViewRecord.sync,
-        entryViewRecord.images.map(image => image.filename),
-        "synced",
-        entryViewRecord.driveFileId
-      )
-      this.sync.uploadEntry(entryDbRecord).then(id => console.log(id))
-      
-      for(let filename of entryDbRecord.referencedImages) {
-        await this.sync.uploadImage(await this.dbService.getDBImage(filename))
-      }
-    })
-    */
-    
-    //this.sync.deleteAll()
-    //this.sync.listFiles()
-    
-    //this.passwordService.readSalt().then(async salt => await this.sync.uploadBinary("masterPasswordSalt.bin", salt))
-    
-    //this.sync.synchronize()
   }
 
   async populateEntries(date: string) {
@@ -126,6 +66,7 @@ export class SpecificDayPage implements OnInit {
     let entries: EntryViewRecord[] = await this.dbService.getEntriesBySpecificDate(date)
     entries.sort((a, b) => a.entryIndex-b.entryIndex)
     this.entries = entries
+    for(const entry of entries) {console.log("entry: " + entry.written)}
     this.entriesLoading = false
   }
 
@@ -156,10 +97,9 @@ export class SpecificDayPage implements OnInit {
         await this.populateEntries(this.date)
         if(!this.sync.isProbablyOffline) this.sync.uploadLocalChanges()
       } else if(role === "edit") {
-        if(entry.images.length > 0) {
-          alert("einträge mit bildern können noch nicht bearbeitet werden")
-          return;
-        }
+        // loads all images from db by filename
+        const imagesDb: ImageDb[] = await Promise.all(entry.images.map((image) => this.dbService.getDBImage(image.filename)))
+        if(imagesDb.length > 0) console.log("done loading images")
         
         const modal = await this.modalCtrl.create({
           component: NewEntryComponent,
@@ -169,7 +109,8 @@ export class SpecificDayPage implements OnInit {
             written: entry.written,
             customWrittenDate: true,
             sync: entry.syncStatus !== "keep_local",
-            imagesViews: entry.images
+            imagesViews: entry.images,
+            imagesDb: imagesDb
           }
         });
         
@@ -177,18 +118,14 @@ export class SpecificDayPage implements OnInit {
           const { data, role } = e
           if(role === "confirm") {
             const newEntryWithoutEntryIndex = data as NewEntryWithoutEntryIndex
-            
             const newUuidv7 = v7()
             const newEntryIndex = entry.entryIndex
-            
-            let newImages = newEntryWithoutEntryIndex.images.map(image => image.filename)
-            if(entry.images.length !== newEntryWithoutEntryIndex.images.length) {
-              for(const image of newEntryWithoutEntryIndex.images) {
-                if(entry.images.map(img => img.filename).includes(image.filename)) {
-                  //entry.images.
-                }
-              }
+            for(const image of newEntryWithoutEntryIndex.images) {
+              const newFilename = uuidv7() + "." + "webp"
+              newEntryWithoutEntryIndex.text = newEntryWithoutEntryIndex.text.replaceAll(image.filename, newFilename)
+              image.filename = newFilename
             }
+            const referencedImages = newEntryWithoutEntryIndex.images.map((image) => image.filename)
             
             const newEntry = new EntryDbRecord(
               newUuidv7,
@@ -197,20 +134,16 @@ export class SpecificDayPage implements OnInit {
               newEntryWithoutEntryIndex.writtenHasTime,
               newEntryIndex,
               newEntryWithoutEntryIndex.text,
-              newImages,
+              referencedImages,
               newEntryWithoutEntryIndex.syncStatus,
               null
             )
             
-            let imagePromises = newEntryWithoutEntryIndex.images.map(image => this.dbService.addImage(image))
-            const entryPromise = this.dbService.addEntry(newEntry)
-            const allPromises = [...imagePromises, entryPromise]
-            await Promise.all(allPromises)
-            
+            await this.saveNewEntryToDb(newEntry, newEntryWithoutEntryIndex.images)
+            // will also care for deleting images
             await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
-            
-            await this.populateEntries(this.date)
             if(!this.sync.isProbablyOffline) this.sync.uploadLocalChanges() // dont wait for upload
+            await this.populateEntries(this.date)
           }
         })
         
@@ -260,16 +193,20 @@ export class SpecificDayPage implements OnInit {
           newEntryWithoutEntryIndex.syncStatus,
           null
         )
-        let imagePromises = newEntryWithoutEntryIndex.images.map(image => this.dbService.addImage(image))
-        const entryPromise = this.dbService.addEntry(newEntry)
-        const allPromises = [...imagePromises, entryPromise]
-        await Promise.all(allPromises)
+        await this.saveNewEntryToDb(newEntry, newEntryWithoutEntryIndex.images)
         await this.populateEntries(this.date)
         if(!this.sync.isProbablyOffline) this.sync.uploadLocalChanges() // dont wait for upload
       }
     })
     
     await modal.present();
+  }
+  
+  private async saveNewEntryToDb(newEntry: EntryDbRecord, images: ImageDb[]) {
+    let imagePromises = images.map(image => this.dbService.addImage(image))
+    const entryPromise = this.dbService.addEntry(newEntry)
+    const allPromises = [...imagePromises, entryPromise]
+    await Promise.all(allPromises)
   }
 
   async gotoYesterday() {
@@ -295,4 +232,8 @@ export class SpecificDayPage implements OnInit {
   }
   
   protected readonly formatDatetime = formatDatetime;
+  
+  protected merge(number: number, $index: number) {
+    
+  }
 }
