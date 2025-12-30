@@ -18,10 +18,6 @@ export const routes: Routes = [
     loadComponent: () => import('./specific-day/specific-day.page').then( m => m.SpecificDayPage)
   },
   {
-    path: 'unlock',
-    loadComponent: () => import('./unlock/unlock.page').then( m => m.UnlockPage)
-  },
-  {
     path: 'onboarding',
     loadComponent: () => import('./onboarding/onboarding.page').then( m => m.OnboardingPage)
   },
