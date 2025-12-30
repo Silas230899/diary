@@ -1,13 +1,14 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {CommonModule, NgOptimizedImage} from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
+  IonBadge,
   IonButton,
   IonContent,
   IonDatetime, IonDatetimeButton,
-  IonHeader, IonItem, IonLabel,
+  IonHeader, IonImg, IonItem, IonLabel,
   IonList, IonListHeader, IonModal,
-  IonSearchbar,
+  IonSearchbar, IonThumbnail,
   IonTitle, IonToggle,
   IonToolbar
 } from '@ionic/angular/standalone';
@@ -16,6 +17,7 @@ import {DatabaseService} from "../services/database.service";
 import {EntryDbRecord} from "../models/entry-db-record";
 import {Router} from "@angular/router";
 import {Chart, ChartConfiguration, ChartType, registerables} from "chart.js";
+import {ImageNameToObjectURLPipe} from "../pipes/image-name-to-object-url-pipe";
 
 Chart.register(...registerables);
 
@@ -24,7 +26,7 @@ Chart.register(...registerables);
   templateUrl: './search.page.html',
   styleUrls: ['./search.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonButton, IonToggle, IonDatetimeButton, IonModal]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonButton, IonToggle, IonDatetimeButton, IonModal, IonImg, ImageNameToObjectURLPipe, IonThumbnail, IonBadge, NgOptimizedImage]
 })
 export class SearchPage implements OnInit {
   
@@ -94,7 +96,7 @@ export class SearchPage implements OnInit {
 
   constructor(private dbService: DatabaseService,
               private router: Router) {
-    this.startDate = new Date(new Date().getTime() - 365*24*60*60*1000).toISOString()
+    this.startDate = new Date(new Date().getTime() - 100*24*60*60*1000).toISOString()
     this.entries = this.dbService.getAllEntries()
   }
   
@@ -161,8 +163,6 @@ export class SearchPage implements OnInit {
         }
       }
       
-      console.log(sameDaysCombined)
-      
       const entriesSortedByDate = Array.of(...sameDaysCombined.entries())
         .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
         .map(entry => entry[0])
@@ -204,4 +204,5 @@ export class SearchPage implements OnInit {
     const dateObject = new Date(date)
     return `${dateObject.toLocaleDateString(undefined, {day: "2-digit", month: "short", year: "numeric"})}`
   }
+  
 }

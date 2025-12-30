@@ -14,6 +14,7 @@
     <ion-modal [keepContentsMounted]="true">
         <ng-template>
             <ion-datetime id="date"
+                          (ionChange)="search()"
                           presentation="date"
                           [firstDayOfWeek]="1"
                           [formatOptions]="{
@@ -42,12 +43,17 @@
             }
             @for (entry of results; track entry.uuidv7) {
                 <ion-item button detail="true" (click)="openEntry(entry.date)">
-                <span slot="start">
-                    {{formatDate(entry.date)}}
-                </span>
+                    <span slot="start">
+                        {{formatDate(entry.date)}}
+                    </span>
                     <ion-label class="ion-text-nowrap">
                         {{entry.text}}
                     </ion-label>
+                    @if(entry.referencedImages.length > 0) {
+                        <ion-thumbnail slot="end" style="--border-radius: 8px">
+                            <img ngSrc="{{ entry.referencedImages[0] | imageNameToObjectURL | async }}" width="56px" height="56px">
+                        </ion-thumbnail>
+                    }
                 </ion-item>
             }
         </ion-list>
