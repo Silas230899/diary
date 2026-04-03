@@ -38,7 +38,7 @@ import {EntryViewRecord} from "../models/entry-view-record";
 import {EntryTextComponent} from "../components/entry-text/entry-text.component";
 import {v7} from "uuid";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
-import {ToastController} from "@ionic/angular";
+import {ToastController} from "@ionic/angular/standalone";
 import {Router} from "@angular/router";
 import {formatDatetime} from "../utils/dateStuff";
 import {ImageDb} from "../models/image-db";
