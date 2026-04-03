@@ -6,6 +6,11 @@
         <ion-title>
             {{formatToday()}}
         </ion-title>
+        <ion-buttons slot="end">
+            <ion-button>
+                <ion-icon slot="icon-only" name="information-circle-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
     </ion-toolbar>
     <!--
     <ion-toolbar color="primary">
@@ -60,9 +65,18 @@
 
     @for (entry of entries; track entry) {
         <ion-card style="margin-top: 4px; margin-bottom: 4px">
-            <ion-button (click)="createPopover($event, entry)" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
-                <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
-            </ion-button>
+            <div style="position: absolute; right: 4px; top: 4px; z-index: 9999">
+                <ion-button size="small" (click)="createPopover($event, entry)" color="medium" fill="clear">
+                    <ion-icon slot="icon-only" name="information-circle-outline"></ion-icon>
+                </ion-button>
+                <ion-button size="small" (click)="createPopover($event, entry)" color="medium" fill="clear">
+                    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+                <ion-button size="small" (click)="createPopover($event, entry)" color="medium" fill="clear">
+                    <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+                </ion-button>
+            </div>
+
             <ion-card-header>
                 <ion-card-title>
                     Verfasst: {{formatDatetime(entry.date, entry.written, entry.writtenHasTime)}}

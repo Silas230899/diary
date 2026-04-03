@@ -12,7 +12,10 @@ import {
   NavController, PopoverController
 } from '@ionic/angular/standalone';
 import {addIcons} from "ionicons";
-import {add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline, chevronCollapseOutline } from "ionicons/icons";
+import {
+  informationOutline, add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline, chevronCollapseOutline,
+  informationCircleOutline, trashOutline, pencilOutline
+} from "ionicons/icons";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
 import {DatabaseService} from "../services/database.service";
 import {NewEntryComponent} from "../components/new-entry/new-entry.component";
@@ -47,7 +50,7 @@ export class SpecificDayPage implements OnInit {
               private sync: SynchronizationService,
               private route: ActivatedRoute,
               private passwordService: PasswordService,) {
-    addIcons({ add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline, chevronCollapseOutline })
+    addIcons({ informationCircleOutline, trashOutline, pencilOutline, informationOutline, add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline, chevronCollapseOutline })
     
     const date = this.route.snapshot.queryParamMap.get("date");
     if(date !== null) {
@@ -66,7 +69,6 @@ export class SpecificDayPage implements OnInit {
     let entries: EntryViewRecord[] = await this.dbService.getEntriesBySpecificDate(date)
     entries.sort((a, b) => a.entryIndex-b.entryIndex)
     this.entries = entries
-    for(const entry of entries) {console.log("entry: " + entry.written)}
     this.entriesLoading = false
   }
 
@@ -74,6 +76,7 @@ export class SpecificDayPage implements OnInit {
   
   formatToday() {
     const options: Intl.DateTimeFormatOptions = {
+      weekday: "long",
       day: "numeric",
       month: "long",
       year: "numeric"
@@ -95,7 +98,7 @@ export class SpecificDayPage implements OnInit {
         //const imageDeletionPromises = entry.images.map(image => this.dbService.deleteImage(image.filename))
         //await Promise.all([...imageDeletionPromises, entryDeletionPromise])
         await this.populateEntries(this.date)
-        if(!this.sync.isProbablyOffline) this.sync.uploadLocalChanges()
+        if(this.sync.hasInternetAccess) this.sync.uploadLocalChanges()
       } else if(role === "edit") {
         // loads all images from db by filename
         const imagesDb: ImageDb[] = await Promise.all(entry.images.map((image) => this.dbService.getDBImage(image.filename)))
@@ -142,7 +145,7 @@ export class SpecificDayPage implements OnInit {
             await this.saveNewEntryToDb(newEntry, newEntryWithoutEntryIndex.images)
             // will also care for deleting images
             await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
-            if(!this.sync.isProbablyOffline) this.sync.uploadLocalChanges() // dont wait for upload
+            if(this.sync.hasInternetAccess) this.sync.uploadLocalChanges() // dont wait for upload
             await this.populateEntries(this.date)
           }
         })
@@ -195,7 +198,7 @@ export class SpecificDayPage implements OnInit {
         )
         await this.saveNewEntryToDb(newEntry, newEntryWithoutEntryIndex.images)
         await this.populateEntries(this.date)
-        if(!this.sync.isProbablyOffline) this.sync.uploadLocalChanges() // dont wait for upload
+        if(this.sync.hasInternetAccess) this.sync.uploadLocalChanges() // dont wait for upload
       }
     })
     
@@ -234,6 +237,6 @@ export class SpecificDayPage implements OnInit {
   protected readonly formatDatetime = formatDatetime;
   
   protected merge(number: number, $index: number) {
-    
+  
   }
 }

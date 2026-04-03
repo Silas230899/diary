@@ -24,7 +24,7 @@ import {
   trashOutline,
   cloudDoneOutline,
   cloudOfflineOutline,
-  cloudUploadOutline,
+  cloudUploadOutline, informationCircleOutline,
 } from 'ionicons/icons';
 import {addIcons} from "ionicons";
 import {FormsModule} from "@angular/forms";
@@ -41,6 +41,7 @@ import {SpecificDayPopoverComponent} from "../components/specific-day-popover/sp
 import {ToastController} from "@ionic/angular";
 import {Router} from "@angular/router";
 import {formatDatetime} from "../utils/dateStuff";
+import {ImageDb} from "../models/image-db";
 
 type Day = EntryViewRecord[]
 
@@ -49,7 +50,7 @@ type Day = EntryViewRecord[]
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, IonSpinner],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent],
 })
 export class HomePage {
   
@@ -68,7 +69,7 @@ export class HomePage {
               protected sync: SynchronizationService,
               private toastController: ToastController,
               private router: Router) {
-    addIcons({ cloudDoneOutline, cloudOfflineOutline, cloudUploadOutline, add, pencil, createOutline, trashOutline, chevronBackOutline, chevronForwardOutline, ellipsisVerticalOutline })
+    addIcons({ informationCircleOutline, cloudDoneOutline, cloudOfflineOutline, cloudUploadOutline, add, pencil, createOutline, trashOutline, chevronBackOutline, chevronForwardOutline, ellipsisVerticalOutline })
     
     let currentDate = new Date();
     currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
@@ -78,7 +79,7 @@ export class HomePage {
     
     /**
      * normally it takes < 150ms for the initialDownloadSync promise to fulfill,
-     * so now modal is shown if there are no updates
+     * so no modal is shown if there are no updates
      */
     if(!this.sync.initialDownloadSyncDone) {
       setTimeout(async () => {
@@ -204,10 +205,9 @@ export class HomePage {
         
         let imagePromises = newEntryWithoutEntryIndex.images.map(image => this.dbService.addImage(image))
         const entryPromise = this.dbService.addEntry(newEntry)
-        const allPromises = [...imagePromises, entryPromise]
-        await Promise.all(allPromises)
+        await Promise.all([...imagePromises, entryPromise])
         await this.populateEntries(this.date)
-        if(!this.sync.isProbablyOffline) this.sync.uploadLocalChanges() // dont wait for upload
+        if(this.sync.hasInternetAccess) this.sync.uploadLocalChanges() // dont wait for upload
       }
     })
     
@@ -242,7 +242,7 @@ export class HomePage {
   }
   
   thisYear() {
-    return new Date().getUTCFullYear()
+    return new Date(this.date).getUTCFullYear()
   }
   
   async openEntry(date: string) {
@@ -251,8 +251,7 @@ export class HomePage {
   }
   
   async handleRefresh($event: RefresherCustomEvent) {
-    await this.sync.checkInternetAccess()
-    if(this.sync.isProbablyOffline) {
+    if(!this.sync.hasInternetAccess) {
       const toast = await this.toastController.create({
         message: 'Du hast keinen Internetzugriff!',
         duration: 2000,
@@ -320,4 +319,27 @@ export class HomePage {
     await popover.present()
   }
   
+  protected async clickedEntry(entry: EntryViewRecord) {
+    // loads all images from db by filename
+    const imagesDb: ImageDb[] = await Promise.all(entry.images.map((image) => this.dbService.getDBImage(image.filename)))
+    if(imagesDb.length > 0) console.log("done loading images")
+    
+    const modal = await this.modalCtrl.create({
+      component: NewEntryComponent,
+      componentProps: {
+        text: entry.text,
+        date: entry.date,
+        written: entry.written,
+        customWrittenDate: true,
+        sync: entry.syncStatus !== "keep_local",
+        imagesViews: entry.images,
+        imagesDb: imagesDb
+      }
+    });
+    await modal.present()
+  }
+  
+  protected async entryClicked(date: string) {
+    await this.openEntry(date)
+  }
 }
