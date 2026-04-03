@@ -12,7 +12,7 @@ import { fetch as taurifetch } from "@tauri-apps/plugin-http";
 })
 export class SynchronizationService {
   
-  isProbablyOffline = true
+  hasInternetAccess: boolean
   
   allFiles: any[] = []
   
@@ -34,8 +34,19 @@ export class SynchronizationService {
   remoteChangesCount: number | null = null
   remoteChangesDownloadedCount: number | null = null
   
+  currentlyUploading = false
+  
   constructor(private dbService: DatabaseService) {
-    const internetAccessCheck = this.checkInternetAccess()
+    this.hasInternetAccess = window.navigator.onLine
+    
+    addEventListener("online", (event) => {
+      this.hasInternetAccess = true
+    })
+    
+    addEventListener("offline", (event) => {
+      this.hasInternetAccess = false
+    })
+    
     const accessToken = localStorage.getItem("drive_access_token")
     const refreshToken = localStorage.getItem("drive_refresh_token")
     const accessTokenExpiration = localStorage.getItem("drive_access_token_expiration")
@@ -53,7 +64,7 @@ export class SynchronizationService {
       this.accessTokenExpiration = accessTokenExpiration
       this.startPageToken = startPageToken
       
-      this.init(internetAccessCheck)
+      this.init()
       
       /*
       internetAccessCheck.then(async () => {
@@ -79,11 +90,9 @@ export class SynchronizationService {
     } else this.resolveInitialDownloadSync()
   }
   
-  private async init(internetAccessCheck: Promise<void>) {
+  private async init() {
     try {
-      await internetAccessCheck
-      
-      if (this.isProbablyOffline) {
+      if (!this.hasInternetAccess) {
         this.resolveInitialDownloadSync()
         return
       }
@@ -103,27 +112,27 @@ export class SynchronizationService {
     }
   }
   
-  async checkInternetAccess() {
-    const hasInternetAccess = await this.hasInternetAccess()
-    this.isProbablyOffline = !hasInternetAccess
-  }
-  
-  private async hasInternetAccess() {
+  /*
+  private async hasInternetAccess2() {
     try {
       const response = await taurifetch("https://www.google.com/favicon.ico", {
         method: "GET",
       });
-      return response.status === 200;
+      const res = response.status === 200;
+      console.log("has internet: " + res)
+      return res
     } catch {
       return false;
     }
   }
+  */
   
   async getLocalChanges() {
     return await this.dbService.getAllUnsyncedSyncEntriesRaw()
   }
   
   async upload(entries: EntryDbRecord[]) {
+    this.currentlyUploading = true
     if(entries.length === 0) console.log("nothing to upload")
     for(let entry of entries) {
       if(entry.syncStatus === "pending_delete" && entry.driveFileId !== null) {
@@ -159,6 +168,7 @@ export class SynchronizationService {
         }
       }
     }
+    this.currentlyUploading = false
   }
   
   async uploadLocalChanges() {
@@ -213,10 +223,10 @@ export class SynchronizationService {
     await this.checkToken()
     // download changes from drive
     let changesList
+    this.remoteChangesCount = 0
+    this.remoteChangesDownloadedCount = 0
     do {
       changesList = await this.listChanges()
-      this.remoteChangesCount = 0
-      this.remoteChangesDownloadedCount = 0
       console.log(changesList)
       console.log("no. of changes: " + changesList.changes.length)
       this.remoteChangesCount += changesList.changes.length
