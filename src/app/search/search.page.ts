@@ -87,6 +87,8 @@ export class SearchPage implements OnInit {
   
   @ViewChild("baseChart") chart!: any;
   
+  @ViewChild("searchbar") searchbar!: IonSearchbar
+  
   graph!: Chart
   
   fullWords = true
@@ -96,7 +98,7 @@ export class SearchPage implements OnInit {
 
   constructor(private dbService: DatabaseService,
               private router: Router) {
-    this.startDate = new Date(new Date().getTime() - 100*24*60*60*1000).toISOString()
+    this.startDate = "2025-10-03"//new Date(new Date().getTime() - 100*24*60*60*1000).toISOString()
     this.entries = this.dbService.getAllEntries()
   }
   
@@ -194,6 +196,10 @@ export class SearchPage implements OnInit {
   }
 
   ngOnInit() {
+  }
+  
+  ionViewDidEnter() {
+    this.searchbar.setFocus()
   }
   
   async openEntry(date: string) {

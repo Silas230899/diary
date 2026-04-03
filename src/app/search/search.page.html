@@ -1,6 +1,6 @@
 <ion-header>
     <ion-toolbar color="primary">
-        <ion-searchbar placeholder="Suchen" (ionInput)="search()" debounce="1000" [(ngModel)]="searchString"></ion-searchbar>
+        <ion-searchbar #searchbar placeholder="Suchen" (ionInput)="search()" debounce="1000" [(ngModel)]="searchString"></ion-searchbar>
     </ion-toolbar>
 </ion-header>
 
@@ -57,10 +57,16 @@
                 </ion-item>
             }
         </ion-list>
-    } @else {
+    } @else if(searchString.length > 0) {
         <div class="no-entries-container">
             <div class="no-entries-headline">
                 Keine Ergebnisse
+            </div>
+        </div>
+    } @else {
+        <div class="no-entries-container">
+            <div class="no-entries-headline">
+                Noch nichts gesucht
             </div>
         </div>
     }
