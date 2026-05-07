@@ -1,0 +1,39 @@
+<ion-content>
+    <ion-list>
+        <ion-item>
+            <ion-label>Wörter</ion-label>
+            <ion-label slot="end">{{words}}</ion-label>
+        </ion-item>
+        <ion-item>
+            <ion-label>Bilder</ion-label>
+            <ion-label slot="end">{{images}}</ion-label>
+        </ion-item>
+        <ion-item-divider>
+            Technisch
+        </ion-item-divider>
+        <ion-item>
+            <ion-label>SyncStatus</ion-label>
+            <ion-label slot="end">
+                @if (syncStatus === "pending_upload") {
+                    <ion-icon name="cloud-upload-outline"></ion-icon>
+                } @else if (syncStatus === "synced") {
+                    <ion-icon name="cloud-done-outline"></ion-icon>
+                } @else if (syncStatus === "pending_delete") {
+                    <ion-icon name="trash-outline"></ion-icon>
+                } @else if (syncStatus === "keep_local") {
+                    <ion-icon name="cloud-offline-outline"></ion-icon>
+                }
+            </ion-label>
+        </ion-item>
+        <!--
+        <ion-item>
+            <ion-label slot="start">Uuid</ion-label>
+            <ion-label>{{uuidv7}}</ion-label>
+        </ion-item>
+        -->
+        <ion-item>
+            <ion-label>Entry Index</ion-label>
+            <ion-label slot="end">{{entryIndex}}</ion-label>
+        </ion-item>
+    </ion-list>
+</ion-content>

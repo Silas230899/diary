@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -29,6 +29,8 @@ import {v7 as uuidv7, v7} from "uuid";
 import {PasswordService} from "../services/password.service";
 import {formatDatetime} from "../utils/dateStuff";
 import {ImageDb} from "../models/image-db";
+import {ActionSheetController} from "@ionic/angular/standalone";
+import {EntryInfoPopoverComponent} from "../components/entry-info-popover/entry-info-popover.component";
 
 @Component({
   selector: 'app-specific-day',
@@ -49,7 +51,8 @@ export class SpecificDayPage implements OnInit {
               private modalCtrl: ModalController,
               private sync: SynchronizationService,
               private route: ActivatedRoute,
-              private passwordService: PasswordService,) {
+              private passwordService: PasswordService,
+              private actionSheetCtrl: ActionSheetController) {
     addIcons({ informationCircleOutline, trashOutline, pencilOutline, informationOutline, add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline, chevronCollapseOutline })
     
     const date = this.route.snapshot.queryParamMap.get("date");
@@ -82,6 +85,110 @@ export class SpecificDayPage implements OnInit {
       year: "numeric"
     }
     return new Date(this.date).toLocaleDateString(undefined, options);
+  }
+  
+  async editEntry(entry: EntryViewRecord) {
+    // loads all images from db by filename
+    const imagesDb: ImageDb[] = await Promise.all(entry.images.map((image) => this.dbService.getDBImage(image.filename)))
+    if(imagesDb.length > 0) console.log("done loading images")
+    
+    const modal = await this.modalCtrl.create({
+      component: NewEntryComponent,
+      componentProps: {
+        text: entry.text,
+        date: entry.date,
+        written: entry.written,
+        customWrittenDate: true,
+        sync: entry.syncStatus !== "keep_local",
+        imagesViews: entry.images,
+        imagesDb: imagesDb
+      }
+    });
+    
+    modal.onWillDismiss().then(async e => {
+      const { data, role } = e
+      if(role === "confirm") {
+        const newEntryWithoutEntryIndex = data as NewEntryWithoutEntryIndex
+        const newUuidv7 = v7()
+        const newEntryIndex = entry.entryIndex
+        for(const image of newEntryWithoutEntryIndex.images) {
+          const newFilename = uuidv7() + "." + "webp"
+          newEntryWithoutEntryIndex.text = newEntryWithoutEntryIndex.text.replaceAll(image.filename, newFilename)
+          image.filename = newFilename
+        }
+        const referencedImages = newEntryWithoutEntryIndex.images.map((image) => image.filename)
+        
+        const newEntry = new EntryDbRecord(
+          newUuidv7,
+          newEntryWithoutEntryIndex.date,
+          newEntryWithoutEntryIndex.written,
+          newEntryWithoutEntryIndex.writtenHasTime,
+          newEntryIndex,
+          newEntryWithoutEntryIndex.text,
+          referencedImages,
+          newEntryWithoutEntryIndex.syncStatus,
+          null
+        )
+        
+        await this.saveNewEntryToDb(newEntry, newEntryWithoutEntryIndex.images)
+        // will also care for deleting images
+        await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
+        if(this.sync.hasInternetAccess) this.sync.uploadLocalChanges() // dont wait for upload
+        await this.populateEntries(this.date)
+      }
+    })
+    
+    await modal.present();
+  }
+  
+  async deleteEntry(entry: EntryViewRecord) {
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: 'Actions',
+      buttons: [
+        {
+          text: 'Delete',
+          role: 'destructive',
+          data: {
+            action: 'delete',
+          },
+        },
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          data: {
+            action: 'cancel',
+          },
+        },
+      ],
+    });
+    
+    actionSheet.onDidDismiss().then(async e => {
+      if(e.data.action === 'delete') {
+        await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
+        //const entryDeletionPromise = this.dbService.deleteEntry(entry.id)
+        //const imageDeletionPromises = entry.images.map(image => this.dbService.deleteImage(image.filename))
+        //await Promise.all([...imageDeletionPromises, entryDeletionPromise])
+        await this.populateEntries(this.date)
+        if(this.sync.hasInternetAccess) await this.sync.uploadLocalChanges()
+      } else if(e.data.action === 'cancel') {
+        console.log("cancled")
+      }
+    })
+    
+    await actionSheet.present();
+  }
+  
+  async presentInfoPopover($event: PointerEvent, entry: EntryViewRecord) {
+    const popover = await this.popoverController.create({
+      component: EntryInfoPopoverComponent,
+      componentProps: {
+        entry: entry,
+      },
+      event: $event,
+      reference: "event"
+    })
+    
+    await popover.present()
   }
 
   async createPopover($event: MouseEvent, entry: EntryViewRecord) {
@@ -238,5 +345,9 @@ export class SpecificDayPage implements OnInit {
   
   protected merge(number: number, $index: number) {
   
+  }
+  
+  protected wordCount(entry: EntryViewRecord) {
+    return entry.text.split(" ").length;
   }
 }

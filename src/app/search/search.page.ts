@@ -100,6 +100,14 @@ export class SearchPage implements OnInit {
               private router: Router) {
     this.startDate = "2025-10-03"//new Date(new Date().getTime() - 100*24*60*60*1000).toISOString()
     this.entries = this.dbService.getAllEntries()
+    this.entries.then(entries => {
+      console.info("Number of all entries: " + entries.length)
+      let wordCount = 0;
+      for(const e of entries) {
+        wordCount += e.text.split(" ").length
+      }
+      console.info("Insgesamte Wortanzahl ca.: " + wordCount)
+    })
   }
   
   async search() {

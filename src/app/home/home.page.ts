@@ -81,7 +81,7 @@ export class HomePage {
      * normally it takes < 150ms for the initialDownloadSync promise to fulfill,
      * so no modal is shown if there are no updates
      */
-    if(!this.sync.initialDownloadSyncDone) {
+    if(!this.sync.downloadingProcessDone) {
       setTimeout(async () => {
         await this.showLoading()
       }, 150)
@@ -98,11 +98,11 @@ export class HomePage {
   */
   
   async showLoading() {
-    if(this.sync.initialDownloadSyncDone) return
+    if(this.sync.downloadingProcessDone) return
     
     this.loadingModalOpen = true
     
-    this.sync.initialDownloadSync.finally(async () => {
+    this.sync.downloadingProcess.finally(async () => {
       await this.populateEntries(this.date)
       this.loadingModalOpen = false
     })
@@ -254,14 +254,17 @@ export class HomePage {
     if(!this.sync.hasInternetAccess) {
       const toast = await this.toastController.create({
         message: 'Du hast keinen Internetzugriff!',
-        duration: 2000,
+        duration: 1500,
         position: "bottom",
       });
       await toast.present();
       await $event.target.complete()
     } else {
+      await $event.target.complete()
+      this.loadingModalOpen = true
       await this.sync.downloadRemoteChanges()
       await this.populateEntries(this.date) // für uploading changes eig nicht nötig
+      this.loadingModalOpen = false
       const localChanges = await this.sync.getLocalChanges()
       if(localChanges.length > 0) {
         setTimeout(async () => {

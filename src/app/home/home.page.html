@@ -86,16 +86,21 @@
 
     @if (!entriesLoading) {
         @for (yearWithDay of entries; track $index) {
-            <ion-card-header style="padding-bottom: 4px">
+            <ion-card-header style="padding-bottom: 4px;">
                 <!--<ion-card-title>{{formatDate(yearWithDay.day[0].date)}}</ion-card-title>-->
                 @if (yearWithDay.day.length > 0) {
-                    <ion-card-title color="dark">{{formatDate2(yearWithDay.year)}}</ion-card-title>
+                    <ion-card-title color="dark">
+                        {{formatDate2(yearWithDay.year)}}
+                        <ion-button (click)="openEntry(yearWithDay.day[0].date)" size="small" color="medium" fill="clear" style="position: absolute; right: 0; top: 0; z-index: 9999;">
+                            <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
+                        </ion-button>
+                    </ion-card-title>
                 } @else {
                     <ion-card-title color="medium">{{formatDate2(yearWithDay.year)}}</ion-card-title>
                 }
             </ion-card-header>
             @if (yearWithDay.day.length > 0) {
-                <ion-card (click)="entryClicked(yearWithDay.day[0].date)">
+                <ion-card>
                     <!--
                     <ion-button (click)="createPopover($event, yearWithDay.day[0])" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
                         <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
@@ -120,10 +125,6 @@
 
                             <div style="text-align: right">
                                 {{formatDatetime(entry.date, entry.written, entry.writtenHasTime)}}
-
-                                <ion-button (click)="createPopover($event, yearWithDay.day[0])" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
-                                    <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
-                                </ion-button>
                             </div>
 
                             <app-entry-text [entry]="entry"></app-entry-text>

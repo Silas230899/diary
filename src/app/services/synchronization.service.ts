@@ -5,7 +5,7 @@ import {openUrl} from "@tauri-apps/plugin-opener";
 import {EntryDbRecord} from "../models/entry-db-record";
 import {ImageDb} from "../models/image-db";
 import {DatabaseService} from "./database.service";
-import { fetch as taurifetch } from "@tauri-apps/plugin-http";
+import {CryptoService} from "./crypto.service";
 
 @Injectable({
   providedIn: 'root'
@@ -16,11 +16,13 @@ export class SynchronizationService {
   
   allFiles: any[] = []
   
-  initialDownloadSync: Promise<void>
-  private resolveInitialDownloadSync!: () => void
-  private rejectInitialDownloadSync!: (err?: any) => void
-  
-  initialDownloadSyncDone = false
+  private resolveDownloadingProcess!: () => void
+  private rejectDownloadingProcess!: (err?: any) => void
+  downloadingProcess: Promise<void> = new Promise<void>((resolve, reject) => {
+    this.resolveDownloadingProcess = resolve
+    this.rejectDownloadingProcess = reject
+  })
+  downloadingProcessDone = false
   
   private readonly clientSecret = "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";
   private readonly clientId = "15828861697-4hsmsq4fhdktkd05hrceipvl2ak64jnc.apps.googleusercontent.com";
@@ -36,7 +38,7 @@ export class SynchronizationService {
   
   currentlyUploading = false
   
-  constructor(private dbService: DatabaseService) {
+  constructor(private dbService: DatabaseService, private crypto: CryptoService) {
     this.hasInternetAccess = window.navigator.onLine
     
     addEventListener("online", (event) => {
@@ -52,10 +54,12 @@ export class SynchronizationService {
     const accessTokenExpiration = localStorage.getItem("drive_access_token_expiration")
     const startPageToken = localStorage.getItem("drive_start_page_token")
     
-    this.initialDownloadSync = new Promise<void>((resolve, reject) => {
-      this.resolveInitialDownloadSync = resolve
-      this.rejectInitialDownloadSync = reject
+    /*
+    this.downloadingProcess = new Promise<void>((resolve, reject) => {
+      this.resolveDownloadingProcess = resolve
+      this.rejectDownloadingProcess = reject
     })
+    */
     
     if(accessToken !== null && refreshToken !== null && accessTokenExpiration !== null && startPageToken !== null) {
       console.log("drive is initialized")
@@ -87,20 +91,19 @@ export class SynchronizationService {
         } else this.initialDownloadSync = Promise.resolve()
       }).catch(() => this.initialDownloadSync = Promise.resolve())
       */
-    } else this.resolveInitialDownloadSync()
+    } else this.resolveDownloadingProcess()
   }
   
   private async init() {
     try {
       if (!this.hasInternetAccess) {
-        this.resolveInitialDownloadSync()
+        this.resolveDownloadingProcess()
         return
       }
       
       await this.downloadRemoteChanges()
       console.log("successfully downloaded remote changes");
-      this.initialDownloadSyncDone = true
-      this.resolveInitialDownloadSync()
+      this.resolveDownloadingProcess()
       
       setTimeout(async () => {
         await this.uploadLocalChanges()
@@ -108,7 +111,7 @@ export class SynchronizationService {
       }, 750)
       
     } catch (err) {
-      this.rejectInitialDownloadSync(err)
+      this.rejectDownloadingProcess(err)
     }
   }
   
@@ -191,15 +194,53 @@ export class SynchronizationService {
         } else console.log("entry was deleted from db already")
       } else {
         if(change.file.mimeType === "application/json") {
-          const existsAlready = await this.dbService.entryExistsWithDriveFileId(change.fileId)
-          if(!existsAlready) {
+          //console.log(JSON.stringify(change))
+          console.log("looking for drive file id " + change.fileId)
+          console.log(change.fileId + "vs " + change.file.id)
+          const existsByDriveId = await this.dbService.entryExistsWithDriveFileId(change.fileId)
+          if(!existsByDriveId) {
+            console.log("does net exist yet")
             const entry = await this.downloadEntry(change.file.id)
             if(entry.syncStatus === "keep_local" || entry.syncStatus === "pending_upload") {
               throw new Error("downgeloadeter eintrag kann nicht lokal oder pending upload sein?!?!")
             }
+            console.log(await this.crypto.decryptBase64StringToString(entry.text))
             console.log("download entry: " + JSON.stringify(entry))
-            entry.driveFileId = change.file.id
-            await this.dbService.insertRawEntry(entry)
+            
+            const entryFromDb = await this.dbService.getEntryByUuid(entry.uuidv7)
+            
+            console.log("from db       :" + JSON.stringify(entryFromDb))
+            
+            const existsByUuid = entryFromDb.length > 0
+            console.log("exists by uuid (" + entry.uuidv7 + "): " + existsByUuid)
+            if(existsByUuid) {
+              const decryptedFromDrive = await this.crypto.decryptBase64StringToString(entry.text)
+              console.log("Entry exists locally but missing driveFileId → fixing state")
+              
+              console.log(decryptedFromDrive)
+              console.log(entry.text)
+              
+              
+              if(entryFromDb[0].text !== decryptedFromDrive) throw new Error("Contents of wrongly synced entries doesnt match. big problem")
+              
+              // 🔧 RECONCILIATION
+              await this.dbService.setDriveFileId(entry.uuidv7, change.file.id)
+              await this.dbService.setSyncStatus(entry.uuidv7, "synced")
+              console.log("reconciled")
+              
+              // optional: Daten vergleichen / mergen
+            } else {
+              console.log("insert entry raw")
+              entry.driveFileId = change.file.id
+              await this.dbService.insertRawEntry(entry)
+            }
+            /*
+            wenn von der uuid her der eintrag schon da ist, aber auf nicht synced steht und keine drivefileid hat,
+            dann wurde es beim hochladen nicht korrekt aktualisiert, kann jetzt nachgeholt und der download
+            verworfen werden
+             */
+            //entry.driveFileId = change.file.id
+            //await this.dbService.insertRawEntry(entry)
           } else {
             console.log("entry '" + change.file.name + "' exists already")
           }
@@ -217,6 +258,8 @@ export class SynchronizationService {
   }
   
   async downloadRemoteChanges() {
+    this.downloadingProcessDone = false
+    
     this.remoteChangesCount = null
     this.remoteChangesDownloadedCount = null
     
@@ -243,6 +286,8 @@ export class SynchronizationService {
     } else {
       console.log("error with new startpage token: " + changesList.newStartPageToken)
     }
+    
+    this.downloadingProcessDone = true
   }
   
   async synchronizeEverything() {
@@ -705,6 +750,7 @@ export class SynchronizationService {
   }
   
   async deleteFile(driveFileId: string) {
+    await this.checkToken()
     const url = `https://www.googleapis.com/drive/v3/files/${driveFileId}`;
     
     const res = await fetch(url, {

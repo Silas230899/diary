@@ -6,18 +6,29 @@
 
 <ion-content>
 
-    <ion-toggle>Einzelne Einträge</ion-toggle>
-    <ion-toggle [(ngModel)]="caseSensitive" (ionChange)="search()">Case sensitive</ion-toggle>
-    <ion-toggle [(ngModel)]="fullWords" (ionChange)="search()">Nur ganze Wörter</ion-toggle>
-
-    <ion-datetime-button datetime="date"></ion-datetime-button>
-    <ion-modal [keepContentsMounted]="true">
-        <ng-template>
-            <ion-datetime id="date"
-                          (ionChange)="search()"
-                          presentation="date"
-                          [firstDayOfWeek]="1"
-                          [formatOptions]="{
+    <ion-list>
+        <ion-list-header>
+            Suchoptionen
+        </ion-list-header>
+        <ion-item>
+            <ion-toggle>Einzelne Einträge</ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-toggle [(ngModel)]="caseSensitive" (ionChange)="search()">Case sensitive</ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-toggle [(ngModel)]="fullWords" (ionChange)="search()">Nur ganze Wörter</ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-label>Startdatum</ion-label>
+            <ion-datetime-button datetime="date" slot="end"></ion-datetime-button>
+            <ion-modal [keepContentsMounted]="true">
+                <ng-template>
+                    <ion-datetime id="date"
+                                  (ionChange)="search()"
+                                  presentation="date"
+                                  [firstDayOfWeek]="1"
+                                  [formatOptions]="{
                                             date: {
                                               weekday: 'short',
                                               month: 'long',
@@ -25,10 +36,12 @@
                                               year: 'numeric'
                                             }
                                           }"
-                          [(ngModel)]="startDate"
-            ></ion-datetime>
-        </ng-template>
-    </ion-modal>
+                                  [(ngModel)]="startDate"
+                    ></ion-datetime>
+                </ng-template>
+            </ion-modal>
+        </ion-item>
+    </ion-list>
 
     <div class="canvasParent" [class.canvasHidden]="resultCount === 0">
         <canvas #baseChart></canvas>

@@ -111,11 +111,17 @@ export class DatabaseService {
   
   async insertRawEntry(entry: EntryDbRecord) {
     const referencedImagesString = entry.referencedImages.join(",")
-    await this.database.execute(
-      `INSERT into entry (uuidv7, date, written, writtenHasTime, entryIndex, text, referencedImages, syncStatus, driveFileId)
+    try {
+      await this.database.execute(
+        `INSERT into entry (uuidv7, date, written, writtenHasTime, entryIndex, text, referencedImages, syncStatus, driveFileId)
       VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8, $9)`,
-      [entry.uuidv7, entry.date, entry.written, entry.writtenHasTime, entry.entryIndex, entry.text, referencedImagesString, entry.syncStatus, entry.driveFileId]
-    );
+        [entry.uuidv7, entry.date, entry.written, entry.writtenHasTime, entry.entryIndex, entry.text, referencedImagesString, entry.syncStatus, entry.driveFileId]
+      );
+    } catch (e) {
+      console.log("uuid: " + entry.uuidv7)
+      console.error(e)
+      throw e
+    }
   }
   
   async deleteEntry(uuidv7: string) {
@@ -249,6 +255,11 @@ export class DatabaseService {
     return this.entries.get(date)!
     */
     const res: any[] = await this.database.select("SELECT * FROM entry WHERE date = date($1) AND syncStatus != 'pending_delete'", [date])
+    return await this.transformEntryDatabaseResultsToEntryViewRecords(res)
+  }
+  
+  async getEntryByUuid(uuid: string) {
+    const res: any[] = await this.database.select("SELECT * FROM entry WHERE uuidv7 = $1", [uuid])
     return await this.transformEntryDatabaseResultsToEntryViewRecords(res)
   }
   

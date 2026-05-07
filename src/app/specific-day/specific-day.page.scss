@@ -30,3 +30,14 @@
   max-width: none;
   margin-right: 8px;
 }
+
+.card-button-container {
+  position: absolute; right: 4px; top: 4px; z-index: 9999
+}
+
+.card-button-container > ion-button {
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
