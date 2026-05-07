@@ -16,10 +16,6 @@
     "opener:default",
     "deep-link:default",
     "opener:default",
-    "fs:default",
-    {
-      "identifier": "http:default",
-      "allow": [{ "url":  "https://www.google.com/favicon.ico" }]
-    }
+    "fs:default"
   ]
 }
