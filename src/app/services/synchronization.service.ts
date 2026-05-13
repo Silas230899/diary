@@ -196,7 +196,7 @@ export class SynchronizationService {
         if(change.file.mimeType === "application/json") {
           //console.log(JSON.stringify(change))
           console.log("looking for drive file id " + change.fileId)
-          console.log(change.fileId + "vs " + change.file.id)
+          console.log(change.fileId + " vs. " + change.file.id)
           const existsByDriveId = await this.dbService.entryExistsWithDriveFileId(change.fileId)
           if(!existsByDriveId) {
             console.log("does net exist yet")
@@ -204,7 +204,8 @@ export class SynchronizationService {
             if(entry.syncStatus === "keep_local" || entry.syncStatus === "pending_upload") {
               throw new Error("downgeloadeter eintrag kann nicht lokal oder pending upload sein?!?!")
             }
-            console.log(await this.crypto.decryptBase64StringToString(entry.text))
+            //folgende zeile führt beim start zu master key nicht initialisiert error
+            //console.log(await this.crypto.decryptBase64StringToString(entry.text))
             console.log("download entry: " + JSON.stringify(entry))
             
             const entryFromDb = await this.dbService.getEntryByUuid(entry.uuidv7)
@@ -214,14 +215,16 @@ export class SynchronizationService {
             const existsByUuid = entryFromDb.length > 0
             console.log("exists by uuid (" + entry.uuidv7 + "): " + existsByUuid)
             if(existsByUuid) {
-              const decryptedFromDrive = await this.crypto.decryptBase64StringToString(entry.text)
+              //folgende zeile führt beim start zu master key nicht initialisiert error
+              //const decryptedFromDrive = await this.crypto.decryptBase64StringToString(entry.text)
               console.log("Entry exists locally but missing driveFileId → fixing state")
               
-              console.log(decryptedFromDrive)
+              //console.log(decryptedFromDrive)
               console.log(entry.text)
               
               
-              if(entryFromDb[0].text !== decryptedFromDrive) throw new Error("Contents of wrongly synced entries doesnt match. big problem")
+              //folgende zeile führt beim start zu master key nicht initialisiert error
+              //if(entryFromDb[0].text !== decryptedFromDrive) throw new Error("Contents of wrongly synced entries doesnt match. big problem")
               
               // 🔧 RECONCILIATION
               await this.dbService.setDriveFileId(entry.uuidv7, change.file.id)
