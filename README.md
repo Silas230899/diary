@@ -1,5 +1,10 @@
-# Signing the apk
+# Build for Android
 
+```
+npm run tauri android build
+```
+
+# Signing the apk
 
 Goto
 ````
