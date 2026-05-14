@@ -6,6 +6,7 @@
   "build": {
     "beforeDevCommand": "npm run build & npm run start",
     "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist/diary/browser",
     "devUrl": "http://localhost:1420"
   },
   "app": {

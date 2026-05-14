@@ -1,5 +1,24 @@
 # Build for Android
 
+Build on Windows (tauri.conf.json):
+```
+"build": {
+    "beforeDevCommand": "npm run build & npm run start",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist/diary/browser",
+    "devUrl": "http://localhost:1420"
+  },
+```
+
+Build on macOS:
+```
+"build": {
+    "beforeDevCommand": "npm run build & npm run start",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:1420"
+  },
+```
+
 ```
 npm run tauri android build
 ```
