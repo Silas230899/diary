@@ -7,10 +7,10 @@ import {
   IonContent,
   IonDatetime, IonDatetimeButton,
   IonHeader, IonImg, IonItem, IonLabel,
-  IonList, IonListHeader, IonModal,
+  IonList, IonListHeader, IonModal, IonNote,
   IonSearchbar, IonThumbnail,
   IonTitle, IonToggle,
-  IonToolbar
+  IonToolbar, ToastController
 } from '@ionic/angular/standalone';
 import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
 import {DatabaseService} from "../services/database.service";
@@ -26,7 +26,7 @@ Chart.register(...registerables);
   templateUrl: './search.page.html',
   styleUrls: ['./search.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonButton, IonToggle, IonDatetimeButton, IonModal, IonImg, ImageNameToObjectURLPipe, IonThumbnail, IonBadge, NgOptimizedImage]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonButton, IonToggle, IonDatetimeButton, IonModal, IonImg, ImageNameToObjectURLPipe, IonThumbnail, IonBadge, NgOptimizedImage, IonNote]
 })
 export class SearchPage implements OnInit {
   
@@ -97,10 +97,17 @@ export class SearchPage implements OnInit {
   protected startDate: string;
 
   constructor(private dbService: DatabaseService,
-              private router: Router) {
+              private router: Router,
+              private toastCtrl: ToastController) {
     this.startDate = "2025-10-03"//new Date(new Date().getTime() - 100*24*60*60*1000).toISOString()
     this.entries = this.dbService.getAllEntries()
     this.entries.then(entries => {
+      this.toastCtrl.create({
+        message: `${entries.length} Einträge`,
+        duration: 1500,
+        position: "bottom",
+      }).then(toast => toast.present())
+      
       console.info("Number of all entries: " + entries.length)
       let wordCount = 0;
       for(const e of entries) {
