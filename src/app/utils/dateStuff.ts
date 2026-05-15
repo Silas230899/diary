@@ -1,15 +1,15 @@
 function isSameDay(date1: Date, date2: Date) {
   return (
     date1.getUTCDate() === date2.getUTCDate() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getFullYear() === date2.getFullYear()
+    date1.getUTCMonth() === date2.getUTCMonth() &&
+    date1.getUTCFullYear() === date2.getUTCFullYear()
   );
 }
 
 export function formatDatetime(date: string, written: string | null, writtenHasTime: boolean | null) {
   if(written !== null) {
     if(isSameDay(new Date(date), new Date(written))) {
-      if(writtenHasTime!) {
+      if(writtenHasTime !== null && writtenHasTime) {
         const timeOptions: Intl.DateTimeFormatOptions = {
           hour: "2-digit",
           minute: "2-digit",
@@ -20,7 +20,7 @@ export function formatDatetime(date: string, written: string | null, writtenHasT
         return "Heute (unbekannte Uhrzeit)"
       }
     } else {
-      if(writtenHasTime!) {
+      if(writtenHasTime !== null && writtenHasTime) {
         const dateOptions: Intl.DateTimeFormatOptions = {
           day: "2-digit",
           month: "long",

@@ -280,11 +280,15 @@ export class DatabaseService {
       });
       const results = await Promise.all(imagePromises);
       const images: ImageView[] = results.filter((imageResult): imageResult is ImageView => imageResult !== null);
+      let writtenHasTime: boolean | null;
+      if(entry["writtenHasTime"] === "true") writtenHasTime = true;
+      else if(entry["writtenHasTime"] === "false") writtenHasTime = false;
+      else writtenHasTime = null
       return new EntryViewRecord(
         entry["uuidv7"],
         new Date(entry["date"]).toISOString(),
         this.writtenDateToIsoString(entry["written"]),
-        entry["writtenHasTime"],
+        writtenHasTime,
         entry["entryIndex"],
         decryptedText,
         images,
