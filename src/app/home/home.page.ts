@@ -40,8 +40,9 @@ import {v7} from "uuid";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
 import {ToastController} from "@ionic/angular/standalone";
 import {Router} from "@angular/router";
-import {formatDatetime} from "../utils/dateStuff";
 import {ImageDb} from "../models/image-db";
+import {formatWrittenDate} from "../utils/dateStuff";
+import {FormatWrittenDatePipe} from "../pipes/format-written-date-pipe";
 
 type Day = EntryViewRecord[]
 
@@ -50,7 +51,7 @@ type Day = EntryViewRecord[]
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, FormatWrittenDatePipe],
 })
 export class HomePage {
   
@@ -59,7 +60,6 @@ export class HomePage {
   entries: { year: number, day: Day }[] = []
   entriesLoading = true
   hasEntriesForThisYear = false
-  protected readonly formatDatetime = formatDatetime;
   protected loadingModalOpen = false
 
   constructor(private navController: NavController,
@@ -345,4 +345,6 @@ export class HomePage {
   protected async entryClicked(date: string) {
     await this.openEntry(date)
   }
+  
+  protected readonly formatDatetime = formatWrittenDate;
 }

@@ -6,7 +6,7 @@ function isSameDay(date1: Date, date2: Date) {
   );
 }
 
-export function formatDatetime(date: string, written: string | null, writtenHasTime: boolean | null) {
+export function formatWrittenDate(date: string, written: string | null, writtenHasTime: boolean | null) {
   if(written !== null) {
     if(isSameDay(new Date(date), new Date(written))) {
       if(writtenHasTime !== null && writtenHasTime) {

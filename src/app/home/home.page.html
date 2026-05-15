@@ -124,7 +124,7 @@
                             }
 
                             <div style="text-align: right">
-                                {{formatDatetime(entry.date, entry.written, entry.writtenHasTime)}}
+                                {{entry.date | formatWrittenDate:entry.written:entry.writtenHasTime }}
                             </div>
 
                             <app-entry-text [entry]="entry"></app-entry-text>

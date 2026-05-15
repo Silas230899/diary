@@ -78,7 +78,7 @@
 
             <ion-card-header>
                 <ion-card-title>
-                    Verfasst: {{formatDatetime(entry.date, entry.written, entry.writtenHasTime)}}
+                    {{entry.date | formatWrittenDate:entry.written:entry.writtenHasTime }}
                 </ion-card-title>
             </ion-card-header>
             <ion-card-content>
