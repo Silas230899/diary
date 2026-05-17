@@ -100,8 +100,10 @@ export class SearchPage implements OnInit {
               private router: Router,
               private toastCtrl: ToastController) {
     this.startDate = "2025-10-03"//new Date(new Date().getTime() - 100*24*60*60*1000).toISOString()
+    const t = Date.now()
     this.entries = this.dbService.getAllEntries()
     this.entries.then(entries => {
+      console.log("time load ms: ", Date.now() - t)
       this.toastCtrl.create({
         message: `${entries.length} Einträge`,
         duration: 1500,
