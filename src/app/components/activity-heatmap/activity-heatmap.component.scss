@@ -1,0 +1,125 @@
+/* commit-activity.component.scss */
+
+:host {
+  display: block;
+
+  --cell-size: 18px;
+  --big-font-size: calc(var(--cell-size) + 2px);
+  --small-font-size: calc(var(--cell-size) - 6px);
+}
+
+.activity-container {
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-bottom: 8px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* =========================
+   Monatskarte
+========================= */
+
+.month-card {
+  border: 1px solid #dcdfe4;
+  border-radius: 12px;
+  padding: var(--cell-size);
+  background: white;
+  width: fit-content;
+}
+
+.month-header {
+  margin: 0 0 var(--cell-size);
+}
+
+.month-title {
+  font-size: var(--big-font-size);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.month-subtitle {
+  font-size: var(--small-font-size);
+  color: grey;
+}
+
+/* =========================
+   Heatmap
+========================= */
+
+.month-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.weekday-header {
+  display: grid;
+  grid-template-columns: repeat(7, var(--cell-size));
+  gap: 4px;
+
+  span {
+    font-size: var(--small-font-size);
+    color: #7b7f87;
+    text-align: center;
+  }
+}
+
+.weeks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.week-row {
+  display: grid;
+  grid-template-columns: repeat(7, var(--cell-size));
+  gap: 4px;
+}
+
+/* =========================
+   Tage
+========================= */
+
+.day {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border-radius: 4px;
+  background: #ebedf0;
+  transition: all 0.15s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: scale(1.1);
+    outline: 1px solid #999;
+  }
+}
+
+.outside {
+  opacity: 0.2;
+}
+
+/* =========================
+   Intensitäten
+========================= */
+
+.level-0 {
+  background: #ebedf0;
+}
+
+.level-1 {
+  background: #c6d4ff;
+}
+
+.level-2 {
+  background: #8aa8ff;
+}
+
+.level-3 {
+  background: #527bff;
+}
+
+.level-4 {
+  background: #27348b;
+}

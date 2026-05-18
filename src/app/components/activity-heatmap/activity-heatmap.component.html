@@ -1,0 +1,46 @@
+<!-- commit-activity.component.html -->
+
+<ion-card-header>
+    <ion-card-title>{{ year }}</ion-card-title>
+    <ion-card-subtitle>{{ entryCount }} Einträge an {{ daysWithEntriesCount }} Tagen</ion-card-subtitle>
+</ion-card-header>
+
+<div class="activity-container">
+    @for (month of months; track month.label) {
+        <div class="month-card">
+            <div class="month-header">
+                <span class="month-title">{{month.label}}</span>
+                <br>
+                <span class="month-subtitle">
+                    {{month.entryCount}} Einträge an {{month.daysWithEntriesCount}} Tagen
+                </span>
+            </div>
+
+            <div class="month-grid">
+                <!-- Wochentage -->
+                <div class="weekday-header">
+                    @for (day of weekdays; track day) {
+                        <span>{{ day }}</span>
+                    }
+                </div>
+
+                <!-- Wochen -->
+                <div class="weeks">
+                    @for (week of month.weeks; track $index) {
+                        <div class="week-row">
+                            @for (cell of week; track cell.date.toISOString()) {
+                                <div
+                                        class="day"
+                                        [ngClass]="getIntensity(cell.count)"
+                                        [class.outside]="!cell.currentMonth"
+                                        [title]="tooltip(cell)"
+                                        (click)="clickedCell(cell.date)"
+                                ></div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
