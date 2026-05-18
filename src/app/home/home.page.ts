@@ -10,7 +10,7 @@ import {
   IonFabButton,
   IonHeader,
   IonIcon, IonModal, IonProgressBar, IonRefresher,
-  IonRefresherContent, IonSpinner,
+  IonRefresherContent,
   IonTitle,
   IonToolbar, ModalController, NavController, PopoverController, RefresherCustomEvent
 } from '@ionic/angular/standalone';
