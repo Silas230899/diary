@@ -111,7 +111,9 @@ export class HomePage {
   async populateEntries(date: string) {
     this.entriesLoading = true
     this.hasEntriesForThisYear = false
+    const t = Date.now();
     let entries: EntryViewRecord[] = await this.dbService.getEntriesByDate(date)
+    console.log(Date.now()-t)
     
     const thisYear = new Date().getUTCFullYear()
     

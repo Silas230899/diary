@@ -2,14 +2,12 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonBadge,
-  IonButton,
   IonContent,
   IonDatetime, IonDatetimeButton,
-  IonHeader, IonImg, IonItem, IonLabel,
-  IonList, IonListHeader, IonModal, IonNote,
+  IonHeader, IonItem, IonLabel,
+  IonList, IonListHeader, IonModal,
   IonSearchbar, IonThumbnail,
-  IonTitle, IonToggle,
+  IonToggle,
   IonToolbar, ToastController
 } from '@ionic/angular/standalone';
 import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
@@ -26,7 +24,7 @@ Chart.register(...registerables);
   templateUrl: './search.page.html',
   styleUrls: ['./search.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonButton, IonToggle, IonDatetimeButton, IonModal, IonImg, ImageNameToObjectURLPipe, IonThumbnail, IonBadge, NgOptimizedImage, IonNote]
+  imports: [IonContent, IonHeader, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonToggle, IonDatetimeButton, IonModal, ImageNameToObjectURLPipe, IonThumbnail, NgOptimizedImage]
 })
 export class SearchPage implements OnInit {
   
