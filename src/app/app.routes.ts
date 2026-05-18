@@ -30,6 +30,10 @@ export const routes: Routes = [
     path: 'login',
     loadComponent: () => import('./login/login.page').then( m => m.LoginPage)
   },
+  {
+    path: 'activity',
+    loadComponent: () => import('./activity/activity.page').then(m => m.ActivityPage)
+  },
 
 
 

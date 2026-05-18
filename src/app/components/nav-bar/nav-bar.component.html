@@ -27,6 +27,14 @@
                     </ion-label>
                 </div>
             </ion-button>
+            <ion-button class="toolbarButton" (click)="navigate('activity')" [color]="host === 'activity' ? 'primary' : 'dark'">
+                <div class="toolbarButtonWrapper">
+                    <ion-icon name="flame-outline" class="toolbarIcon"></ion-icon>
+                    <ion-label class="toolbarLabel">
+                        Aktivität
+                    </ion-label>
+                </div>
+            </ion-button>
             <ion-button class="toolbarButton" (click)="navigate('onboarding')" [color]="host === 'statistics' ? 'primary' : 'dark'">
                 <div class="toolbarButtonWrapper">
                     <ion-icon name="bar-chart-outline" class="toolbarIcon"></ion-icon>

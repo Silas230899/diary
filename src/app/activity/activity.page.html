@@ -1,0 +1,19 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Aktivität</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Aktivität</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+    @for (year of years; track year) {
+        <app-activity-heatmap [data]="commitData" [year]="year"></app-activity-heatmap>
+    }
+</ion-content>
+
+<app-nav-bar [host]="'activity'"></app-nav-bar>
