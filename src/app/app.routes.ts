@@ -32,6 +32,7 @@ export const routes: Routes = [
   },
   {
     path: 'activity',
+    canActivate: [onboardingGuard],
     loadComponent: () => import('./activity/activity.page').then(m => m.ActivityPage)
   },
 
