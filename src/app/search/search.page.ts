@@ -114,6 +114,13 @@ export class SearchPage implements OnInit {
         wordCount += e.text.split(" ").length
       }
       console.info("Insgesamte Wortanzahl ca.: " + wordCount)
+      
+      let earliest = entries[0]
+      for(const entry of entries) {
+        if(new Date(entry.date).getTime() < new Date(earliest.date).getTime()) earliest = entry
+      }
+      console.log("Earliest: " + JSON.stringify(earliest))
+      this.startDate = earliest.date
     })
   }
   
