@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import {
   IonBackButton,
   IonButton, IonButtons,
-  IonCard, IonCardContent, IonCardHeader, IonCardTitle,
+  IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle,
   IonContent,
   IonHeader, IonIcon,
   IonTitle,
@@ -37,7 +37,7 @@ import {FormatWrittenDatePipe} from "../pipes/format-written-date-pipe";
   templateUrl: './specific-day.page.html',
   styleUrls: ['./specific-day.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonButtons, EntryTextComponent, IonBackButton, FormatWrittenDatePipe]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonButtons, EntryTextComponent, IonBackButton, FormatWrittenDatePipe, IonCardSubtitle]
 })
 export class SpecificDayPage implements OnInit {
 

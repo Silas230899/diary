@@ -65,20 +65,20 @@
     @for (entry of entries; track entry) {
         <ion-card style="margin-top: 4px; margin-bottom: 4px">
             <div class="card-button-container">
-                <ion-button size="small" (click)="presentInfoPopover($event, entry)" color="medium" fill="clear">
+                <ion-button (click)="presentInfoPopover($event, entry)" color="medium" fill="clear">
                     <ion-icon slot="icon-only" name="information-circle-outline"></ion-icon>
                 </ion-button>
-                <ion-button size="small" (click)="deleteEntry(entry)" color="medium" fill="clear">
+                <ion-button (click)="deleteEntry(entry)" color="medium" fill="clear">
                     <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
                 </ion-button>
-                <ion-button size="small" (click)="editEntry(entry)" color="medium" fill="clear">
+                <ion-button (click)="editEntry(entry)" color="medium" fill="clear">
                     <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
                 </ion-button>
             </div>
 
             <ion-card-header>
                 <ion-card-title>
-                    {{entry.date | formatWrittenDate:entry.written:entry.writtenHasTime }}
+                    Verfasst: {{entry.date | formatWrittenDate:entry.written:entry.writtenHasTime }}
                 </ion-card-title>
             </ion-card-header>
             <ion-card-content>
