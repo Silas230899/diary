@@ -36,7 +36,7 @@ interface MonthMatrix {
 export class ActivityHeatmapComponent  implements OnInit {
   
   @Input({ required: true }) year!: number;
-  @Input() data: CommitDay[] = [];
+  @Input({ required: true }) data!: CommitDay[];
   
   readonly weekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
   
@@ -45,13 +45,10 @@ export class ActivityHeatmapComponent  implements OnInit {
   daysWithEntriesCount: number = 0
   entryCount: number = 0
   
-  constructor(private router: Router) {
-  }
+  constructor(private router: Router) {}
   
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['year'] || changes['data']) {
-      this.generateMonths();
-    }
+  ngOnInit() {
+    this.generateMonths()
   }
   
   private generateMonths(): void {
@@ -141,7 +138,7 @@ export class ActivityHeatmapComponent  implements OnInit {
   }
   
   tooltip(cell: HeatmapCell): string {
-    return `${cell.count} Commits am ${this.formatDate(cell.date)}`;
+    return `${cell.count} Einträge am ${this.formatDate(cell.date)}`;
   }
   
   private formatDate(date: Date): string {
@@ -159,8 +156,6 @@ export class ActivityHeatmapComponent  implements OnInit {
   private getMondayIndex(day: number): number {
     return (day + 6) % 7;
   }
-  
-  ngOnInit() {}
   
   protected async clickedCell(date: Date) {
     const d = new Date(date.getTime() - date.getTimezoneOffset()*60*1000)
