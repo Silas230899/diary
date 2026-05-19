@@ -18,12 +18,11 @@
                               presentation="date"
                               [firstDayOfWeek]="1"
                               [formatOptions]="{
-                            date: {
-                              weekday: 'long',
-                              month: 'long',
-                              day: '2-digit'
-                            }
-                          }"
+                                date: {
+                                  month: 'long',
+                                  day: '2-digit'
+                                }
+                              }"
                               [(ngModel)]="date"
                               (ionChange)="selectedDate($event)"
                 ></ion-datetime>
