@@ -72,25 +72,13 @@
         <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
 
-    <!--
-    @if (!entriesLoading && entries.length !== 0 && !hasEntriesForThisYear) {
-        <ion-card-header style="padding-bottom: 4px">
-            <ion-card-title>{{thisYear()}}</ion-card-title>
-        </ion-card-header>
-        <ion-button class="ion-padding" style="margin: auto" fill="outline">
-            Für dieses Jahr hinzufügen
-        </ion-button>
-    }
-    -->
-
     @if (!entriesLoading) {
         @for (yearWithDay of entries; track $index) {
             <ion-card-header style="padding-bottom: 4px;">
-                <!--<ion-card-title>{{formatDate(yearWithDay.day[0].date)}}</ion-card-title>-->
                 @if (yearWithDay.day.length > 0) {
                     <ion-card-title color="dark">
                         {{formatDate2(yearWithDay.year)}}
-                        <ion-button (click)="openEntry(yearWithDay.day[0].date)" size="small" color="medium" fill="clear" style="position: absolute; right: 0; top: 0; z-index: 9999;">
+                        <ion-button (click)="openEntry(yearWithDay.day[0].date)" color="medium" fill="clear" style="position: absolute; right: 0; top: -12px; z-index: 9999;">
                             <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
                         </ion-button>
                     </ion-card-title>
@@ -100,11 +88,6 @@
             </ion-card-header>
             @if (yearWithDay.day.length > 0) {
                 <ion-card>
-                    <!--
-                    <ion-button (click)="createPopover($event, yearWithDay.day[0])" size="small" color="medium" fill="clear" style="position: absolute; right: 0; z-index: 9999">
-                        <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
-                    </ion-button>
-                    -->
                     <ion-card-content>
                         @for (entry of yearWithDay.day; track entry.uuidv7) {
                             <!--
