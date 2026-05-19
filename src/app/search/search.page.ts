@@ -8,7 +8,7 @@ import {
   IonList, IonListHeader, IonModal,
   IonSearchbar, IonThumbnail,
   IonToggle,
-  IonToolbar, ToastController
+  IonToolbar
 } from '@ionic/angular/standalone';
 import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
 import {DatabaseService} from "../services/database.service";
@@ -95,25 +95,12 @@ export class SearchPage implements OnInit {
   protected startDate: string;
 
   constructor(private dbService: DatabaseService,
-              private router: Router,
-              private toastCtrl: ToastController) {
+              private router: Router) {
     this.startDate = "2025-10-03"//new Date(new Date().getTime() - 100*24*60*60*1000).toISOString()
     const t = Date.now()
     this.entries = this.dbService.getAllEntries()
     this.entries.then(entries => {
       console.log("time load ms: ", Date.now() - t)
-      this.toastCtrl.create({
-        message: `${entries.length} Einträge`,
-        duration: 1500,
-        position: "bottom",
-      }).then(toast => toast.present())
-      
-      console.info("Number of all entries: " + entries.length)
-      let wordCount = 0;
-      for(const e of entries) {
-        wordCount += e.text.split(" ").length
-      }
-      console.info("Insgesamte Wortanzahl ca.: " + wordCount)
       
       let earliest = entries[0]
       for(const entry of entries) {
