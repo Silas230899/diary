@@ -26,6 +26,7 @@ export class EntryInfoPopoverComponent  implements OnInit {
   protected syncStatus!: SyncStatus
   protected uuidv7!: string;
   protected entryIndex!: number;
+  protected written!: string | null;
   
   constructor() {
     addIcons({cloudDoneOutline, cloudOfflineOutline, cloudUploadOutline, trashOutline});
@@ -37,6 +38,7 @@ export class EntryInfoPopoverComponent  implements OnInit {
     this.syncStatus = this.entry.syncStatus
     this.uuidv7 = this.entry.uuidv7
     this.entryIndex = this.entry.entryIndex
+    this.written = this.entry.written
   }
 
 }
