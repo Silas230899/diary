@@ -83,14 +83,17 @@ export class OnboardingPage implements OnInit {
       salt = await this.passwordService.readSalt()
       console.log("worked with existing salt")
     } else {
+      alert("no salt exists")
+      /*
       salt = await this.passwordService.createSalt()
       await this.sync.uploadBinary("masterPasswordSalt.bin", salt)
       console.log("created and uploaded new salt")
+      */
     }
     if(platform() === "android" || platform() === "ios") {
       await this.storePw(this.password)
     }
-    await this.crypto.initMasterKey(this.password, salt)
+    await this.crypto.initMasterKey(this.password, salt!)
   }
   
   async clearDb() {
@@ -109,29 +112,37 @@ export class OnboardingPage implements OnInit {
   
   async downloadEverything() {
     this.downloadingEntries = true
-    const allFiles = await this.sync.listDriveFiles()
-    this.all = allFiles.length
-    let done = 0
-    for(let file of allFiles) {
-      if(file.name.endsWith(".webp")) {
-        const imageData = await this.sync.downloadImage(file.id)
-        const image = new ImageDb(file.name, imageData)
-        await this.dbService.insertRawImage(image)
-        done++
-        console.log("downloaded image " + file.name)
-      } else if(file.name.startsWith("entry-")) {
-        const entry = await this.sync.downloadEntry(file.id)
-        entry.driveFileId = file.id
-        console.log(entry)
-        await this.dbService.insertRawEntry(entry)
-        done++
-      } else if(file.name === "masterPasswordSalt.bin"){
-        const masterPasswordSaltBlob = await this.sync.downloadImage(file.id)
-        await this.passwordService.writeSalt(new Uint8Array(await masterPasswordSaltBlob.arrayBuffer()))
-        done++
-      } else console.log("skip " + file.name)
-      console.log(done + "/" + allFiles.length)
-      this.done = done
+    const allEntries = await this.dbService.getAllEntriesRaw()
+    let res = await this.sync.listDriveFiles()
+    while(true) {
+      const allFiles = res.files
+      this.all += allFiles.length
+      let done = 0
+      for(let file of allFiles) {
+        if(file.name.endsWith(".webp")) {
+          const imageData = await this.sync.downloadImage(file.id)
+          const image = new ImageDb(file.name, imageData)
+          await this.dbService.insertRawImage(image)
+          done++
+          console.log("downloaded image " + file.name)
+        } else if(file.name.startsWith("entry-")) {
+          /////
+          if(allEntries.find(entry => `entry-${entry.uuidv7}` === file.name) !== undefined) continue
+          const entry = await this.sync.downloadEntry(file.id)
+          entry.driveFileId = file.id
+          console.log(entry)
+          await this.dbService.insertRawEntry(entry)
+          done++
+        } else if(file.name === "masterPasswordSalt.bin"){
+          const masterPasswordSaltBlob = await this.sync.downloadImage(file.id)
+          await this.passwordService.writeSalt(new Uint8Array(await masterPasswordSaltBlob.arrayBuffer()))
+          done++
+        } else console.log("skip " + file.name)
+        console.log(done + "/" + allFiles.length)
+      }
+      this.done += done
+      if(res.nextPageToken !== undefined) res = await this.sync.listDriveFiles(res.nextPageToken)
+      else break
     }
     this.downloadingEntries = false
   }
@@ -163,7 +174,8 @@ export class OnboardingPage implements OnInit {
   }
   
   async deleteCloud() {
-    await this.sync.deleteAll()
+    alert("disabled for sec. reasons")
+    //await this.sync.deleteAll()
   }
   
   async dump() {
