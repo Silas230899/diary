@@ -6,6 +6,10 @@
 
 <ion-content class="ion-padding">
 
+    <ion-button [disabled]="!googleInitialized" (click)="deleteStorage()">Delete local browser storage</ion-button>
+    <br>
+    <br>
+
     @if (!googleInitialized) {
         <ion-button (click)="initializeGoogle()" [disabled]="googleInitializing">Google Drive initialisieren</ion-button>
     } @else {
