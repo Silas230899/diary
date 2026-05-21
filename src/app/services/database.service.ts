@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import Database from "@tauri-apps/plugin-sql";
 import {CryptoService} from "./crypto.service";
 import {ImageView} from "../models/image-view";
@@ -223,6 +223,23 @@ export class DatabaseService {
   async getHeatmapData() {
     const res: any[] = await this.database.select("SELECT date, COUNT(*) AS count FROM entry GROUP BY date")
     return res
+  }
+  
+  async getAllEntriesRaw() {
+    const res: any[] = await this.database.select("SELECT * FROM entry")
+    return res.map(entry => {
+      const referencedImages = this.transformReferencedImageStringToArray(entry["referencedImages"])
+      return new EntryDbRecord(
+        entry["uuidv7"],
+        new Date(entry["date"]).toISOString(),
+        this.writtenDateToIsoString(entry["written"]),
+        entry["writtenHasTime"],
+        entry["entryIndex"],
+        entry["text"],
+        referencedImages,
+        entry["syncStatus"],
+        entry["driveFileId"])
+    })
   }
   
   /**
