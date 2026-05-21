@@ -327,9 +327,14 @@ export class SynchronizationService {
    * @param accessToken Dein OAuth2-Access Token
    * @returns Array von Dateinamen
    */
-  async listDriveFiles() {
+  async listDriveFiles(nextPageToken: string | undefined = undefined) {
+    await this.checkToken()
+    
+    let input = "https://www.googleapis.com/drive/v3/files?spaces=appDataFolder"
+    if(nextPageToken !== undefined) input += "&pageToken=" + nextPageToken
+    console.log("query ", input)
     const res = await fetch(
-      "https://www.googleapis.com/drive/v3/files?fields=files(id,name)&spaces=appDataFolder",
+      input,
       {
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
@@ -343,8 +348,7 @@ export class SynchronizationService {
     }
     
     const data = await res.json();
-    //return data.files?.map((f: { name: string }) => f.name) ?? [];
-    return data.files
+    return data
   }
   
   async getFile(id: string) {
@@ -747,7 +751,7 @@ export class SynchronizationService {
   async listFiles() {
     await this.checkToken()
     console.log("📂 Liste aller Dateien:");
-    const files = await this.listDriveFiles();
+    const files = (await this.listDriveFiles()).files;
     this.allFiles = files;
     console.log(files);
   }
@@ -774,7 +778,7 @@ export class SynchronizationService {
   async deleteAll() {
     await this.checkToken()
     console.log("📂 Liste aller Dateien:");
-    const files = await this.listDriveFiles();
+    const files = (await this.listDriveFiles()).files;
     this.allFiles = files;
     console.log(files);
     for(let file of files) {
