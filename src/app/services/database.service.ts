@@ -250,11 +250,15 @@ export class DatabaseService {
     const entriesPromises = res.map(async entry => {
       const decryptedText = await this.crypto.decryptBase64StringToString(entry["text"])
       const referencedImages = this.transformReferencedImageStringToArray(entry["referencedImages"])
+      let writtenHasTime: boolean | null;
+      if(entry["writtenHasTime"] === "true") writtenHasTime = true;
+      else if(entry["writtenHasTime"] === "false") writtenHasTime = false;
+      else writtenHasTime = null
       return new EntryDbRecord(
         entry["uuidv7"],
         new Date(entry["date"]).toISOString(),
         this.writtenDateToIsoString(entry["written"]),
-        entry["writtenHasTime"],
+        writtenHasTime,
         entry["entryIndex"],
         decryptedText,
         referencedImages,
