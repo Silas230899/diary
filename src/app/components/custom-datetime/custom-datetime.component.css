@@ -1,0 +1,247 @@
+:host {
+  display: inline-block;
+  color: var(--ion-text-color, #000);
+  font-family: var(--ion-font-family, inherit);
+}
+
+.datetime-panel {
+  box-sizing: border-box;
+  width: min(325px, 95vw);
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--ion-background-color, #fff);
+}
+
+.customModal {
+  --width: fit-content;
+  --min-width: min(325px, 95%);
+  --max-width: 400px;
+  --height: fit-content;
+  --border-radius: 6px;
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+}
+
+.calendar-header,
+.weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 42px);
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
+}
+
+.calendar-header {
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.month-carousel {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+  -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+  touch-action: pan-x;
+  user-select: none;
+}
+
+.month-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.month-item {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.month-item:not(:disabled) {
+  cursor: pointer;
+}
+
+.month-item.selected {
+  color: var(--ion-color-primary, #0054e9);
+}
+
+.month-item.centered {
+  font-weight: 700;
+}
+
+.month-item::before {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  font-weight: 700;
+  content: attr(data-month-label);
+}
+
+.weekdays {
+  margin-bottom: 4px;
+  color: var(--ion-color-step-600, #666);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.weekdays span {
+  min-width: 0;
+}
+
+.calendar-grid-viewport {
+  position: relative;
+  width: 294px;
+  height: 252px;
+  overflow: hidden;
+  contain: layout paint;
+}
+
+.calendar-grid-viewport.transitioning {
+  pointer-events: none;
+}
+
+.calendar-grid {
+  gap: 0;
+}
+
+.calendar-grid-track {
+  display: grid;
+  grid-template-columns: repeat(3, 294px);
+  width: 882px;
+  height: 252px;
+  transform: translate3d(-294px, 0, 0);
+  will-change: transform;
+}
+
+.calendar-grid-track.with-transition {
+  transition: transform 220ms ease-out;
+}
+
+.calendar-grid-track.show-left {
+  transform: translate3d(0, 0, 0);
+}
+
+.calendar-grid-track.show-center {
+  transform: translate3d(-294px, 0, 0);
+}
+
+.calendar-grid-track.show-right {
+  transform: translate3d(-588px, 0, 0);
+}
+
+.calendar-grid-page {
+  position: relative;
+}
+
+.calendar-day {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.calendar-day span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 42px;
+  height: 42px;
+  border-radius: 999px;
+}
+
+.calendar-day:not(:disabled) {
+  cursor: pointer;
+}
+
+.calendar-day:not(:disabled):hover span {
+  background: var(--ion-color-step-100, #f2f2f2);
+}
+
+.calendar-day.adjacent {
+  color: var(--ion-color-step-500, #737373);
+}
+
+.calendar-day.hidden-adjacent {
+  color: transparent;
+  pointer-events: none;
+}
+
+.calendar-day.today span {
+  border: 1px solid var(--ion-color-primary, #0054e9);
+}
+
+.calendar-day.selected span {
+  border-color: var(--ion-color-primary, #0054e9);
+  background: var(--ion-color-primary, #0054e9);
+  color: var(--ion-color-primary-contrast, #fff);
+}
+
+.calendar-day:disabled {
+  opacity: 0.45;
+}
+
+.calendar-grid-page[aria-hidden="true"] .calendar-day:disabled {
+  opacity: 1;
+}
+
+.default-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 48px;
+  margin-top: 8px;
+}
+
+.button-spacer {
+  flex: 1;
+}
+
+.datetime-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--ion-color-step-150, #ededed);
+  color: var(--ion-text-color, #000);
+  font: inherit;
+  line-height: 1.2;
+}
+
+.datetime-button:not(:disabled) {
+  cursor: pointer;
+}
+
+.datetime-button-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.placeholder,
+.datetime-button-disabled {
+  color: var(--ion-color-step-600, #666);
+}
