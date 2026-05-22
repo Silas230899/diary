@@ -22,7 +22,6 @@
 }
 
 .calendar-header,
-.weekdays,
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 42px);
@@ -37,22 +36,10 @@
   margin-bottom: 8px;
 }
 
-.weekdays {
-  margin-bottom: 4px;
-  color: var(--ion-color-step-600, #666);
-  font-size: 12px;
-  font-weight: 600;
-  text-align: center;
-}
-
-.weekdays span {
-  min-width: 0;
-}
-
 .calendar-grid-viewport {
   position: relative;
   width: 294px;
-  height: 252px;
+  height: 210px;
   overflow: hidden;
   contain: layout paint;
 }
@@ -69,7 +56,7 @@
   display: grid;
   grid-template-columns: repeat(3, 294px);
   width: 882px;
-  height: 252px;
+  height: 210px;
   transform: translate3d(-294px, 0, 0);
   will-change: transform;
 }
@@ -125,11 +112,7 @@
   background: var(--ion-color-step-100, #f2f2f2);
 }
 
-.calendar-day.adjacent {
-  color: var(--ion-color-step-500, #737373);
-}
-
-.calendar-day.hidden-adjacent {
+.calendar-day.placeholder {
   color: transparent;
   pointer-events: none;
 }

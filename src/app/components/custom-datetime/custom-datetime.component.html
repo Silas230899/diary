@@ -37,10 +37,6 @@
     ></app-custom-datetime-month-carousel>
   </div>
 
-  <div class="weekdays" aria-hidden="true">
-    <span *ngFor="let weekday of weekdayLabels">{{ weekday }}</span>
-  </div>
-
   <div class="calendar-grid-viewport" [class.transitioning]="calendarTransitionActive">
     <div
       class="calendar-grid-track"
@@ -55,13 +51,12 @@
           class="calendar-day"
           type="button"
           tabindex="-1"
-          [class.adjacent]="day.adjacent"
-          [class.hidden-adjacent]="!shouldShowCalendarDay(day)"
-          [class.today]="day.today && shouldShowCalendarDay(day)"
-          [class.selected]="day.selected && shouldShowCalendarDay(day)"
+          [class.placeholder]="day.placeholder"
+          [class.today]="day.today"
+          [class.selected]="day.selected"
           disabled
         >
-          <span *ngIf="shouldShowCalendarDay(day)">{{ day.label }}</span>
+          <span *ngIf="!day.placeholder">{{ day.label }}</span>
         </button>
       </div>
 
@@ -71,17 +66,16 @@
           class="calendar-day"
           type="button"
           role="gridcell"
-          [class.adjacent]="day.adjacent"
-          [class.hidden-adjacent]="!shouldShowCalendarDay(day)"
-          [class.today]="day.today && shouldShowCalendarDay(day)"
-          [class.selected]="day.selected && shouldShowCalendarDay(day)"
+          [class.placeholder]="day.placeholder"
+          [class.today]="day.today"
+          [class.selected]="day.selected"
           [disabled]="isCalendarDayDisabled(day)"
-          [attr.aria-hidden]="!shouldShowCalendarDay(day) ? true : null"
-          [attr.aria-selected]="shouldShowCalendarDay(day) ? day.selected : null"
-          [attr.aria-label]="shouldShowCalendarDay(day) ? day.label + ' ' + monthLabel : null"
+          [attr.aria-hidden]="day.placeholder ? true : null"
+          [attr.aria-selected]="!day.placeholder ? day.selected : null"
+          [attr.aria-label]="!day.placeholder ? day.label + ' ' + monthLabel : null"
           (click)="selectDay(day)"
         >
-          <span *ngIf="shouldShowCalendarDay(day)">{{ day.label }}</span>
+          <span *ngIf="!day.placeholder">{{ day.label }}</span>
         </button>
       </div>
 
@@ -91,13 +85,12 @@
           class="calendar-day"
           type="button"
           tabindex="-1"
-          [class.adjacent]="day.adjacent"
-          [class.hidden-adjacent]="!shouldShowCalendarDay(day)"
-          [class.today]="day.today && shouldShowCalendarDay(day)"
-          [class.selected]="day.selected && shouldShowCalendarDay(day)"
+          [class.placeholder]="day.placeholder"
+          [class.today]="day.today"
+          [class.selected]="day.selected"
           disabled
         >
-          <span *ngIf="shouldShowCalendarDay(day)">{{ day.label }}</span>
+          <span *ngIf="!day.placeholder">{{ day.label }}</span>
         </button>
       </div>
     </div>

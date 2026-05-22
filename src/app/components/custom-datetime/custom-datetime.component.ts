@@ -25,8 +25,8 @@ export interface CustomDatetimeValue {
 export type CustomDatetimeModel = CustomDatetimeValue | string | null | undefined;
 
 interface CalendarDay extends CustomDatetimeValue {
-  label: number;
-  adjacent: boolean;
+  label: number | null;
+  placeholder: boolean;
   today: boolean;
   selected: boolean;
 }
@@ -58,7 +58,6 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
 
   @Input() value: CustomDatetimeModel = null;
   @Input() locale = DEFAULT_FORMATTER_LOCALE;
-  @Input() firstDayOfWeek = 0;
   @Input() disabled = false;
   @Input() readonly = false;
   @Input() button = false;
@@ -68,7 +67,6 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
   @Input() clearText = 'Clear';
   @Input() showDefaultButtons = false;
   @Input() showClearButton = false;
-  @Input() showAdjacentDays = true;
   @Input() color = 'primary';
   @Input() valueFormat: 'object' | 'string' = 'object';
 
@@ -88,7 +86,6 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
   calendarTrackPosition: 'left' | 'center' | 'right' = 'center';
   calendarTrackTransition = false;
   visuallySelectedMonth: number | null = null;
-  weekdayLabels: string[] = [];
   isPopoverOpen = false;
 
   private onTouched: () => void = () => undefined;
@@ -99,7 +96,6 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     const today = this.getToday();
     this.workingDate = today;
     this.visibleMonth = today.month;
-    this.rebuildWeekdayLabels();
     this.rebuildCalendar();
   }
 
@@ -108,12 +104,8 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['value'] || changes['locale'] || changes['firstDayOfWeek']) {
+    if (changes['value'] || changes['locale']) {
       this.syncFromValue(this.value);
-    }
-
-    if (changes['locale'] || changes['firstDayOfWeek']) {
-      this.rebuildWeekdayLabels();
     }
 
     if (changes['locale']) {
@@ -171,7 +163,7 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
   }
 
   selectDay(day: CalendarDay): void {
-    if (this.disabled || this.readonly || !this.shouldShowCalendarDay(day)) {
+    if (this.disabled || this.readonly || day.placeholder) {
       return;
     }
 
@@ -225,16 +217,12 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     return this.selectedDate ? this.formatDate(this.selectedDate) : this.placeholder;
   }
 
-  trackByDate(_: number, day: CalendarDay): string {
-    return `${day.month}-${day.day}-${day.adjacent}`;
-  }
-
-  shouldShowCalendarDay(day: CalendarDay): boolean {
-    return this.showAdjacentDays || !day.adjacent;
+  trackByDate(index: number, day: CalendarDay): string {
+    return day.placeholder ? `blank-${index}` : `${day.month}-${day.day}`;
   }
 
   isCalendarDayDisabled(day: CalendarDay): boolean {
-    return this.disabled || !this.shouldShowCalendarDay(day);
+    return this.disabled || day.placeholder;
   }
 
   onCarouselMonthChange(month: number): void {
@@ -247,7 +235,6 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     this.workingDate = parsed ?? this.getToday();
     this.visibleMonth = this.workingDate.month;
     this.visuallySelectedMonth = parsed?.month ?? null;
-    this.rebuildWeekdayLabels();
     this.rebuildCalendar();
     this.centerVisibleMonth();
   }
@@ -321,24 +308,14 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
 
   private createCalendarDays(month: number): CalendarDay[] {
     const days: CalendarDay[] = [];
-    const firstWeekday = this.weekdayFor(month, 1);
-    const leadingDays = (firstWeekday - this.firstDayOfWeek + 7) % 7;
-    const previousMonth = this.previousCycleMonth(month);
-    const nextMonth = this.nextCycleMonth(month);
-    const previousMonthLength = MONTH_LENGTHS[previousMonth - 1];
     const monthLength = MONTH_LENGTHS[month - 1];
 
-    for (let i = leadingDays - 1; i >= 0; i--) {
-      days.push(this.createCalendarDay(previousMonth, previousMonthLength - i, true));
-    }
-
     for (let day = 1; day <= monthLength; day++) {
-      days.push(this.createCalendarDay(month, day, false));
+      days.push(this.createCalendarDay(month, day));
     }
 
-    while (days.length % 7 !== 0 || days.length < 42) {
-      const day = days.length - leadingDays - monthLength + 1;
-      days.push(this.createCalendarDay(nextMonth, day, true));
+    while (days.length < 35) {
+      days.push(this.createCalendarPlaceholder(month));
     }
 
     return days;
@@ -414,23 +391,26 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     return forwardDistance <= backwardDistance ? 'forward' : 'backward';
   }
 
-  private rebuildWeekdayLabels(): void {
-    this.weekdayLabels = Array.from({ length: 7 }, (_, index) => {
-      const weekday = (this.firstDayOfWeek + index) % 7;
-      const date = new Date(Date.UTC(2024, 0, 7 + weekday));
-      return new Intl.DateTimeFormat(this.normalizedLocale, { weekday: 'narrow' }).format(date).toLocaleUpperCase(this.normalizedLocale);
-    });
-  }
-
-  private createCalendarDay(month: number, day: number, adjacent: boolean): CalendarDay {
+  private createCalendarDay(month: number, day: number): CalendarDay {
     const value = { month, day };
 
     return {
       ...value,
       label: day,
-      adjacent,
+      placeholder: false,
       today: this.isSameDate(value, this.getToday()),
       selected: this.isSameDate(value, this.workingDate),
+    };
+  }
+
+  private createCalendarPlaceholder(month: number): CalendarDay {
+    return {
+      month,
+      day: 0,
+      label: null,
+      placeholder: true,
+      today: false,
+      selected: false,
     };
   }
 
@@ -452,10 +432,6 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
   private getToday(): CustomDatetimeValue {
     const today = new Date();
     return { month: today.getMonth() + 1, day: today.getDate() };
-  }
-
-  private weekdayFor(month: number, day: number): number {
-    return this.dateFor(month, day).getUTCDay();
   }
 
   private dateFor(month: number, day: number): Date {
