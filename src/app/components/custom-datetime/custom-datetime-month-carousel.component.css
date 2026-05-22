@@ -1,0 +1,57 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.month-carousel {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+  -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+  touch-action: pan-x;
+  user-select: none;
+}
+
+.month-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.month-item {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.month-item:not(:disabled) {
+  cursor: pointer;
+}
+
+.month-item.selected {
+  color: var(--ion-color-primary, #0054e9);
+}
+
+.month-item.centered {
+  font-weight: 700;
+}
+
+.month-item::before {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  font-weight: 700;
+  content: attr(data-month-label);
+}

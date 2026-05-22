@@ -1,0 +1,24 @@
+<div
+  #monthCarousel
+  class="month-carousel"
+  (scroll)="onMonthCarouselScroll()"
+  (wheel)="onMonthCarouselWheel($event)"
+  (pointerdown)="onMonthCarouselPointerDown($event)"
+  (pointermove)="onMonthCarouselPointerMove($event)"
+  (pointerup)="onMonthCarouselPointerUp($event)"
+  (pointercancel)="onMonthCarouselPointerUp($event)"
+>
+  <button
+    *ngFor="let carouselMonth of monthCarouselItems; let index = index"
+    class="month-item"
+    type="button"
+    [attr.data-month-index]="index"
+    [attr.data-month-label]="carouselMonth.label"
+    [class.selected]="carouselMonth.month === selectedMonth"
+    [class.centered]="index === centeredMonthIndex"
+    [disabled]="disabled"
+    (click)="selectMonthByIndex(index, $event)"
+  >
+    <span class="month-item-text">{{ carouselMonth.label }}</span>
+  </button>
+</div>

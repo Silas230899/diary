@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
-  ElementRef,
   EventEmitter,
   forwardRef,
   Input,
@@ -16,6 +15,7 @@ import {
   IonButton,
   IonModal,
 } from '@ionic/angular/standalone';
+import { CustomDatetimeMonthCarouselComponent } from './custom-datetime-month-carousel.component';
 
 export interface CustomDatetimeValue {
   month: number;
@@ -31,12 +31,6 @@ interface CalendarDay extends CustomDatetimeValue {
   selected: boolean;
 }
 
-interface MonthCarouselItem {
-  key: string;
-  month: number;
-  label: string;
-}
-
 const MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const DEFAULT_FORMATTER_LOCALE = 'default';
 
@@ -47,6 +41,7 @@ const DEFAULT_FORMATTER_LOCALE = 'default';
   standalone: true,
   imports: [
     CommonModule,
+    CustomDatetimeMonthCarouselComponent,
     IonButton,
     IonModal,
   ],
@@ -59,7 +54,7 @@ const DEFAULT_FORMATTER_LOCALE = 'default';
   ],
 })
 export class CustomDatetimeComponent implements AfterViewInit, ControlValueAccessor, OnChanges {
-  @ViewChild('monthCarousel') monthCarousel?: ElementRef<HTMLElement>;
+  @ViewChild(CustomDatetimeMonthCarouselComponent) monthCarousel?: CustomDatetimeMonthCarouselComponent;
 
   @Input() value: CustomDatetimeModel = null;
   @Input() locale = DEFAULT_FORMATTER_LOCALE;
@@ -92,31 +87,18 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
   calendarTransitionDirection: 'forward' | 'backward' = 'forward';
   calendarTrackPosition: 'left' | 'center' | 'right' = 'center';
   calendarTrackTransition = false;
-  monthCarouselItems: MonthCarouselItem[] = [];
-  centeredMonthIndex = -1;
   visuallySelectedMonth: number | null = null;
   weekdayLabels: string[] = [];
   isPopoverOpen = false;
 
   private onTouched: () => void = () => undefined;
   private onChange: (value: CustomDatetimeValue | string | null) => void = () => undefined;
-  private readonly monthCarouselCycleCount = 7;
-  private readonly monthCarouselMiddleCycle = Math.floor(this.monthCarouselCycleCount / 2);
-  private monthCarouselScrollEndTimeout?: ReturnType<typeof setTimeout>;
-  private monthCarouselDragStartX = 0;
-  private monthCarouselDragStartScrollLeft = 0;
-  private monthCarouselDragged = false;
-  private isDraggingMonthCarousel = false;
-  private pointerDownMonthIndex = -1;
-  private suppressNextMonthClick = false;
-  private suppressVisibleMonthUpdateOnScroll = false;
   private calendarTransitionTimeout?: ReturnType<typeof setTimeout>;
 
   constructor() {
     const today = this.getToday();
     this.workingDate = today;
     this.visibleMonth = today.month;
-    this.rebuildMonthCarousel();
     this.rebuildWeekdayLabels();
     this.rebuildCalendar();
   }
@@ -135,7 +117,6 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     }
 
     if (changes['locale']) {
-      this.rebuildMonthCarousel();
       this.centerVisibleMonth();
     }
   }
@@ -181,134 +162,12 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
 
   previousMonth(): void {
     this.setVisibleMonth(this.visibleMonth === 1 ? 12 : this.visibleMonth - 1, true);
+    this.centerVisibleMonth(true);
   }
 
   nextMonth(): void {
     this.setVisibleMonth(this.visibleMonth === 12 ? 1 : this.visibleMonth + 1, true);
-  }
-
-  selectMonthByIndex(index: number, event?: Event): void {
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    if (this.suppressNextMonthClick) {
-      this.suppressNextMonthClick = false;
-      return;
-    }
-
-    this.selectMonthIndex(index, true);
-  }
-
-  onMonthCarouselScroll(): void {
-    const carousel = this.monthCarousel?.nativeElement;
-
-    if (!carousel) {
-      return;
-    }
-
-    const beforeRecenterMonth = this.getClosestMonthIndexToCenter(carousel);
-
-    this.recenterMonthCarouselIfNeeded(carousel);
-
-    const centeredIndex = this.getClosestMonthIndexToCenter(carousel);
-
-    if (beforeRecenterMonth !== centeredIndex) {
-      this.centerVisibleMonth(false, false);
-    }
-
-    if (centeredIndex >= 0) {
-      this.centeredMonthIndex = centeredIndex;
-    }
-
-    if (!this.suppressVisibleMonthUpdateOnScroll) {
-      this.updateVisibleMonthFromCenter(false);
-    }
-
-    window.clearTimeout(this.monthCarouselScrollEndTimeout);
-    this.monthCarouselScrollEndTimeout = window.setTimeout(() => this.snapMonthCarouselToCenter(), 160);
-  }
-
-  private recenterMonthCarouselIfNeeded(carousel: HTMLElement): void {
-    const cycleWidth = carousel.scrollWidth / this.monthCarouselCycleCount;
-    const minScrollLeft = cycleWidth * (this.monthCarouselMiddleCycle - 1);
-    const maxScrollLeft = cycleWidth * (this.monthCarouselMiddleCycle + 1);
-
-    if (carousel.scrollLeft < minScrollLeft) {
-      carousel.scrollLeft += cycleWidth;
-      return;
-    }
-
-    if (carousel.scrollLeft > maxScrollLeft) {
-      carousel.scrollLeft -= cycleWidth;
-    }
-  }
-
-  onMonthCarouselWheel(event: WheelEvent): void {
-    const carousel = this.monthCarousel?.nativeElement;
-
-    if (!carousel) {
-      return;
-    }
-
-    event.preventDefault();
-    carousel.scrollLeft += event.deltaX + event.deltaY;
-  }
-
-  onMonthCarouselPointerDown(event: PointerEvent): void {
-    const carousel = this.monthCarousel?.nativeElement;
-
-    if (!carousel || this.disabled) {
-      return;
-    }
-
-    this.isDraggingMonthCarousel = true;
-    this.monthCarouselDragged = false;
-    this.monthCarouselDragStartX = event.clientX;
-    this.monthCarouselDragStartScrollLeft = carousel.scrollLeft;
-    this.pointerDownMonthIndex = this.getMonthIndexFromEvent(event);
-    carousel.setPointerCapture(event.pointerId);
-  }
-
-  onMonthCarouselPointerMove(event: PointerEvent): void {
-    const carousel = this.monthCarousel?.nativeElement;
-
-    if (!carousel || !this.isDraggingMonthCarousel) {
-      return;
-    }
-
-    const delta = event.clientX - this.monthCarouselDragStartX;
-
-    if (Math.abs(delta) > 4) {
-      this.monthCarouselDragged = true;
-    }
-
-    carousel.scrollLeft = this.monthCarouselDragStartScrollLeft - delta;
-  }
-
-  onMonthCarouselPointerUp(event: PointerEvent): void {
-    const carousel = this.monthCarousel?.nativeElement;
-
-    if (!carousel || !this.isDraggingMonthCarousel) {
-      return;
-    }
-
-    this.isDraggingMonthCarousel = false;
-
-    if (carousel.hasPointerCapture(event.pointerId)) {
-      carousel.releasePointerCapture(event.pointerId);
-    }
-
-    if (!this.monthCarouselDragged && this.pointerDownMonthIndex >= 0) {
-      this.selectMonthIndex(this.pointerDownMonthIndex, true);
-      return;
-    }
-
-    if (this.monthCarouselDragged) {
-      this.suppressNextMonthClick = true;
-    }
-
-    window.clearTimeout(this.monthCarouselScrollEndTimeout);
-    this.monthCarouselScrollEndTimeout = window.setTimeout(() => this.snapMonthCarouselToCenter(), 80);
+    this.centerVisibleMonth(true);
   }
 
   selectDay(day: CalendarDay): void {
@@ -378,6 +237,10 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     return this.disabled || !this.shouldShowCalendarDay(day);
   }
 
+  onCarouselMonthChange(month: number): void {
+    this.setVisibleMonth(month, true);
+  }
+
   private syncFromValue(value: CustomDatetimeModel): void {
     const parsed = this.parseValue(value);
     this.selectedDate = parsed;
@@ -386,7 +249,7 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     this.visuallySelectedMonth = parsed?.month ?? null;
     this.rebuildWeekdayLabels();
     this.rebuildCalendar();
-    this.centerVisibleMonth(false, parsed !== null);
+    this.centerVisibleMonth();
   }
 
   private commit(closeOverlay: boolean): void {
@@ -551,18 +414,6 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     return forwardDistance <= backwardDistance ? 'forward' : 'backward';
   }
 
-  private rebuildMonthCarousel(): void {
-    this.monthCarouselItems = Array.from({ length: this.monthCarouselCycleCount * 12 }, (_, index) => {
-      const month = (index % 12) + 1;
-
-      return {
-        key: `${index}-${month}`,
-        month,
-        label: new Intl.DateTimeFormat(this.normalizedLocale, { month: 'long' }).format(this.dateFor(month, 1)),
-      };
-    });
-  }
-
   private rebuildWeekdayLabels(): void {
     this.weekdayLabels = Array.from({ length: 7 }, (_, index) => {
       const weekday = (this.firstDayOfWeek + index) % 7;
@@ -611,157 +462,17 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     return new Date(Date.UTC(2024, month - 1, day));
   }
 
-  private centerVisibleMonth(smooth = false, updateVisibleMonthOnScroll = false): void {
-    window.setTimeout(() => {
-      const carousel = this.monthCarousel?.nativeElement;
-
-      if (!carousel) {
-        return;
-      }
-
-      const targetIndex = this.monthCarouselMiddleCycle * 12 + this.visibleMonth - 1;
-      const target = carousel.children.item(targetIndex) as HTMLElement | null;
-
-      if (!target) {
-        return;
-      }
-
-      this.centeredMonthIndex = targetIndex;
-      this.scrollMonthToCenter(target, smooth, updateVisibleMonthOnScroll);
-    });
+  private centerVisibleMonth(smooth = false): void {
+    this.monthCarousel?.centerMonth(this.visibleMonth, smooth);
   }
 
   private centerVisibleMonthAfterOpen(): void {
-    window.setTimeout(() => this.centerVisibleMonth(false, false), 0);
-    window.setTimeout(() => this.centerVisibleMonth(false, false), 50);
-  }
-
-  private snapMonthCarouselToCenter(): void {
-    const carousel = this.monthCarousel?.nativeElement;
-
-    if (!carousel || this.isDraggingMonthCarousel) {
-      return;
-    }
-
-    const closestIndex = this.getClosestMonthIndexToCenter(carousel);
-
-    if (closestIndex < 0) {
-      return;
-    }
-
-    this.showMonthIndex(closestIndex, true);
-  }
-
-  private updateVisibleMonthFromCenter(center: boolean): void {
-    const carousel = this.monthCarousel?.nativeElement;
-
-    if (!carousel) {
-      return;
-    }
-
-    const closestIndex = this.getClosestMonthIndexToCenter(carousel);
-    const item = closestIndex >= 0 ? this.monthCarouselItems[closestIndex] : undefined;
-
-    if (!item) {
-      return;
-    }
-
-    this.centeredMonthIndex = closestIndex;
-
-    if (item.month === this.visibleMonth) {
-      return;
-    }
-
-    this.showMonthIndex(closestIndex, center);
-  }
-
-  private getClosestMonthIndexToCenter(carousel: HTMLElement): number {
-    const center = carousel.scrollLeft + carousel.clientWidth / 2;
-    let closestIndex = -1;
-    let closestDistance = Number.POSITIVE_INFINITY;
-
-    Array.from(carousel.children).forEach((child, index) => {
-      const item = child as HTMLElement;
-      const itemCenter = item.offsetLeft + item.offsetWidth / 2;
-      const distance = Math.abs(itemCenter - center);
-
-      if (distance < closestDistance) {
-        closestDistance = distance;
-        closestIndex = index;
-      }
-    });
-
-    return closestIndex;
-  }
-
-  private selectMonthIndex(index: number, center: boolean): void {
-    this.showMonthIndex(index, center);
-  }
-
-  private showMonthIndex(index: number, center: boolean): void {
-    const item = this.monthCarouselItems[index];
-
-    if (!item) {
-      return;
-    }
-
-    this.centeredMonthIndex = index;
-    this.setVisibleMonth(item.month, true);
-
-    if (center) {
-      this.centerMonthIndex(index, true);
-    }
+    window.setTimeout(() => this.centerVisibleMonth(), 0);
+    window.setTimeout(() => this.centerVisibleMonth(), 50);
   }
 
   private showMonth(month: number, center: boolean): void {
-    this.showMonthIndex(this.indexForMiddleCycleMonth(month), center);
-  }
-
-  private indexForMiddleCycleMonth(month: number): number {
-    return this.monthCarouselMiddleCycle * 12 + month - 1;
-  }
-
-  private centerMonthIndex(index: number, smooth = false): void {
-    window.setTimeout(() => {
-      const carousel = this.monthCarousel?.nativeElement;
-      const target = carousel?.children.item(index) as HTMLElement | null;
-
-      if (!carousel || !target) {
-        return;
-      }
-
-      this.centeredMonthIndex = index;
-      this.scrollMonthToCenter(target, smooth, false);
-    });
-  }
-
-  private scrollMonthToCenter(target: HTMLElement, smooth: boolean, updateVisibleMonthOnScroll: boolean): void {
-    const carousel = this.monthCarousel?.nativeElement;
-
-    if (!carousel) {
-      return;
-    }
-
-    const carouselRect = carousel.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    const centerDelta = targetRect.left + targetRect.width / 2 - (carouselRect.left + carouselRect.width / 2);
-
-    this.suppressVisibleMonthUpdateOnScroll = !updateVisibleMonthOnScroll;
-    window.setTimeout(() => {
-      this.suppressVisibleMonthUpdateOnScroll = false;
-    }, smooth ? 350 : 50);
-
-    carousel.scrollTo({
-      left: carousel.scrollLeft + centerDelta,
-      behavior: smooth ? 'smooth' : 'auto',
-    });
-  }
-
-  private getMonthIndexFromEvent(event: Event): number {
-    const target = (event.target as HTMLElement).closest<HTMLElement>('.month-item');
-    const index = Number(target?.dataset['monthIndex']);
-
-    return Number.isInteger(index) ? index : -1;
+    this.monthCarousel?.centerMonth(month, center);
   }
 
   private get normalizedLocale(): string | undefined {

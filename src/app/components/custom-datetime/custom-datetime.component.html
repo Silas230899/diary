@@ -28,30 +28,13 @@
 
 <ng-template #calendar>
   <div class="calendar-header">
-    <div
-      #monthCarousel
-      class="month-carousel"
-      (scroll)="onMonthCarouselScroll()"
-      (wheel)="onMonthCarouselWheel($event)"
-      (pointerdown)="onMonthCarouselPointerDown($event)"
-      (pointermove)="onMonthCarouselPointerMove($event)"
-      (pointerup)="onMonthCarouselPointerUp($event)"
-      (pointercancel)="onMonthCarouselPointerUp($event)"
-    >
-      <button
-        *ngFor="let month of monthCarouselItems; let index = index"
-        class="month-item"
-        type="button"
-        [attr.data-month-index]="index"
-        [attr.data-month-label]="month.label"
-        [class.selected]="month.month === visuallySelectedMonth"
-        [class.centered]="index === centeredMonthIndex"
-        [disabled]="disabled"
-        (click)="selectMonthByIndex(index, $event)"
-      >
-        <span class="month-item-text">{{ month.label }}</span>
-      </button>
-    </div>
+    <app-custom-datetime-month-carousel
+      [month]="visibleMonth"
+      [selectedMonth]="visuallySelectedMonth"
+      [locale]="locale"
+      [disabled]="disabled"
+      (monthChange)="onCarouselMonthChange($event)"
+    ></app-custom-datetime-month-carousel>
   </div>
 
   <div class="weekdays" aria-hidden="true">
