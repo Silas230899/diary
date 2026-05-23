@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -24,9 +23,6 @@ const DEFAULT_FORMATTER_LOCALE = 'default';
   templateUrl: './custom-datetime-month-carousel.component.html',
   styleUrls: ['./custom-datetime-month-carousel.component.css'],
   standalone: true,
-  imports: [
-    CommonModule,
-  ],
 })
 export class CustomDatetimeMonthCarouselComponent implements AfterViewInit, OnChanges {
   @ViewChild('monthCarousel') monthCarousel?: ElementRef<HTMLElement>;

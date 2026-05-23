@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -40,10 +40,10 @@ const DEFAULT_FORMATTER_LOCALE = 'default';
   styleUrls: ['./custom-datetime.component.css'],
   standalone: true,
   imports: [
-    CommonModule,
     CustomDatetimeMonthCarouselComponent,
     IonButton,
     IonModal,
+    NgTemplateOutlet,
   ],
   providers: [
     {
@@ -272,13 +272,19 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     }
 
     if (typeof value === 'string') {
-      const match = value.match(/^(\d{1,2})-(\d{1,2})$/);
+      const monthDayMatch = value.match(/^(\d{1,2})-(\d{1,2})$/);
 
-      if (!match) {
-        return null;
+      if (monthDayMatch) {
+        return this.normalizeDate(Number(monthDayMatch[1]), Number(monthDayMatch[2]));
       }
 
-      return this.normalizeDate(Number(match[1]), Number(match[2]));
+      const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})(?:T.*)?$/);
+
+      if (isoMatch) {
+        return this.normalizeDate(Number(isoMatch[2]), Number(isoMatch[3]));
+      }
+
+      return null;
     }
 
     return this.normalizeDate(value.month, value.day);

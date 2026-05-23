@@ -1,30 +1,30 @@
-<button
-  *ngIf="button"
-  class="datetime-button"
-  type="button"
-  [class.datetime-button-disabled]="disabled"
-  [disabled]="disabled"
-  (click)="open($event)"
->
-  <span class="datetime-button-text" [class.placeholder]="!selectedDate">{{ buttonText }}</span>
-</button>
+@if (button) {
+  <button
+    class="datetime-button"
+    type="button"
+    [class.datetime-button-disabled]="disabled"
+    [disabled]="disabled"
+    (click)="open($event)"
+  >
+    <span class="datetime-button-text" [class.placeholder]="!selectedDate">{{ buttonText }}</span>
+  </button>
 
-<ion-modal
-  *ngIf="button"
-  class="customModal"
-  [isOpen]="isPopoverOpen"
-  (didDismiss)="close()"
->
-  <ng-template>
-    <div class="datetime-panel">
-      <ng-container *ngTemplateOutlet="calendar"></ng-container>
-    </div>
-  </ng-template>
-</ion-modal>
-
-<div *ngIf="!button" class="datetime-panel">
-  <ng-container *ngTemplateOutlet="calendar"></ng-container>
-</div>
+  <ion-modal
+    class="customModal"
+    [isOpen]="isPopoverOpen"
+    (didDismiss)="close()"
+  >
+    <ng-template>
+      <div class="datetime-panel">
+        <ng-container [ngTemplateOutlet]="calendar"></ng-container>
+      </div>
+    </ng-template>
+  </ion-modal>
+} @else {
+  <div class="datetime-panel">
+    <ng-container [ngTemplateOutlet]="calendar"></ng-container>
+  </div>
+}
 
 <ng-template #calendar>
   <div class="calendar-header">
@@ -46,66 +46,79 @@
       [class.show-right]="calendarTrackPosition === 'right'"
     >
       <div class="calendar-grid calendar-grid-page" aria-hidden="true">
-        <button
-          *ngFor="let day of calendarPreviousDays; trackBy: trackByDate"
-          class="calendar-day"
-          type="button"
-          tabindex="-1"
-          [class.placeholder]="day.placeholder"
-          [class.today]="day.today"
-          [class.selected]="day.selected"
-          disabled
-        >
-          <span *ngIf="!day.placeholder">{{ day.label }}</span>
-        </button>
+        @for (day of calendarPreviousDays; track trackByDate($index, day)) {
+          <button
+            class="calendar-day"
+            type="button"
+            tabindex="-1"
+            [class.placeholder]="day.placeholder"
+            [class.today]="day.today"
+            [class.selected]="day.selected"
+            disabled
+          >
+            @if (!day.placeholder) {
+              <span>{{ day.label }}</span>
+            }
+          </button>
+        }
       </div>
 
       <div class="calendar-grid calendar-grid-page" role="grid">
-        <button
-          *ngFor="let day of calendarCurrentDays; trackBy: trackByDate"
-          class="calendar-day"
-          type="button"
-          role="gridcell"
-          [class.placeholder]="day.placeholder"
-          [class.today]="day.today"
-          [class.selected]="day.selected"
-          [disabled]="isCalendarDayDisabled(day)"
-          [attr.aria-hidden]="day.placeholder ? true : null"
-          [attr.aria-selected]="!day.placeholder ? day.selected : null"
-          [attr.aria-label]="!day.placeholder ? day.label + ' ' + monthLabel : null"
-          (click)="selectDay(day)"
-        >
-          <span *ngIf="!day.placeholder">{{ day.label }}</span>
-        </button>
+        @for (day of calendarCurrentDays; track trackByDate($index, day)) {
+          <button
+            class="calendar-day"
+            type="button"
+            role="gridcell"
+            [class.placeholder]="day.placeholder"
+            [class.today]="day.today"
+            [class.selected]="day.selected"
+            [disabled]="isCalendarDayDisabled(day)"
+            [attr.aria-hidden]="day.placeholder ? true : null"
+            [attr.aria-selected]="!day.placeholder ? day.selected : null"
+            [attr.aria-label]="!day.placeholder ? day.label + ' ' + monthLabel : null"
+            (click)="selectDay(day)"
+          >
+            @if (!day.placeholder) {
+              <span>{{ day.label }}</span>
+            }
+          </button>
+        }
       </div>
 
       <div class="calendar-grid calendar-grid-page" aria-hidden="true">
-        <button
-          *ngFor="let day of calendarNextDays; trackBy: trackByDate"
-          class="calendar-day"
-          type="button"
-          tabindex="-1"
-          [class.placeholder]="day.placeholder"
-          [class.today]="day.today"
-          [class.selected]="day.selected"
-          disabled
-        >
-          <span *ngIf="!day.placeholder">{{ day.label }}</span>
-        </button>
+        @for (day of calendarNextDays; track trackByDate($index, day)) {
+          <button
+            class="calendar-day"
+            type="button"
+            tabindex="-1"
+            [class.placeholder]="day.placeholder"
+            [class.today]="day.today"
+            [class.selected]="day.selected"
+            disabled
+          >
+            @if (!day.placeholder) {
+              <span>{{ day.label }}</span>
+            }
+          </button>
+        }
       </div>
     </div>
   </div>
 
-  <div *ngIf="showDefaultButtons" class="default-buttons">
-    <ion-button *ngIf="showClearButton" fill="clear" color="medium" [disabled]="disabled || readonly" (click)="clear(button)">
-      {{ clearText }}
-    </ion-button>
-    <span class="button-spacer"></span>
-    <ion-button fill="clear" color="medium" [disabled]="disabled" (click)="cancel(button)">
-      {{ cancelText }}
-    </ion-button>
-    <ion-button fill="clear" [color]="color" [disabled]="disabled || readonly" (click)="confirm(button)">
-      {{ doneText }}
-    </ion-button>
-  </div>
+  @if (showDefaultButtons) {
+    <div class="default-buttons">
+      @if (showClearButton) {
+        <ion-button fill="clear" color="medium" [disabled]="disabled || readonly" (click)="clear(button)">
+          {{ clearText }}
+        </ion-button>
+      }
+      <span class="button-spacer"></span>
+      <ion-button fill="clear" color="medium" [disabled]="disabled" (click)="cancel(button)">
+        {{ cancelText }}
+      </ion-button>
+      <ion-button fill="clear" [color]="color" [disabled]="disabled || readonly" (click)="confirm(button)">
+        {{ doneText }}
+      </ion-button>
+    </div>
+  }
 </ng-template>
