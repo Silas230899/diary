@@ -10,7 +10,6 @@ import {
 } from "@ionic/angular/standalone";
 import {addIcons} from "ionicons";
 import {
-  barChartOutline,
   homeOutline,
   todayOutline,
   searchOutline,
@@ -36,7 +35,7 @@ export class NavBarComponent  implements OnInit {
   @Input() host!: string
 
   constructor(private navController: NavController) {
-    addIcons({ flameOutline, todayOutline, barChartOutline, homeOutline, searchOutline })
+    addIcons({ flameOutline, todayOutline, homeOutline, searchOutline })
   }
 
   async navigate(dst: string) {

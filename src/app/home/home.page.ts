@@ -9,7 +9,7 @@ import {
   IonFab,
   IonFabButton,
   IonHeader,
-  IonIcon, IonModal, IonProgressBar, IonRefresher,
+  IonIcon, IonItem, IonLabel, IonList, IonModal, IonPopover, IonProgressBar, IonRefresher,
   IonRefresherContent,
   IonTitle,
   IonToolbar, ModalController, NavController, PopoverController, RefresherCustomEvent
@@ -24,7 +24,10 @@ import {
   trashOutline,
   cloudDoneOutline,
   cloudOfflineOutline,
-  cloudUploadOutline, informationCircleOutline,
+  cloudUploadOutline,
+  informationCircleOutline,
+  settingsOutline,
+  enterOutline
 } from 'ionicons/icons';
 import {addIcons} from "ionicons";
 import {FormsModule} from "@angular/forms";
@@ -53,7 +56,7 @@ type Day = EntryViewRecord[]
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, FormatWrittenDatePipe, CustomDatetimeComponent],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, FormatWrittenDatePipe, CustomDatetimeComponent, IonPopover, IonList, IonItem, IonLabel],
 })
 export class HomePage {
   
@@ -71,7 +74,7 @@ export class HomePage {
               protected sync: SynchronizationService,
               private toastController: ToastController,
               private router: Router) {
-    addIcons({ informationCircleOutline, cloudDoneOutline, cloudOfflineOutline, cloudUploadOutline, add, pencil, createOutline, trashOutline, chevronBackOutline, chevronForwardOutline, ellipsisVerticalOutline })
+    addIcons({ enterOutline, settingsOutline, informationCircleOutline, cloudDoneOutline, cloudOfflineOutline, cloudUploadOutline, add, pencil, createOutline, trashOutline, chevronBackOutline, chevronForwardOutline, ellipsisVerticalOutline })
     
     let currentDate = new Date();
     currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
@@ -373,4 +376,12 @@ export class HomePage {
   }
   
   protected readonly formatDatetime = formatWrittenDate;
+  
+  protected openSettings() {
+  
+  }
+  
+  protected async openOnboarding() {
+    await this.navController.navigateRoot(`/onboarding`)
+  }
 }

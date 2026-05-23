@@ -1,3 +1,7 @@
+ionButtons {
+    justify-content: center;
+}
+
 .toolbarButton {
     width: 33.3%;
 }

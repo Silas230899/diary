@@ -1,6 +1,11 @@
 <ion-header>
     <ion-toolbar color="primary">
         <ion-title>An diesem Tag</ion-title>
+        <ion-buttons slot="end">
+            <ion-button id="popover-opener">
+                <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
     </ion-toolbar>
     <ion-toolbar color="primary">
         <ion-buttons slot="start">
@@ -25,6 +30,27 @@
         }
     </ion-toolbar>
 </ion-header>
+
+<ion-popover trigger="popover-opener" [dismissOnSelect]="true">
+    <ng-template>
+        <ion-content>
+            <ion-list lines="none">
+                <ion-item button detail="false" (click)="openSettings()">
+                    <ion-icon slot="start" name="settings-outline"></ion-icon>
+                    <ion-label>
+                        Einstellungen
+                    </ion-label>
+                </ion-item>
+                <ion-item button detail="false" (click)="openOnboarding()">
+                    <ion-icon slot="start" name="enter-outline"></ion-icon>
+                    <ion-label>
+                        Onboarding
+                    </ion-label>
+                </ion-item>
+            </ion-list>
+        </ion-content>
+    </ng-template>
+</ion-popover>
 
 <ion-content>
 
