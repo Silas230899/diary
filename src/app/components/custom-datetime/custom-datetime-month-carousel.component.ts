@@ -39,7 +39,7 @@ export class CustomDatetimeMonthCarouselComponent implements AfterViewInit, OnCh
 
   private readonly monthCarouselCycleCount = 7;
   private readonly monthCarouselMiddleCycle = Math.floor(this.monthCarouselCycleCount / 2);
-  private monthCarouselScrollEndTimeout?: ReturnType<typeof setTimeout>;
+  private monthCarouselScrollEndTimeout?: number;
   private monthCarouselDragStartX = 0;
   private monthCarouselDragStartScrollLeft = 0;
   private monthCarouselDragged = false;

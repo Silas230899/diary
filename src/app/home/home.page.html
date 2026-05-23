@@ -10,24 +10,9 @@
             </ion-button>
         </ion-buttons>
 
-        <ion-datetime-button datetime="whichdate"></ion-datetime-button>
-
-        <ion-modal [keepContentsMounted]="true">
-            <ng-template>
-                <ion-datetime id="whichdate"
-                              presentation="date"
-                              [firstDayOfWeek]="1"
-                              [formatOptions]="{
-                                date: {
-                                  month: 'long',
-                                  day: '2-digit'
-                                }
-                              }"
-                              [(ngModel)]="date"
-                              (ionChange)="selectedDate($event)"
-                ></ion-datetime>
-            </ng-template>
-        </ion-modal>
+        <div style="display: flex; justify-content: center">
+            <app-custom-datetime [button]="true" [(ngModel)]="date" (ionChange)="selectedDate($event)"></app-custom-datetime>
+        </div>
 
         <ion-buttons slot="end" >
             <ion-button (click)="gotoTomorrow()">

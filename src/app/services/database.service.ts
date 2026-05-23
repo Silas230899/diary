@@ -7,6 +7,7 @@ import {EntryViewRecord} from "../models/entry-view-record";
 import {ImageDb} from "../models/image-db";
 import {EntryDbRecord} from "../models/entry-db-record";
 import {SyncStatus} from "../models/syncStatusTypes";
+import {CustomDatetimeValue} from "../components/custom-datetime/custom-datetime-value";
 
 @Injectable({
   providedIn: 'root'
@@ -146,8 +147,9 @@ export class DatabaseService {
   /**
    * does not return entries that are marked as pending_delete
    */
-  async getEntriesByDate(date: string) {
-    const res: any[] = await this.database.select("SELECT * FROM entry WHERE strftime('%m-%d', date) = strftime('%m-%d', $1) AND syncStatus != 'pending_delete'", [date])
+  async getEntriesByDate(date: CustomDatetimeValue) {
+    const dateAsString = date.month.toString().padStart(2, "0") + "-" + date.day.toString().padStart(2, "0")
+    const res: any[] = await this.database.select("SELECT * FROM entry WHERE strftime('%m-%d', date) = $1 AND syncStatus != 'pending_delete'", [dateAsString])
     return await this.transformEntryDatabaseResultsToEntryViewRecords(res)
   }
   

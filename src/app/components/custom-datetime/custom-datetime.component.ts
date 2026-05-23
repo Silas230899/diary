@@ -16,13 +16,7 @@ import {
   IonModal,
 } from '@ionic/angular/standalone';
 import { CustomDatetimeMonthCarouselComponent } from './custom-datetime-month-carousel.component';
-
-export interface CustomDatetimeValue {
-  month: number;
-  day: number;
-}
-
-export type CustomDatetimeModel = CustomDatetimeValue | string | null | undefined;
+import { CustomDatetimeValue } from './custom-datetime-value';
 
 interface CalendarDay extends CustomDatetimeValue {
   label: number | null;
@@ -56,7 +50,7 @@ const DEFAULT_FORMATTER_LOCALE = 'default';
 export class CustomDatetimeComponent implements AfterViewInit, ControlValueAccessor, OnChanges {
   @ViewChild(CustomDatetimeMonthCarouselComponent) monthCarousel?: CustomDatetimeMonthCarouselComponent;
 
-  @Input() value: CustomDatetimeModel = null;
+  @Input() value: CustomDatetimeValue | null = null;
   @Input() locale = DEFAULT_FORMATTER_LOCALE;
   @Input() disabled = false;
   @Input() readonly = false;
@@ -68,10 +62,9 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
   @Input() showDefaultButtons = false;
   @Input() showClearButton = false;
   @Input() color = 'primary';
-  @Input() valueFormat: 'object' | 'string' = 'object';
 
-  @Output() valueChange = new EventEmitter<CustomDatetimeValue | string | null>();
-  @Output() ionChange = new EventEmitter<{ value: CustomDatetimeValue | string | null }>();
+  @Output() valueChange = new EventEmitter<CustomDatetimeValue | null>();
+  @Output() ionChange = new EventEmitter<{ value: CustomDatetimeValue | null }>();
   @Output() ionCancel = new EventEmitter<void>();
 
   selectedDate: CustomDatetimeValue | null = null;
@@ -89,8 +82,8 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
   isPopoverOpen = false;
 
   private onTouched: () => void = () => undefined;
-  private onChange: (value: CustomDatetimeValue | string | null) => void = () => undefined;
-  private calendarTransitionTimeout?: ReturnType<typeof setTimeout>;
+  private onChange: (value: CustomDatetimeValue | null) => void = () => undefined;
+  private calendarTransitionTimeout?: number;
 
   constructor() {
     const today = this.getToday();
@@ -113,12 +106,12 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     }
   }
 
-  writeValue(value: CustomDatetimeModel): void {
+  writeValue(value: CustomDatetimeValue | null): void {
     this.value = value;
     this.syncFromValue(value);
   }
 
-  registerOnChange(fn: (value: CustomDatetimeValue | string | null) => void): void {
+  registerOnChange(fn: (value: CustomDatetimeValue | null) => void): void {
     this.onChange = fn;
   }
 
@@ -205,7 +198,7 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     }
   }
 
-  reset(value?: CustomDatetimeModel): void {
+  reset(value?: CustomDatetimeValue | null): void {
     this.syncFromValue(value ?? null);
   }
 
@@ -229,7 +222,7 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     this.setVisibleMonth(month, true);
   }
 
-  private syncFromValue(value: CustomDatetimeModel): void {
+  private syncFromValue(value: CustomDatetimeValue | null | undefined): void {
     const parsed = this.parseValue(value);
     this.selectedDate = parsed;
     this.workingDate = parsed ?? this.getToday();
@@ -249,7 +242,7 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
   }
 
   private emitValue(value: CustomDatetimeValue | null): void {
-    const emitted = value === null ? null : this.formatOutputValue(value);
+    const emitted = value === null ? null : { ...value };
     this.value = emitted;
     this.valueChange.emit(emitted);
     this.ionChange.emit({ value: emitted });
@@ -258,32 +251,12 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
     this.rebuildCalendar();
   }
 
-  private formatOutputValue(value: CustomDatetimeValue): CustomDatetimeValue | string {
-    if (this.valueFormat === 'string') {
-      return this.toMonthDayString(value);
-    }
-
-    return { ...value };
-  }
-
-  private parseValue(value: CustomDatetimeModel): CustomDatetimeValue | null {
-    if (value === null || value === undefined || value === '') {
+  private parseValue(value: CustomDatetimeValue | null | undefined): CustomDatetimeValue | null {
+    if (value === null || value === undefined) {
       return null;
     }
 
-    if (typeof value === 'string') {
-      const monthDayMatch = value.match(/^(\d{1,2})-(\d{1,2})$/);
-
-      if (monthDayMatch) {
-        return this.normalizeDate(Number(monthDayMatch[1]), Number(monthDayMatch[2]));
-      }
-
-      const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})(?:T.*)?$/);
-
-      if (isoMatch) {
-        return this.normalizeDate(Number(isoMatch[2]), Number(isoMatch[3]));
-      }
-
+    if (typeof value !== 'object') {
       return null;
     }
 
@@ -429,10 +402,6 @@ export class CustomDatetimeComponent implements AfterViewInit, ControlValueAcces
       month: 'long',
       day: 'numeric',
     }).format(this.dateFor(value.month, value.day));
-  }
-
-  private toMonthDayString(value: CustomDatetimeValue): string {
-    return `${value.month.toString().padStart(2, '0')}-${value.day.toString().padStart(2, '0')}`;
   }
 
   private getToday(): CustomDatetimeValue {

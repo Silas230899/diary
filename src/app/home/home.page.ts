@@ -43,6 +43,8 @@ import {Router} from "@angular/router";
 import {ImageDb} from "../models/image-db";
 import {formatWrittenDate} from "../utils/dateStuff";
 import {FormatWrittenDatePipe} from "../pipes/format-written-date-pipe";
+import {CustomDatetimeComponent} from "../components/custom-datetime/custom-datetime.component";
+import {CustomDatetimeValue} from "../components/custom-datetime/custom-datetime-value";
 
 type Day = EntryViewRecord[]
 
@@ -51,12 +53,12 @@ type Day = EntryViewRecord[]
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, FormatWrittenDatePipe],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, FormatWrittenDatePipe, CustomDatetimeComponent],
 })
 export class HomePage {
   
   @ViewChild(IonContent) content!: IonContent;
-  date: string
+  date: CustomDatetimeValue
   entries: { year: number, day: Day }[] = []
   entriesLoading = true
   hasEntriesForThisYear = false
@@ -73,9 +75,9 @@ export class HomePage {
     
     let currentDate = new Date();
     currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
-    this.date = currentDate.toISOString()
+    this.date = { month: currentDate.getUTCMonth() + 1, day: currentDate.getUTCDate() }
     
-    this.populateEntries(this.date)
+    this.populateEntries()
     
     /**
      * normally it takes < 150ms for the initialDownloadSync promise to fulfill,
@@ -103,16 +105,16 @@ export class HomePage {
     this.loadingModalOpen = true
     
     this.sync.downloadingProcess.finally(async () => {
-      await this.populateEntries(this.date)
+      await this.populateEntries()
       this.loadingModalOpen = false
     })
   }
   
-  async populateEntries(date: string) {
+  async populateEntries() {
     this.entriesLoading = true
     this.hasEntriesForThisYear = false
     const t = Date.now();
-    let entries: EntryViewRecord[] = await this.dbService.getEntriesByDate(date)
+    let entries: EntryViewRecord[] = await this.dbService.getEntriesByDate(this.date)
     console.log(Date.now()-t)
     
     const thisYear = new Date().getUTCFullYear()
@@ -171,8 +173,7 @@ export class HomePage {
   }
   
   formatDate2(year: number) {
-    const dateObject = new Date(this.date)
-    dateObject.setUTCFullYear(year)
+    const dateObject = new Date(Date.UTC(year, this.date.month - 1, this.date.day))
     return `${year}
            (${dateObject.toLocaleDateString(undefined, {weekday: "long"})})`
   }
@@ -208,7 +209,7 @@ export class HomePage {
         let imagePromises = newEntryWithoutEntryIndex.images.map(image => this.dbService.addImage(image))
         const entryPromise = this.dbService.addEntry(newEntry)
         await Promise.all([...imagePromises, entryPromise])
-        await this.populateEntries(this.date)
+        await this.populateEntries()
         if(this.sync.hasInternetAccess) this.sync.uploadLocalChanges() // dont wait for upload
       }
     })
@@ -216,35 +217,58 @@ export class HomePage {
     await modal.present();
   }
   
-  async selectedDate($event: any) {
-    this.date = $event.detail.value;
-    await this.populateEntries(this.date)
+  async selectedDate($event: { value: CustomDatetimeValue | null }) {
+    if($event.value !== null) {
+      this.date = $event.value
+      await this.populateEntries()
+    }
+  }
+  
+  // Helper function to navigate yearless dates
+  private navigateYearlessDate(offset: 1 | -1): CustomDatetimeValue {
+    const daysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]; // Always 29 days in Feb
+    
+    let newMonth = this.date.month;
+    let newDay = this.date.day + offset;
+    
+    // Handle day overflow/underflow
+    if (newDay > daysInMonth[newMonth - 1]) {
+      newDay = 1;
+      newMonth++;
+      if (newMonth > 12) {
+        newMonth = 1;
+      }
+    } else if (newDay < 1) {
+      newMonth--;
+      if (newMonth < 1) {
+        newMonth = 12;
+      }
+      newDay = daysInMonth[newMonth - 1];
+    }
+    
+    return {month: newMonth, day: newDay};
   }
   
   async gotoYesterday() {
-    const yesterday = new Date(new Date(this.date).getTime() - 24*60*60*1000)
-    //yesterday.setUTCHours(0, 0, 0, 0)
-    this.date = yesterday.toISOString()
-    await this.populateEntries(this.date)
+    this.date = this.navigateYearlessDate(-1);
+    await this.populateEntries();
   }
   
   async gotoTomorrow() {
-    const yesterday = new Date(new Date(this.date).getTime() + 24*60*60*1000)
-    //yesterday.setUTCHours(0, 0, 0, 0)
-    this.date = yesterday.toISOString()
-    await this.populateEntries(this.date)
+    this.date = this.navigateYearlessDate(1);
+    await this.populateEntries();
   }
   
   getYesterdate() {
-    return new Date(new Date(this.date).getTime() - 24*60*60*1000).getUTCDate()
+    return this.navigateYearlessDate(-1).day;
   }
   
   getTomorrowdate() {
-    return new Date(new Date(this.date).getTime() + 24*60*60*1000).getUTCDate()
+    return this.navigateYearlessDate(1).day;
   }
   
   thisYear() {
-    return new Date(this.date).getUTCFullYear()
+    return new Date().getUTCFullYear()
   }
   
   async openEntry(date: string) {
@@ -265,7 +289,7 @@ export class HomePage {
       await $event.target.complete()
       this.loadingModalOpen = true
       await this.sync.downloadRemoteChanges()
-      await this.populateEntries(this.date) // für uploading changes eig nicht nötig
+      await this.populateEntries() // für uploading changes eig nicht nötig
       this.loadingModalOpen = false
       const localChanges = await this.sync.getLocalChanges()
       if(localChanges.length > 0) {
