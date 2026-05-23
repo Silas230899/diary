@@ -101,12 +101,10 @@ export class SearchPage implements OnInit {
     this.entries = this.dbService.getAllEntries()
     this.entries.then(entries => {
       console.log("time load ms: ", Date.now() - t)
-      
       let earliest = entries[0]
       for(const entry of entries) {
         if(new Date(entry.date).getTime() < new Date(earliest.date).getTime()) earliest = entry
       }
-      console.log("Earliest: " + JSON.stringify(earliest))
       this.startDate = earliest.date
     })
   }
