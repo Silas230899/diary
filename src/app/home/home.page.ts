@@ -182,10 +182,13 @@ export class HomePage {
   }
 
   async openNewEntryModal() {
+    const date = new Date()
+    date.setUTCDate(this.date.day)
+    date.setUTCMonth(this.date.month-1)
     const modal = await this.modalCtrl.create({
       component: NewEntryComponent,
       componentProps: {
-        date: this.date
+        date: date.toISOString()
       }
     });
     
