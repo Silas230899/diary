@@ -63,35 +63,27 @@
     }
 
     @for (entry of entries; track entry) {
-        <ion-card style="margin-top: 4px; margin-bottom: 4px">
-            <div class="card-button-container">
-                <ion-button (click)="presentInfoPopover($event, entry)" color="medium" fill="clear">
-                    <ion-icon slot="icon-only" name="information-circle-outline"></ion-icon>
-                </ion-button>
-                <ion-button (click)="deleteEntry(entry)" color="medium" fill="clear">
-                    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-                </ion-button>
-                <ion-button (click)="editEntry(entry)" color="medium" fill="clear">
-                    <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
-                </ion-button>
-            </div>
-
+        <ion-card>
             <ion-card-header>
                 <ion-card-title>
                     Verfasst: {{entry.date | formatWrittenDate:entry.written:entry.writtenHasTime }}
                 </ion-card-title>
+                <div class="card-button-container">
+                    <ion-button (click)="presentInfoPopover($event, entry)" color="medium" fill="clear">
+                        <ion-icon slot="icon-only" name="information-circle-outline"></ion-icon>
+                    </ion-button>
+                    <ion-button (click)="deleteEntry(entry)" color="medium" fill="clear">
+                        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                    </ion-button>
+                    <ion-button (click)="editEntry(entry)" color="medium" fill="clear">
+                        <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+                    </ion-button>
+                </div>
             </ion-card-header>
             <ion-card-content>
                 <app-entry-text [entry]="entry"></app-entry-text>
                 <!--<div style="text-align: right">Wörter: {{wordCount(entry)}}</div>-->
             </ion-card-content>
-            <!--
-            <ion-card-header style="position: absolute; right: 0; bottom: 0">
-                <ion-card-subtitle>
-                    {{formatTime(entry.written)}} Uhr
-                </ion-card-subtitle>
-            </ion-card-header>
-            -->
         </ion-card>
         @if ($index < $count) {
             <div style="width: 100%; display: flex; justify-content: center">

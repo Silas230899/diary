@@ -31,8 +31,24 @@
   margin-right: 8px;
 }
 
+ion-card {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+ion-card-header {
+  display: flex;
+  flex-direction: row;
+}
+
+ion-card-title {
+  flex-grow: 1;
+}
+
 .card-button-container {
-  position: absolute; right: 6px; top: 6px; z-index: 9999
+  margin-top: -12px;
+  transform: translateY(6px);
+  flex-shrink: 0;
 }
 
 .card-button-container > ion-button {
