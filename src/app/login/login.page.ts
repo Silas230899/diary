@@ -43,7 +43,12 @@ export class LoginPage implements OnInit {
       if(status.isAvailable) {
         this.biometryAvailable = true;
         // biometry must be available
-        const result = await retrieve("password")
+        const result = await retrieve(
+          { keyAlias: "password",
+            promptTitle: "Tagebuch entsperren",
+            promptSubtitle: "",
+            promptNegativeButtonText: "Abbrechen"
+          })
         if(result !== null) {
           await this.login(result)
         }

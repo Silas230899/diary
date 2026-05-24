@@ -4406,7 +4406,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-keystore"
 version = "2.1.0-alpha.1"
-source = "git+https://github.com/silas230899/tauri-plugin-keystore?branch=alpha#c8788aae5654fab30a12ca4418fda57d2d64b665"
+source = "git+https://github.com/silas230899/tauri-plugin-keystore?branch=alpha#3223cfc4ca8be3b9356fd614e692960d01e640f6"
 dependencies = [
  "serde",
  "tauri",
@@ -5402,7 +5402,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
