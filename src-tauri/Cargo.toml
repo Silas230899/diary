@@ -1,5 +1,5 @@
 [package]
-name = "diary"
+name = "Diary"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
@@ -24,7 +24,6 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 tauri-plugin-fs = "2"
-tauri-plugin-deep-link = "2"
 url = "2.5.4"
 tauri-plugin-keystore = { git = "https://github.com/silas230899/tauri-plugin-keystore", branch = "alpha" }
 tauri-plugin-os = "2"

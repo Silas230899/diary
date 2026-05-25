@@ -3,6 +3,24 @@
 version = 4
 
 [[package]]
+name = "Diary"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-biometric",
+ "tauri-plugin-fs",
+ "tauri-plugin-keystore",
+ "tauri-plugin-opener",
+ "tauri-plugin-os",
+ "tauri-plugin-single-instance",
+ "tauri-plugin-sql",
+ "url",
+]
+
+[[package]]
 name = "addr2line"
 version = "0.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -787,25 +805,6 @@ dependencies = [
  "quote",
  "rustc_version",
  "syn 2.0.104",
-]
-
-[[package]]
-name = "diary"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-biometric",
- "tauri-plugin-deep-link",
- "tauri-plugin-fs",
- "tauri-plugin-keystore",
- "tauri-plugin-opener",
- "tauri-plugin-os",
- "tauri-plugin-single-instance",
- "tauri-plugin-sql",
- "url",
 ]
 
 [[package]]
@@ -5402,7 +5401,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

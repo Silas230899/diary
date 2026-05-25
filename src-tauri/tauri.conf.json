@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "diary",
+  "productName": "Diary",
   "version": "0.1.0",
   "identifier": "de.hofmann.diary",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "diary",
+        "title": "Diary",
         "width": 800,
         "height": 600
       }
@@ -35,18 +35,5 @@
       "minSdkVersion": 28
     }
   },
-  "plugins": {
-    "deep-link": {
-      "desktop": {
-        "schemes": ["diary"]
-      },
-      "mobile": [
-        {
-          "scheme": ["diary"],
-          "appLink": false,
-          "host": ""
-        }
-      ]
-    }
-  }
+  "plugins": {}
 }

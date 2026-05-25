@@ -12,10 +12,6 @@
     "sql:allow-execute",
     "fs:default",
     "fs:allow-appdata-read-recursive",
-    "fs:allow-appdata-write-recursive",
-    "opener:default",
-    "deep-link:default",
-    "opener:default",
-    "fs:default"
+    "fs:allow-appdata-write-recursive"
   ]
 }

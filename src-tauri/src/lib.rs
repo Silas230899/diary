@@ -1,9 +1,3 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 use std::io::{Read, Write};
 use std::net::TcpListener;
 use tauri::command;
@@ -111,34 +105,15 @@ pub fn run() {
     #[cfg(desktop)]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|_app, argv, _cwd| {
-                                                             println!("a new app instance was opened with {argv:?} and the deep link event was already triggered");
-                                                             // when defining deep link schemes at runtime, you must also check `argv` here
-                                                           }));
+            println!("a new app instance was opened with {argv:?} and the deep link event was already triggered");
+            // when defining deep link schemes at runtime, you must also check `argv` here
+        }));
     }
 
     builder
-        .plugin(tauri_plugin_deep_link::init())
-        .setup(|app| {
-            #[cfg(any(windows, target_os = "linux"))]
-            {
-                use tauri_plugin_deep_link::DeepLinkExt;
-                app.deep_link().register_all()?;
-            }
-
-            /*
-            #[cfg(mobile)]
-            {
-                app.handle()
-                    .plugin(tauri_plugin_biometric::Builder::new().build());
-            }
-            */
-
-            Ok(())
-        })
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_sql::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
         .invoke_handler(tauri::generate_handler![
             get_free_local_address,
             start_oauth_server
