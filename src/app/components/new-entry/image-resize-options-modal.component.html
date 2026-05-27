@@ -1,0 +1,76 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-button (click)="cancel()">
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>Bildgröße</ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="confirm()" [strong]="true">
+                <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <div class="ion-padding">
+        <img class="preview" [src]="metadata.previewUrl" alt="">
+
+        <ion-list lines="full">
+            <ion-item>
+                <ion-label>
+                    Original
+                    <ion-note>{{ metadata.width }} x {{ metadata.height }} px · {{ formatBytes(metadata.size) }}</ion-note>
+                </ion-label>
+            </ion-item>
+            <ion-item>
+                <ion-label>
+                    Ergebnis
+                    <ion-note>{{ resultWidth }} x {{ resultHeight }} px · WebP {{ qualityPercent }}%</ion-note>
+                </ion-label>
+            </ion-item>
+        </ion-list>
+
+        <ion-segment [value]="selectedPreset" (ionChange)="setPreset($event.detail.value)" mode="ios">
+            <ion-segment-button value="750">
+                <ion-label>750</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="1200" [disabled]="longestSide < 1200">
+                <ion-label>1200</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="1600" [disabled]="longestSide < 1600">
+                <ion-label>1600</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="original">
+                <ion-label>Original</ion-label>
+            </ion-segment-button>
+        </ion-segment>
+    </div>
+
+    <ion-list lines="none">
+        <ion-item>
+            <ion-label position="stacked">Maximale Kante</ion-label>
+            <ion-range
+                [min]="minAllowedSize"
+                [max]="longestSide"
+                [step]="50"
+                [pin]="true"
+                [value]="maxSize"
+                (ionChange)="setCustomMaxSize($event.detail.value)">
+            </ion-range>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">Qualität</ion-label>
+            <ion-range
+                [min]="qualityMin"
+                [max]="qualityMax"
+                [step]="5"
+                [pin]="true"
+                [value]="quality"
+                (ionChange)="setQuality($event.detail.value)">
+            </ion-range>
+        </ion-item>
+    </ion-list>
+</ion-content>

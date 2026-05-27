@@ -6,7 +6,7 @@ import {
   IonHeader, IonIcon, IonItem, IonLabel, IonList,
   IonModal, IonNote, IonSegment, IonSegmentButton, IonSkeletonText, IonTextarea, IonThumbnail,
   IonTitle, IonToggle,
-  IonToolbar, ModalController
+  IonToolbar, ModalController, ToastController
 } from "@ionic/angular/standalone";
 import {FormsModule} from "@angular/forms";
 import {addIcons} from "ionicons";
@@ -34,6 +34,11 @@ import {ImageDb} from "../../models/image-db";
 import {ActionSheetController} from "@ionic/angular";
 import {SyncStatus} from "../../models/syncStatusTypes";
 import {ActivatedRoute} from "@angular/router";
+import {
+  ImageMetadata,
+  ImageResizeOptions,
+  ImageResizeOptionsModalComponent
+} from "./image-resize-options-modal.component";
 
 @Component({
   selector: 'app-new-entry',
@@ -76,9 +81,12 @@ export class NewEntryComponent  implements OnInit {
   
   @ViewChild("textarea") textarea!: IonTextarea
 
+  private readonly imageReducer = imageBlobReduce();
+
   constructor(private modalCtrl: ModalController,
               private actionSheetCtrl: ActionSheetController,
-              private route: ActivatedRoute,) {
+              private route: ActivatedRoute,
+              private toastController: ToastController,) {
     addIcons({ logoWhatsapp, timeOutline, cloudDoneOutline, cloudOfflineOutline, camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
     let currentDate = new Date()
     currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
@@ -157,127 +165,113 @@ export class NewEntryComponent  implements OnInit {
     // @ts-ignore
     document.getElementById("file-upload").click();
   }
-  
-  async convertToWebp(file: File): Promise<Blob> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const reader = new FileReader();
-      
-      reader.onload = () => {
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          
-          const ctx = canvas.getContext("2d");
-          if (!ctx) {
-            reject(new Error("Canvas context not available"));
-            return;
-          }
-          
-          ctx.drawImage(img, 0, 0);
-          
-          canvas.toBlob(
-            (blob) => {
-              if (blob) resolve(blob);
-              else reject(new Error("Failed to encode AVIF"));
-            },
-            "image/webp",
-            1
-          );
-        };
-        
-        img.onerror = reject;
-        img.src = reader.result as string;
-      };
-      
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-  
-  
-  async setImage(event: any) {
-    const imagefile: File = event.target.files[0]
-    
-    if(imagefile.name === undefined || imagefile.type === undefined || !imagefile.type.startsWith("image/")) {
-      console.log("dont use uploaded file bc it is not an image")
-      return
+
+  async setImage(event: Event) {
+    const input = event.target as HTMLInputElement
+    const imagefile = input.files?.[0]
+
+    try {
+      if(!imagefile || imagefile.name === undefined || imagefile.type === undefined || !imagefile.type.startsWith("image/")) {
+        console.log("dont use uploaded file bc it is not an image")
+        return
+      }
+
+      const metadata = await this.getImageMetadata(imagefile)
+      const options = await this.presentImageResizeOptions(metadata)
+
+      if(!options) return
+
+      const uuid = uuidv7()
+      const newFilename = uuid + "." + "webp"
+
+      const imageView = new ImageView(newFilename, "")
+      this.imagesViews.push(imageView)
+
+      console.log("Bildgröße vorher: " + imagefile.size)
+
+      const downscaledWebpBlob = await this.resizeToWebp(imagefile, options.maxSize, options.quality)
+
+      console.log("Bildgröße nachher: " + downscaledWebpBlob.size)
+      this.imagesDb.push(new ImageDb(newFilename, downscaledWebpBlob))
+      imageView.localImageUrl = URL.createObjectURL(downscaledWebpBlob)
+      await this.presentImageLoadedToast(downscaledWebpBlob.size)
+    } finally {
+      input.value = ""
     }
-    
-    const uuid = uuidv7()
-    const newFilename = uuid + "." + "webp"
-    
-    const imageView = new ImageView(newFilename, "")
-    this.imagesViews.push(imageView)
-    
-    console.log("bildgröße vorher: " + imagefile.size)
-    
-    const downscaled = await imageBlobReduce().toCanvas(imagefile, { max: 750 })
-    //console.log(downscaled.width, downscaled.height)
-    const downscaledWebpBlob: Blob = await new Promise((resolve, reject) => {
+  }
+
+  private async resizeToWebp(file: File, maxSize: number, quality = 0.9): Promise<Blob> {
+    const downscaled = await this.imageReducer.toCanvas(file, { max: maxSize })
+
+    return new Promise((resolve, reject) => {
       downscaled.toBlob((blob) => {
           if (blob) resolve(blob);
           else reject(new Error("Failed to encode webp"));
         },
         "image/webp",
-        0.9)
+        quality)
     })
-    console.log("Bildgröße nachher: " + (await downscaledWebpBlob.arrayBuffer()).byteLength)
-    this.imagesDb.push(new ImageDb(newFilename, downscaledWebpBlob))
-    const imageUrl = URL.createObjectURL(downscaledWebpBlob)
-    //this.imagesViews.push(new ImageView(newFilename, imageUrl))
-    imageView.localImageUrl = imageUrl
-    /*
-    //console.log(imagefile)
-    const filename = imagefile.name;
-    //console.log(filename);
-    const reader = new FileReader()
-    
-    
-    const webp = await this.convertToWebp(imagefile)
-    const url = URL.createObjectURL(webp)*/
-    /*
-    webpcanvas.toBlob(
-      (blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error("Failed to encode AVIF"));
-      },
-      "image/webp",
-      1
-    );
-    *//*
-    const dataurl = downscaled.toDataURL()
-    
-    
-    
-    const rescaled = await imageBlobReduce().toBlob(imagefile, {max: 500})
-    
-    
-    reader.onload = (e) => {
-      // @ts-ignore
-      const imageData = e.target.result
-      
-      this.imagesViews.push(new ImageView(newFilename, url))
-      // @ts-ignore
-      //console.log(new Blob([this.imgsrc]).size)
-      //console.log('Base64:', e.target.result) // Kannst du für Upload verwenden
-    }
-    
-    //reader.readAsDataURL(imagefile)
-    reader.readAsDataURL(rescaled)*/
-    /*
-    const dirExists = await exists("images", { baseDir: BaseDirectory.AppData })
-    if(!dirExists) await mkdir("images", { baseDir: BaseDirectory.AppData })
-    
-    const file = await create("images/" + newFilename, { baseDir: BaseDirectory.AppData })
-    const fileArrayBuffer = await rescaled.arrayBuffer()
-    const encryptedFile = await this.crypto.encryptArrayBufferToArrayBuffer(fileArrayBuffer)
-    await file.write(encryptedFile)
-    await file.close()
-    */
+  }
+
+  private async getImageMetadata(file: File): Promise<ImageMetadata> {
+    const previewUrl = URL.createObjectURL(file)
+
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+
+      img.onload = () => {
+        resolve({
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+          size: file.size,
+          previewUrl
+        })
+      }
+
+      img.onerror = () => {
+        URL.revokeObjectURL(previewUrl)
+        reject(new Error("Failed to load image metadata"))
+      }
+
+      img.src = previewUrl
+    })
+  }
+
+  private async presentImageResizeOptions(metadata: ImageMetadata): Promise<ImageResizeOptions | null> {
+    const modal = await this.modalCtrl.create({
+      component: ImageResizeOptionsModalComponent,
+      componentProps: {
+        metadata
+      }
+    })
+
+    await modal.present()
+    const { data, role } = await modal.onWillDismiss<ImageResizeOptions>()
+
+    URL.revokeObjectURL(metadata.previewUrl)
+
+    if(role !== "confirm" || !data) return null
+
+    return data
+  }
+
+  private async presentImageLoadedToast(size: number) {
+    const toast = await this.toastController.create({
+      message: `Bild geladen: ${this.formatBytes(size)}`,
+      duration: 2000,
+      position: "bottom",
+    })
+
+    await toast.present()
+  }
+
+  private formatBytes(bytes: number) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   }
   
+
   getFileExtension(filename: string): string | null {
     const index = filename.lastIndexOf(".");
     return index !== -1 ? filename.slice(index + 1) : null;
