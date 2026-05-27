@@ -23,6 +23,7 @@ export class EntryTextComponent  implements OnInit {
   ngOnInit() {
     let res: EntryPart[] = []
     for(let line of this.entry.text.split(/\n/)) {
+      console.log(line)
       if(line.startsWith("![image](")) {
         const filename = line.substring(9, line.length-1)
         const img = this.entry.images.filter(value => value.filename == filename)[0]
@@ -35,6 +36,7 @@ export class EntryTextComponent  implements OnInit {
           } else if(last.type === "images") {
             last.value.push(img.localImageUrl)
           } else {
+            console.log("push image")
             res.push({ type: "image", value: img.localImageUrl })
           }
         } else {
@@ -44,8 +46,10 @@ export class EntryTextComponent  implements OnInit {
         res.push({ type: "chat", value: line.substring(7) })
       } else {
         if(line.length === 0) {
+          console.log("push emptyline")
           res.push({ type: "emptyline" })
         } else {
+          console.log("push text", line)
           res.push({ type: "text", value: line })
         }
       }
@@ -54,11 +58,18 @@ export class EntryTextComponent  implements OnInit {
     let res2: EntryPart[] = []
     for(let r of res) {
       res2.push(r)
-      if(r.type !== "emptyline") {
+      if(r.type !== "emptyline" && r.type !== "image") {
         res2.push({ type: "newline" })
       }
     }
-    this.entryParts = res2.slice(0, res2.length-1) // letzten linebreak entfernen weil unnötig
+    this.entryParts = res2
+    if(res2.length > 0) {
+      const last = res2[res2.length-1].type
+      if(last === "emptyline" || last === "newline") {
+        this.entryParts = res2.slice(0, res2.length-1) // letzten linebreak entfernen weil unnötig
+        console.log(this.entryParts)
+      }
+    }
   }
 
 }
