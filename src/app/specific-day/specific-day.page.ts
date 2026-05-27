@@ -56,15 +56,12 @@ export class SpecificDayPage implements OnInit {
     addIcons({ informationCircleOutline, trashOutline, pencilOutline, informationOutline, add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline, chevronCollapseOutline })
     
     const date = this.route.snapshot.queryParamMap.get("date");
-    console.log(date);
     if(date !== null) {
       this.date = date
-      console.log(this.date)
     } else {
       let currentDate = new Date();
       currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
       this.date = currentDate.toISOString()
-      console.log(this.date)
     }
 
     this.populateEntries(this.date)
