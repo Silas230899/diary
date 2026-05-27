@@ -143,13 +143,19 @@ export class HomePage {
     
     // sort days
     const yearWithDay = Array.from(entriesByDay)
-      .sort((a, b) => b[0]-a[0])
+      .sort(([year1], [year2]) => year2-year1)
       .map(([year, day]) => ({ year: year, day: day }))
     
     
     // sort entries within days
-    yearWithDay.forEach(({ year, day }) => {
-      day.sort((a, b) => a.entryIndex-b.entryIndex)
+    yearWithDay.forEach(({ day }) => {
+      day.sort((a, b) => {
+        if(a.entryIndex === b.entryIndex) {
+          if(a.written !== null && b.written !== null) {
+            return new Date(a.written).getTime() - new Date(b.written).getTime()
+          } else return 0
+        } else return a.entryIndex-b.entryIndex
+      })
     })
     
     const entriesForThisYear = entriesByDay.get(thisYear)
