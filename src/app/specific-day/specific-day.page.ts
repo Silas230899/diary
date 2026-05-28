@@ -71,14 +71,12 @@ export class SpecificDayPage implements OnInit {
     this.entriesLoading = true
     let entries: EntryViewRecord[] = await this.dbService.getEntriesBySpecificDate(date)
     entries.sort((a, b) => {
-      console.log("entry index", a.entryIndex, b.entryIndex)
       if(a.entryIndex === b.entryIndex) {
         if(a.written !== null && b.written !== null) {
           return new Date(a.written).getTime() - new Date(b.written).getTime()
         } else return 0
       } else return a.entryIndex-b.entryIndex
     })
-    console.log(entries)
     this.entries = entries
     this.entriesLoading = false
   }
