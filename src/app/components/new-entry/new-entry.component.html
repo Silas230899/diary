@@ -149,6 +149,12 @@
         </ion-item>
     </ion-list>
 
+    <quill-editor style="width: 100%" [formats]="['bold', 'image']" [modules]="modules" theme="snow" #quill>
+
+    </quill-editor>
+
+    <ion-button (click)="report()">repo</ion-button>
+
     <input type="file" id="file-upload" style="display: none" accept="image/*" (change)="setImage($event)">
 
 

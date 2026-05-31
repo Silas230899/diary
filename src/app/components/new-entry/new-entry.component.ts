@@ -39,6 +39,8 @@ import {
   ImageResizeOptions,
   ImageResizeOptionsModalComponent
 } from "./image-resize-options-modal.component";
+import {QuillEditorComponent} from "ngx-quill";
+import Quill from 'quill';
 
 @Component({
   selector: 'app-new-entry',
@@ -65,7 +67,8 @@ import {
     IonList,
     IonItem,
     IonSegment,
-    IonSegmentButton
+    IonSegmentButton,
+    QuillEditorComponent
   ],
   standalone: true
 })
@@ -194,7 +197,23 @@ export class NewEntryComponent  implements OnInit {
       console.log("Bildgröße nachher: " + downscaledWebpBlob.size)
       this.imagesDb.push(new ImageDb(newFilename, downscaledWebpBlob))
       imageView.localImageUrl = URL.createObjectURL(downscaledWebpBlob)
+      console.log(imageView.localImageUrl)
       await this.presentImageLoadedToast(downscaledWebpBlob.size)
+      
+      const Image = Quill.import('formats/image');
+      // @ts-ignore
+      Image.sanitize = function(url: string) {
+        const allowedProtocols = ['http', 'https', 'blob']
+        const protocol = url.split(':')[0].toLowerCase()
+        return allowedProtocols.includes(protocol)
+          ? url
+          : '//:0';
+      };
+      
+      const index = this.editor.quillEditor.getSelection()?.index
+      console.log(index)
+      const delta = this.editor.quillEditor.insertEmbed(index ? index : 0, 'image', imageView.localImageUrl)
+      console.log(delta)
     } finally {
       input.value = ""
     }
@@ -295,5 +314,51 @@ export class NewEntryComponent  implements OnInit {
   
   textareaInput($event: any) {
     localStorage.setItem("newEntryTextarea", $event.detail.value)
+  }
+  
+  @ViewChild('quill') editor!: QuillEditorComponent
+  
+  modules2 = {
+    toolbar: [
+      ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+      ['blockquote', 'code-block'],
+      
+      [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+      [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+      [{ 'direction': 'rtl' }],                         // text direction
+      
+      [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      
+      [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+      [{ 'font': [] }],
+      [{ 'align': [] }],
+      
+      ['clean'],                                         // remove formatting button
+      
+      ['link', 'image']                         // link and image, video
+    ]
+  }
+  
+  clickHandler = () => {
+    this.openFileDialog()
+  }
+  
+  modules = {
+    toolbar: {
+      container: [
+        ['bold', 'image'] // toggled buttons
+      ],
+      handlers: {
+        image: this.clickHandler,
+      }
+    }
+  }
+  
+  
+  protected report() {
+    console.log(JSON.stringify(this.editor.quillEditor.getContents(), undefined, 2))
   }
 }
