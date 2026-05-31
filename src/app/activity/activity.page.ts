@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {IonCardHeader, IonCardSubtitle, IonContent, IonHeader, IonTitle, IonToolbar} from '@ionic/angular/standalone';
 import {DatabaseService} from "../services/database.service";
@@ -12,7 +12,7 @@ import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
   templateUrl: './activity.page.html',
   styleUrls: ['./activity.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, ActivityHeatmapComponent, NavBarComponent, IonCardHeader, IonCardSubtitle]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, FormsModule, ActivityHeatmapComponent, NavBarComponent, IonCardHeader, IonCardSubtitle]
 })
 export class ActivityPage implements OnInit {
   
