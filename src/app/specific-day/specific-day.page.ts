@@ -149,17 +149,17 @@ export class SpecificDayPage implements OnInit {
   
   async deleteEntry(entry: EntryViewRecord) {
     const actionSheet = await this.actionSheetCtrl.create({
-      header: 'Actions',
+      header: 'Aktionen',
       buttons: [
         {
-          text: 'Delete',
+          text: 'Löschen',
           role: 'destructive',
           data: {
             action: 'delete',
           },
         },
         {
-          text: 'Cancel',
+          text: 'Abbrechen',
           role: 'cancel',
           data: {
             action: 'cancel',
