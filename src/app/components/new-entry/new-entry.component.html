@@ -7,7 +7,7 @@
         </ion-buttons>
         <ion-title>Neuer Eintrag</ion-title>
         <ion-buttons slot="end">
-            <ion-button (click)="confirm()" [strong]="true" [disabled]="text.length === 0">
+            <ion-button (click)="confirm()" [strong]="true" [disabled]="!canSave()">
                 <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
             </ion-button>
         </ion-buttons>
@@ -96,73 +96,34 @@
                 }
             </ion-toggle>
         </ion-item>
-        <ion-item>
-            <ion-textarea
-                #textarea
-                style="margin-top: 8px"
-                autoGrow="true"
-                rows="5"
-                labelPlacement="floating"
-                label="Eintrag"
-                fill="outline"
-                spellcheck="true"
-                [counter]="true"
-                maxlength="1000000"
-                [counterFormatter]="customCounterFormatter"
-                (ionInput)="textareaInput($event)"
-                [(ngModel)]="text">
-            </ion-textarea>
-        </ion-item>
-        <ion-item>
-            @if (imagesViews.length === 0) {
-                <ion-button (click)="openFileDialog()" size="default">
-                    <ion-icon name="add" slot="start"></ion-icon>
-                    <ion-label>Bild</ion-label>
-                    <ion-icon slot="end" icon="camera"></ion-icon>
-                </ion-button>
-                <br>
-            } @else {
-                <div class="imageContainer">
-                    <div id="addAnotherImageButtonContainer">
-                        <ion-button shape="round" fill="outline" size="large" (click)="openFileDialog()">
-                            <ion-icon slot="icon-only" name="add"></ion-icon>
-                        </ion-button>
-                    </div>
-                    @for (img of imagesViews; track img.filename) {
-                        @if (img.localImageUrl === "") {
-                            <ion-thumbnail>
-                                <ion-skeleton-text [animated]="true"></ion-skeleton-text>
-                            </ion-thumbnail>
-                        } @else {
-                            <img [src]="img.localImageUrl" (click)="reference(img)">
-                        }
-                    }
-                </div>
-            }
-        </ion-item>
-        <ion-item>
-            <ion-button (click)="addChat()" size="default">
-                <ion-icon name="add" slot="start"></ion-icon>
-                <ion-label>Chat</ion-label>
-                <ion-icon slot="end" icon="logo-whatsapp"></ion-icon>
-            </ion-button>
-        </ion-item>
     </ion-list>
 
-    <quill-editor style="width: 100%" [formats]="['bold', 'image']" [modules]="modules" theme="snow" #quill>
+    <div id="toolbar">
+        <ion-button (click)="openFileDialog()" size="default" class="ql-image">
+            <ion-icon name="add" slot="start"></ion-icon>
+            <ion-label>Bild</ion-label>
+            <ion-icon slot="end" icon="camera"></ion-icon>
+        </ion-button>
+        <ion-button size="default" disabled>
+            <ion-icon name="add" slot="start"></ion-icon>
+            <ion-label>Chat</ion-label>
+            <ion-icon slot="end" icon="logo-whatsapp"></ion-icon>
+        </ion-button>
+    </div>
+
+    <quill-editor
+            placeholder="Eintrag"
+            spellcheck="true"
+            (onEditorCreated)="editorCreated()"
+            (onContentChanged)="contentChanged($event)"
+            style="width: 100%"
+            [formats]="['diaryImage']"
+            [modules]="modules3"
+            theme="snow"
+            #quill>
 
     </quill-editor>
 
-    <ion-button (click)="report()">repo</ion-button>
-
     <input type="file" id="file-upload" style="display: none" accept="image/*" (change)="setImage($event)">
 
-
-    <!--
-    <br>
-
-    <ion-button fill="clear" (click)="confirm()" [disabled]="text.length === 0">
-        Hinzufügen
-    </ion-button>
-    -->
 </ion-content>

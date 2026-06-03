@@ -120,7 +120,7 @@
                                 {{entry.date | formatWrittenDate:entry.written:entry.writtenHasTime }}
                             </div>
 
-                            <app-entry-text [entry]="entry"></app-entry-text>
+                            <quill-view [content]="entry.text" format="json"></quill-view>
                         }
                     </ion-card-content>
 

@@ -4,7 +4,7 @@ import {
   IonButtons,
   IonContent, IonDatetime, IonDatetimeButton,
   IonHeader, IonIcon, IonItem, IonLabel, IonList,
-  IonModal, IonNote, IonSegment, IonSegmentButton, IonSkeletonText, IonTextarea, IonThumbnail,
+  IonModal, IonNote, IonSegment, IonSegmentButton, IonTextarea,
   IonTitle, IonToggle,
   IonToolbar, ModalController, ToastController
 } from "@ionic/angular/standalone";
@@ -39,8 +39,8 @@ import {
   ImageResizeOptions,
   ImageResizeOptionsModalComponent
 } from "./image-resize-options-modal.component";
-import {QuillEditorComponent} from "ngx-quill";
-import Quill from 'quill';
+import {ContentChange, QuillEditorComponent} from "ngx-quill";
+import restoreImageDelta from "../../quill/diary-image-delta-restore";
 
 @Component({
   selector: 'app-new-entry',
@@ -57,13 +57,10 @@ import Quill from 'quill';
     IonDatetime,
     IonDatetimeButton,
     IonModal,
-    IonTextarea,
     IonIcon,
     IonToggle,
     IonNote,
     IonLabel,
-    IonSkeletonText,
-    IonThumbnail,
     IonList,
     IonItem,
     IonSegment,
@@ -74,7 +71,7 @@ import Quill from 'quill';
 })
 export class NewEntryComponent  implements OnInit {
 
-  @Input() text = ""
+  @Input() text: string | undefined
   @Input() date: string
   @Input() written: string
   @Input() customWrittenDate = false
@@ -82,7 +79,7 @@ export class NewEntryComponent  implements OnInit {
   @Input() imagesViews: ImageView[] = []
   @Input() imagesDb: ImageDb[] = []
   
-  @ViewChild("textarea") textarea!: IonTextarea
+  @ViewChild('quill') editor!: QuillEditorComponent
 
   private readonly imageReducer = imageBlobReduce();
 
@@ -95,20 +92,33 @@ export class NewEntryComponent  implements OnInit {
     currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
     this.date = currentDate.toISOString()
     this.written = currentDate.toISOString()
-    const newEntryText = localStorage.getItem("newEntryTextarea")
-    if(newEntryText !== null) {
-      this.text = newEntryText
-    }
   }
   
   ngOnInit() {}
   
-  customCounterFormatter(inputLength: number, maxLength: number) {
-    return `${inputLength} Zeichen`;
+  ionViewDidEnter() {
+    this.editor.quillEditor.focus()
   }
   
-  async ionViewDidEnter() {
-    await this.textarea.setFocus()
+  protected canSave() {
+    if(this.editor && this.editor.quillEditor) return this.editor.quillEditor.getText().length > 1
+    else return false
+  }
+  
+  protected editorCreated() {
+    const newEntryText = localStorage.getItem("newEntryTextarea")
+    if(this.text !== undefined) {
+      if(this.text.startsWith("{\"ops\":[")) {
+        try {
+          const delta = restoreImageDelta(this.text, this.imagesViews)
+          this.editor.quillEditor.setContents(delta)
+        } catch (e) {
+          this.editor.quillEditor.setText(this.text)
+        }
+      } else this.editor.quillEditor.setText(this.text)
+    } else if(newEntryText !== null) {
+      this.editor.quillEditor.setContents(JSON.parse(newEntryText))
+    }
   }
 
   cancel() {
@@ -126,12 +136,12 @@ export class NewEntryComponent  implements OnInit {
     const newEntry = new NewEntryWithoutEntryIndex(this.date,
       writtenDate,
       true,
-      this.text.trim(),
+      JSON.stringify(this.editor.quillEditor.getContents()),
       this.imagesDb,
       syncStatus)
     
-    const unusedImages = this.imagesViews.filter(image => !this.text.includes(`![image](${image.filename})`))
-    
+    //const unusedImages = this.imagesViews.filter(image => !this.text.includes(`![image](${image.filename})`))
+    const unusedImages: ImageView[] = []
     if(unusedImages.length > 0) {
       const actionSheet = await this.actionSheetCtrl.create({
         header: 'Du hast nicht alle Bilder benutzt. Trotzdem einfügen?',
@@ -200,20 +210,11 @@ export class NewEntryComponent  implements OnInit {
       console.log(imageView.localImageUrl)
       await this.presentImageLoadedToast(downscaledWebpBlob.size)
       
-      const Image = Quill.import('formats/image');
-      // @ts-ignore
-      Image.sanitize = function(url: string) {
-        const allowedProtocols = ['http', 'https', 'blob']
-        const protocol = url.split(':')[0].toLowerCase()
-        return allowedProtocols.includes(protocol)
-          ? url
-          : '//:0';
-      };
-      
       const index = this.editor.quillEditor.getSelection()?.index
-      console.log(index)
-      const delta = this.editor.quillEditor.insertEmbed(index ? index : 0, 'image', imageView.localImageUrl)
-      console.log(delta)
+      const delta = this.editor.quillEditor.insertEmbed(index ? index : 0, 'diaryImage', {
+        id: imageView.filename,
+        src: imageView.localImageUrl
+      })
     } finally {
       input.value = ""
     }
@@ -290,12 +291,6 @@ export class NewEntryComponent  implements OnInit {
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   }
   
-
-  getFileExtension(filename: string): string | null {
-    const index = filename.lastIndexOf(".");
-    return index !== -1 ? filename.slice(index + 1) : null;
-  }
-  
   reference(img: ImageView) {
     this.text += `\n![image](${img.filename})`
     console.log(img.filename)
@@ -312,11 +307,9 @@ export class NewEntryComponent  implements OnInit {
     this.written = currentDate.toISOString()
   }
   
-  textareaInput($event: any) {
-    localStorage.setItem("newEntryTextarea", $event.detail.value)
+  protected contentChanged($event: ContentChange) {
+    localStorage.setItem("newEntryTextarea", JSON.stringify($event.content))
   }
-  
-  @ViewChild('quill') editor!: QuillEditorComponent
   
   modules2 = {
     toolbar: [
@@ -357,8 +350,7 @@ export class NewEntryComponent  implements OnInit {
     }
   }
   
-  
-  protected report() {
-    console.log(JSON.stringify(this.editor.quillEditor.getContents(), undefined, 2))
+  modules3 = {
+    toolbar: '#toolbar'
   }
 }

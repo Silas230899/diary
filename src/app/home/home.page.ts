@@ -1,33 +1,46 @@
 import {Component, ViewChild} from '@angular/core';
 import {
-  IonButton, IonButtons,
+  IonButton,
+  IonButtons,
   IonCard,
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
-  IonContent, IonDatetime, IonDatetimeButton,
+  IonContent,
   IonFab,
   IonFabButton,
   IonHeader,
-  IonIcon, IonItem, IonLabel, IonList, IonModal, IonPopover, IonProgressBar, IonRefresher,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonModal,
+  IonPopover,
+  IonProgressBar,
+  IonRefresher,
   IonRefresherContent,
   IonTitle,
-  IonToolbar, ModalController, NavController, PopoverController, RefresherCustomEvent
+  IonToolbar,
+  ModalController,
+  NavController,
+  PopoverController,
+  RefresherCustomEvent,
+  ToastController
 } from '@ionic/angular/standalone';
 import {
   add,
   chevronBackOutline,
   chevronForwardOutline,
-  createOutline,
-  ellipsisVerticalOutline,
-  pencil,
-  trashOutline,
   cloudDoneOutline,
   cloudOfflineOutline,
   cloudUploadOutline,
+  createOutline,
+  ellipsisVerticalOutline,
+  enterOutline,
   informationCircleOutline,
+  pencil,
   settingsOutline,
-  enterOutline
+  trashOutline
 } from 'ionicons/icons';
 import {addIcons} from "ionicons";
 import {FormsModule} from "@angular/forms";
@@ -41,13 +54,14 @@ import {EntryViewRecord} from "../models/entry-view-record";
 import {EntryTextComponent} from "../components/entry-text/entry-text.component";
 import {v7} from "uuid";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
-import {ToastController} from "@ionic/angular/standalone";
 import {Router} from "@angular/router";
 import {ImageDb} from "../models/image-db";
 import {formatWrittenDate} from "../utils/dateStuff";
 import {FormatWrittenDatePipe} from "../pipes/format-written-date-pipe";
 import {CustomDatetimeComponent} from "../components/custom-datetime/custom-datetime.component";
 import {CustomDatetimeValue} from "../components/custom-datetime/custom-datetime-value";
+import {QuillViewComponent} from "ngx-quill";
+import restoreImageDelta from "../quill/diary-image-delta-restore";
 
 type Day = EntryViewRecord[]
 
@@ -56,7 +70,7 @@ type Day = EntryViewRecord[]
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, EntryTextComponent, IonButtons, IonDatetime, IonDatetimeButton, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, FormatWrittenDatePipe, CustomDatetimeComponent, IonPopover, IonList, IonItem, IonLabel],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, EntryTextComponent, IonButtons, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, FormatWrittenDatePipe, CustomDatetimeComponent, IonPopover, IonList, IonItem, IonLabel, QuillViewComponent],
 })
 export class HomePage {
   
@@ -118,6 +132,14 @@ export class HomePage {
     this.hasEntriesForThisYear = false
     const t = Date.now();
     let entries: EntryViewRecord[] = await this.dbService.getEntriesByDate(this.date)
+    for(const entry of entries) {
+      if(entry.text.startsWith("{\"ops\":[")) {
+        try {
+          const delta = restoreImageDelta(entry.text, entry.images)
+          entry.text = JSON.stringify(delta)
+        } catch (SyntaxError) {} // keep as is
+      }
+    }
     console.log(Date.now()-t)
     
     const thisYear = new Date().getUTCFullYear()

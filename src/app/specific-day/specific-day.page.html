@@ -81,7 +81,7 @@
                 </div>
             </ion-card-header>
             <ion-card-content>
-                <app-entry-text [entry]="entry"></app-entry-text>
+                <quill-view [content]="entry.text" format="json"></quill-view>
                 <!--<div style="text-align: right">Wörter: {{wordCount(entry)}}</div>-->
             </ion-card-content>
         </ion-card>

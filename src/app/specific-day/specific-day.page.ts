@@ -31,13 +31,15 @@ import {ImageDb} from "../models/image-db";
 import {ActionSheetController} from "@ionic/angular/standalone";
 import {EntryInfoPopoverComponent} from "../components/entry-info-popover/entry-info-popover.component";
 import {FormatWrittenDatePipe} from "../pipes/format-written-date-pipe";
+import {QuillViewComponent} from "ngx-quill";
+import restoreImageDelta from "../quill/diary-image-delta-restore";
 
 @Component({
   selector: 'app-specific-day',
   templateUrl: './specific-day.page.html',
   styleUrls: ['./specific-day.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonButtons, EntryTextComponent, IonBackButton, FormatWrittenDatePipe, IonCardSubtitle]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonButtons, EntryTextComponent, IonBackButton, FormatWrittenDatePipe, IonCardSubtitle, QuillViewComponent]
 })
 export class SpecificDayPage implements OnInit {
 
@@ -70,6 +72,14 @@ export class SpecificDayPage implements OnInit {
   async populateEntries(date: string) {
     this.entriesLoading = true
     let entries: EntryViewRecord[] = await this.dbService.getEntriesBySpecificDate(date)
+    for(const entry of entries) {
+      if(entry.text.startsWith("{\"ops\":[")) {
+        try {
+          const delta = restoreImageDelta(entry.text, entry.images)
+          entry.text = JSON.stringify(delta)
+        } catch (SyntaxError) {} // keep as is
+      }
+    }
     entries.sort((a, b) => {
       if(a.entryIndex === b.entryIndex) {
         if(a.written !== null && b.written !== null) {
@@ -141,6 +151,8 @@ export class SpecificDayPage implements OnInit {
         await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
         if(this.sync.hasInternetAccess) this.sync.uploadLocalChanges() // dont wait for upload
         await this.populateEntries(this.date)
+      } else if(role === "backdrop") {
+        localStorage.removeItem("newEntryTextarea")
       }
     })
     
