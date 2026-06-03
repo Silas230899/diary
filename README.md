@@ -23,6 +23,10 @@ Build on macOS:
 npm run tauri android build
 ```
 
+or
+
+```npm run tauri android build -- -- --target aarch64```
+
 # Signing the apk
 
 Goto
@@ -48,6 +52,7 @@ C:\Users\Silas\AppData\Local\Android\Sdk\build-tools\35.0.0\apksigner.bat sign -
 
 
 New:
+
 ```
 apksigner sign --ks "C:\Users\Silas\.android\debug.keystore" -ks-key-alias androiddebugkey --ks-pass pass:android -key-pass pass:android --out "E:\Programmieren\WebStorm\diary\src-tauri\gen\android\app\build\outputs\apk\universal\release\signed.apk" "E:\Programmieren\WebStorm\diary\src-tauri\gen\android\app\build\outputs\apk\universal\release\app-universal-release-unsigned.apk"
 ```
