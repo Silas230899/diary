@@ -36,7 +36,7 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
-@import 'quill/dist/quill.snow.css';
+@import 'theme/quill.snow';
 
 :root {
   --ion-color-primary: #d70fa5;
@@ -87,3 +87,18 @@ ion-input.has-focus, ion-textarea.has-focus {
   text-align: center;
   text-wrap: balance;
 }
+
+.ql-editor > img {
+  height: clamp(300px, 45vw, 500px);
+  border-radius: 16px;
+  //display: inline-block;
+  width: auto;
+  max-width: none;
+  //margin-right: 8px;
+}
+
+/*
+img[src="loading"] {
+  display: none;
+}
+*/
