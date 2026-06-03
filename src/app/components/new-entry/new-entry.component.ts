@@ -4,8 +4,8 @@ import {
   IonButtons,
   IonContent, IonDatetime, IonDatetimeButton,
   IonHeader, IonIcon, IonItem, IonLabel, IonList,
-  IonModal, IonNote, IonSegment, IonSegmentButton, IonTextarea,
-  IonTitle, IonToggle,
+  IonModal, IonSegment, IonSegmentButton,
+  IonTitle,
   IonToolbar, ModalController, ToastController
 } from "@ionic/angular/standalone";
 import {FormsModule} from "@angular/forms";
@@ -21,8 +21,6 @@ import {
   checkmarkOutline,
   closeOutline,
   camera,
-  cloudDoneOutline,
-  cloudOfflineOutline,
   timeOutline,
   logoWhatsapp
 } from "ionicons/icons";
@@ -58,8 +56,6 @@ import restoreImageDelta from "../../quill/diary-image-delta-restore";
     IonDatetimeButton,
     IonModal,
     IonIcon,
-    IonToggle,
-    IonNote,
     IonLabel,
     IonList,
     IonItem,
@@ -87,7 +83,7 @@ export class NewEntryComponent  implements OnInit {
               private actionSheetCtrl: ActionSheetController,
               private route: ActivatedRoute,
               private toastController: ToastController,) {
-    addIcons({ logoWhatsapp, timeOutline, cloudDoneOutline, cloudOfflineOutline, camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
+    addIcons({ logoWhatsapp, timeOutline, camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
     let currentDate = new Date()
     currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
     this.date = currentDate.toISOString()

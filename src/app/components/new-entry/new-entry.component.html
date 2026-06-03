@@ -82,20 +82,6 @@
                 </ion-segment>
             </ion-item>
         }
-        <ion-item>
-            @if (sync) {
-                <ion-icon class="_8px-margin-inline-end" name="cloud-done-outline" slot="start"></ion-icon>
-            } @else {
-                <ion-icon class="_8px-margin-inline-end" name="cloud-offline-outline" slot="start"></ion-icon>
-            }
-            <ion-toggle [(ngModel)]="sync" justify="space-between">
-                Synchronisieren
-                @if (!sync) {
-                    <br>
-                    <ion-note>Dieser Eintrag wird nur lokal gespeichert</ion-note>
-                }
-            </ion-toggle>
-        </ion-item>
     </ion-list>
 
     <div id="toolbar">
