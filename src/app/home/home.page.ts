@@ -52,10 +52,7 @@ import {NewEntryWithoutEntryIndex} from "../models/new-entry-without-entry-index
 import {SynchronizationService} from "../services/synchronization.service";
 import {EntryViewRecord} from "../models/entry-view-record";
 import {v7} from "uuid";
-import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
 import {Router} from "@angular/router";
-import {ImageDb} from "../models/image-db";
-import {formatWrittenDate} from "../utils/dateStuff";
 import {FormatWrittenDatePipe} from "../pipes/format-written-date-pipe";
 import {CustomDatetimeComponent} from "../components/custom-datetime/custom-datetime.component";
 import {CustomDatetimeValue} from "../components/custom-datetime/custom-datetime-value";
@@ -309,6 +306,10 @@ export class HomePage {
     //await this.navController.navigateRoot(["/specific-day"], { queryParams: { date: date } })
   }
   
+  protected openSettings() {
+  
+  }
+  
   async handleRefresh($event: RefresherCustomEvent) {
     if(!this.sync.hasInternetAccess) {
       const toast = await this.toastController.create({
@@ -336,79 +337,6 @@ export class HomePage {
         console.log("downloaded remote changes without uploading local changes")
       }
     }
-  }
-  
-  async createPopover($event: MouseEvent, entry: EntryViewRecord) {
-    const popover = await this.popoverController.create({
-      component: SpecificDayPopoverComponent,
-      event: $event,
-      reference: "event"
-    })
-    popover.onWillDismiss().then(async e => {
-      const { data, role } = e
-      if(role === "delete") {
-        const toast = await this.toastController.create({
-          message: 'Ganzen Tag löschen ist noch nicht möglich',
-          duration: 2000,
-          position: "bottom",
-        });
-        await toast.present()
-        // TODO delete all entries of day
-        //await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
-        //await this.populateEntries(this.date)
-      } else if(role === "edit") {
-        await this.openEntry(entry.date)
-      } else if(role === "info") {
-        const toast = await this.toastController.create({
-          message: 'Informationen können noch nicht angezeigt werden',
-          duration: 2000,
-          position: "bottom",
-        });
-        await toast.present()
-        console.log(entry.text.length)
-      }
-      /*
-      if(role === "confirm") {
-        await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
-        await this.sync.uploadLocalChanges()
-        //const entryDeletionPromise = this.dbService.deleteEntry(entry.id)
-        //const imageDeletionPromises = entry.images.map(image => this.dbService.deleteImage(image.filename))
-        //await Promise.all([...imageDeletionPromises, entryDeletionPromise])
-        await this.populateEntries(this.date)
-      }
-      */
-    })
-    await popover.present()
-  }
-  
-  protected async clickedEntry(entry: EntryViewRecord) {
-    // loads all images from db by filename
-    const imagesDb: ImageDb[] = await Promise.all(entry.images.map((image) => this.dbService.getDBImage(image.filename)))
-    if(imagesDb.length > 0) console.log("done loading images")
-    
-    const modal = await this.modalCtrl.create({
-      component: NewEntryComponent,
-      componentProps: {
-        text: entry.text,
-        date: entry.date,
-        written: entry.written,
-        customWrittenDate: true,
-        sync: entry.syncStatus !== "keep_local",
-        imagesViews: entry.images,
-        imagesDb: imagesDb
-      }
-    });
-    await modal.present()
-  }
-  
-  protected async entryClicked(date: string) {
-    await this.openEntry(date)
-  }
-  
-  protected readonly formatDatetime = formatWrittenDate;
-  
-  protected openSettings() {
-  
   }
   
   protected async openOnboarding() {
