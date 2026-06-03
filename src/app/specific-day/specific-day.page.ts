@@ -1,10 +1,10 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
   IonBackButton,
   IonButton, IonButtons,
-  IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle,
+  IonCard, IonCardContent, IonCardHeader, IonCardTitle,
   IonContent,
   IonHeader, IonIcon,
   IonTitle,
@@ -22,7 +22,6 @@ import {NewEntryComponent} from "../components/new-entry/new-entry.component";
 import {EntryViewRecord} from "../models/entry-view-record";
 import {NewEntryWithoutEntryIndex} from "../models/new-entry-without-entry-index";
 import {SynchronizationService} from "../services/synchronization.service";
-import {EntryTextComponent} from "../components/entry-text/entry-text.component";
 import {ActivatedRoute} from "@angular/router";
 import {EntryDbRecord} from "../models/entry-db-record";
 import {v7 as uuidv7, v7} from "uuid";
@@ -39,7 +38,7 @@ import restoreImageDelta from "../quill/diary-image-delta-restore";
   templateUrl: './specific-day.page.html',
   styleUrls: ['./specific-day.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonButtons, EntryTextComponent, IonBackButton, FormatWrittenDatePipe, IonCardSubtitle, QuillViewComponent]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonButtons, IonBackButton, FormatWrittenDatePipe, QuillViewComponent]
 })
 export class SpecificDayPage implements OnInit {
 

@@ -1,6 +1,6 @@
-import {Component, computed, Input, OnInit, SimpleChanges, ViewChild} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {NgClass} from "@angular/common";
-import {IonCardHeader, IonCardSubtitle, IonCardTitle, IonNote} from "@ionic/angular/standalone";
+import {IonCardHeader, IonCardSubtitle, IonCardTitle} from "@ionic/angular/standalone";
 import {Router} from "@angular/router";
 
 export interface CommitDay {
@@ -29,7 +29,6 @@ interface MonthMatrix {
     NgClass,
     IonCardHeader,
     IonCardTitle,
-    IonNote,
     IonCardSubtitle
   ]
 })

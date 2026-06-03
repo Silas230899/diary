@@ -5,7 +5,7 @@ import {
   IonButton,
   IonContent,
   IonHeader,
-  IonInput, IonTextarea,
+  IonInput,
   IonTitle,
   IonToolbar,
   NavController
@@ -21,7 +21,7 @@ import {checkStatus} from "@tauri-apps/plugin-biometric";
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, FormsModule, IonInput, IonButton, IonTextarea]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, FormsModule, IonInput, IonButton]
 })
 export class LoginPage implements OnInit {
   

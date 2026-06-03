@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
-  IonBackButton,
   IonButton,
   IonContent,
   IonHeader,
@@ -27,7 +26,7 @@ import {ToastController} from "@ionic/angular";
   templateUrl: './onboarding.page.html',
   styleUrls: ['./onboarding.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, FormsModule, IonInput, IonButton, IonNote, IonBackButton, NavBarComponent, IonProgressBar]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, FormsModule, IonInput, IonButton, IonNote, NavBarComponent, IonProgressBar]
 })
 export class OnboardingPage implements OnInit {
   

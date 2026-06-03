@@ -51,7 +51,6 @@ import {NavBarComponent} from "../components/nav-bar/nav-bar.component";
 import {NewEntryWithoutEntryIndex} from "../models/new-entry-without-entry-index";
 import {SynchronizationService} from "../services/synchronization.service";
 import {EntryViewRecord} from "../models/entry-view-record";
-import {EntryTextComponent} from "../components/entry-text/entry-text.component";
 import {v7} from "uuid";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
 import {Router} from "@angular/router";
@@ -70,7 +69,7 @@ type Day = EntryViewRecord[]
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, EntryTextComponent, IonButtons, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, FormatWrittenDatePipe, CustomDatetimeComponent, IonPopover, IonList, IonItem, IonLabel, QuillViewComponent],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, IonButtons, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, FormatWrittenDatePipe, CustomDatetimeComponent, IonPopover, IonList, IonItem, IonLabel, QuillViewComponent],
 })
 export class HomePage {
   
