@@ -16,9 +16,6 @@ export class DatabaseService {
 
   private db: Database | null = null;
   
-  private entries = new Map<string, EntryViewRecord[]>
-  private images = new Map<string, string>
-  
   constructor(private crypto: CryptoService) {}
   
   async init(): Promise<void> {
@@ -60,8 +57,6 @@ export class DatabaseService {
     const file = await create("images/" + image.filename, { baseDir: BaseDirectory.AppData })
     const fileArrayBuffer = await image.imageData.arrayBuffer()
     const encryptedFile = await this.crypto.encryptArrayBufferToArrayBuffer(fileArrayBuffer)
-    const localImageUrl = URL.createObjectURL(image.imageData)
-    this.images.set(image.filename, localImageUrl)
     await file.write(encryptedFile)
     await file.close()
   }
@@ -74,13 +69,8 @@ export class DatabaseService {
   }
   
   async getImageObjectURL(name: string) {
-    if(!this.images.has(name)) {
-      const encryptedImageFile = await readFile("images/" + name, { baseDir: BaseDirectory.AppData })
-      const decryptedImageFile = await this.crypto.decryptUint8ArrayToArrayBuffer(encryptedImageFile)
-      const localImageUrl = URL.createObjectURL(new Blob([decryptedImageFile]))
-      this.images.set(name, localImageUrl)
-    }
-    return this.images.get(name)!
+    const decryptedImageFile = await this.getDBImage(name)
+    return URL.createObjectURL(decryptedImageFile.imageData)
   }
   
   async getDBImage(name: string) {
@@ -91,7 +81,6 @@ export class DatabaseService {
   
   async getRawDBImage(name: string) {
     const encryptedImageFile = await readFile("images/" + name, { baseDir: BaseDirectory.AppData })
-    //const decryptedImageFile = await this.crypto.decryptUint8ArrayToArrayBuffer(encryptedImageFile)
     return new ImageDb(name, new Blob([encryptedImageFile]))
   }
   
@@ -107,7 +96,6 @@ export class DatabaseService {
       VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8, $9)`,
       [entry.uuidv7, entry.date, entry.written, entry.writtenHasTime, entry.entryIndex, encryptedText, referencedImagesString, entry.syncStatus, entry.driveFileId]
     );
-    this.entries.delete(entry.date) // TODO verbessern
   }
   
   async insertRawEntry(entry: EntryDbRecord) {
@@ -127,14 +115,11 @@ export class DatabaseService {
   
   async deleteEntry(uuidv7: string) {
     await this.database.execute("DELETE FROM entry WHERE uuidv7 = $1", [uuidv7])
-    this.entries.clear() // muss verbessert werden
   }
   
   async deleteEntryByDriveFileId(driveFileId: string) {
     const res = await this.database.execute("DELETE FROM entry WHERE driveFileId = $1", [driveFileId])
-    const affectedRows = res.rowsAffected
-    if(affectedRows > 0) this.entries.clear() // muss verbessert werden
-    return affectedRows
+    return res.rowsAffected
   }
   
   async getMaxEntryIndexForDate(date: string) {
@@ -151,11 +136,6 @@ export class DatabaseService {
     const dateAsString = date.month.toString().padStart(2, "0") + "-" + date.day.toString().padStart(2, "0")
     const res: any[] = await this.database.select("SELECT * FROM entry WHERE strftime('%m-%d', date) = $1 AND syncStatus != 'pending_delete'", [dateAsString])
     return await this.transformEntryDatabaseResultsToEntryViewRecords(res)
-  }
-  
-  private getFileExtension(filename: string): string | null {
-    const index = filename.lastIndexOf(".");
-    return index !== -1 ? filename.slice(index + 1) : null;
   }
   
   async getAllUnsyncedSyncEntriesRaw() {
