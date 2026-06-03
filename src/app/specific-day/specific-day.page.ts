@@ -150,7 +150,7 @@ export class SpecificDayPage implements OnInit {
         await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
         if(this.sync.hasInternetAccess) this.sync.uploadLocalChanges() // dont wait for upload
         await this.populateEntries(this.date)
-      } else if(role === "backdrop") {
+      } else if(role === "backdrop" || role === "dismiss") {
         localStorage.removeItem("newEntryTextarea")
       }
     })
