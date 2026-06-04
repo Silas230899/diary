@@ -39,6 +39,10 @@ import {ContentChange, QuillEditorComponent} from "ngx-quill";
 import restoreImageDelta from "../../quill/diary-image-delta-restore";
 import Quill from "quill";
 import {WhatsAppBubbleValue} from "../../quill/whatsapp-message-blot";
+import {
+  WhatsAppMessageModalComponent,
+  WhatsAppMessageModalResult
+} from "./whatsapp-message-modal.component";
 
 @Component({
   selector: 'app-new-entry',
@@ -319,23 +323,59 @@ export class NewEntryComponent  implements OnInit {
     const quill = this.editor.quillEditor
     const range = quill.getSelection(true);
     const index = range ? range.index : quill.getLength();
-    
-    const selectedText = quill.getText(range.index, range.length).trimEnd();
-    
-    quill.deleteText(range.index, range.length, 'user');
-    
-    quill.insertEmbed(
-      index,
-      'whatsappBubble',
-      {
+
+    if(range && range.length > 0) {
+      const selectedText = quill.getText(range.index, range.length).trimEnd();
+      if(!selectedText) {
+        void this.insertWhatsAppMessageFromModal(index)
+        return
+      }
+
+      quill.deleteText(range.index, range.length, 'user');
+      this.insertWhatsAppBubble(index, {
         text: selectedText,
-        direction: 'incoming',
         senderName: 'Max Mustermann',
         time: '14:32'
+      });
+      return
+    }
+
+    void this.insertWhatsAppMessageFromModal(index)
+  }
+
+  private async insertWhatsAppMessageFromModal(index: number) {
+    const message = await this.presentWhatsAppMessageOptions()
+    if(!message) return
+
+    this.insertWhatsAppBubble(index, message)
+  }
+
+  private insertWhatsAppBubble(messageIndex: number, message: WhatsAppMessageModalResult) {
+    this.editor.quillEditor.insertEmbed(
+      messageIndex,
+      'whatsappBubble',
+      {
+        text: message.text,
+        direction: 'incoming',
+        senderName: message.senderName,
+        time: message.time
       } satisfies WhatsAppBubbleValue,
       'user',
     );
-    
-    quill.setSelection(index + 1, 0, 'silent');
+
+    this.editor.quillEditor.setSelection(messageIndex + 1, 0, 'silent');
+  }
+
+  private async presentWhatsAppMessageOptions(): Promise<WhatsAppMessageModalResult | null> {
+    const modal = await this.modalCtrl.create({
+      component: WhatsAppMessageModalComponent
+    })
+
+    await modal.present()
+    const { data, role } = await modal.onWillDismiss<WhatsAppMessageModalResult>()
+
+    if(role !== "confirm" || !data) return null
+
+    return data
   }
 }

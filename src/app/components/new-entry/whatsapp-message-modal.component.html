@@ -1,0 +1,48 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-button (click)="cancel()">
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>Chat-Blase</ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="confirm()" [strong]="true" [disabled]="!text.trim()">
+                <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+    <ion-textarea
+            label="Nachricht"
+            placeholder="Text eingeben"
+            autoGrow="true"
+            rows="5"
+            labelPlacement="floating"
+            fill="outline"
+            out
+            [(ngModel)]="text">
+    </ion-textarea>
+
+    <br>
+
+    <ion-input
+            label="Sendername"
+            labelPlacement="floating"
+            fill="outline"
+            placeholder="Optional"
+            [(ngModel)]="senderName">
+    </ion-input>
+
+    <br>
+
+    <ion-input
+            label="Uhrzeit"
+            labelPlacement="floating"
+            fill="outline"
+            placeholder="Optional"
+            [(ngModel)]="time">
+    </ion-input>
+</ion-content>
