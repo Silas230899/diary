@@ -90,7 +90,7 @@
             <ion-label>Bild</ion-label>
             <ion-icon slot="end" icon="camera"></ion-icon>
         </ion-button>
-        <ion-button size="default" disabled>
+        <ion-button (click)="insertWhatsAppMessage()" size="default">
             <ion-icon name="add" slot="start"></ion-icon>
             <ion-label>Chat</ion-label>
             <ion-icon slot="end" icon="logo-whatsapp"></ion-icon>
@@ -103,7 +103,7 @@
             (onEditorCreated)="editorCreated()"
             (onContentChanged)="contentChanged($event)"
             style="width: 100%"
-            [formats]="['diaryImage']"
+            [formats]="['diaryImage', 'whatsappBubble']"
             [modules]="modules3"
             theme="snow"
             #quill>

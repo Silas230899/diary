@@ -38,6 +38,7 @@ import {
 import {ContentChange, QuillEditorComponent} from "ngx-quill";
 import restoreImageDelta from "../../quill/diary-image-delta-restore";
 import Quill from "quill";
+import {WhatsAppBubbleValue} from "../../quill/whatsapp-message-blot";
 
 @Component({
   selector: 'app-new-entry',
@@ -77,6 +78,23 @@ export class NewEntryComponent  implements OnInit {
   @ViewChild('quill') editor!: QuillEditorComponent
 
   private readonly imageReducer = imageBlobReduce();
+  
+  clickHandler = () => { this.openFileDialog() }
+  
+  modules = {
+    toolbar: {
+      container: [
+        ['bold', 'image'] // toggled buttons
+      ],
+      handlers: {
+        image: this.clickHandler,
+      }
+    }
+  }
+  
+  modules3 = {
+    toolbar: '#toolbar'
+  }
 
   constructor(private modalCtrl: ModalController,
               private toastController: ToastController,) {
@@ -297,46 +315,27 @@ export class NewEntryComponent  implements OnInit {
     localStorage.setItem("newEntryTextarea", JSON.stringify($event.content))
   }
   
-  modules2 = {
-    toolbar: [
-      ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-      ['blockquote', 'code-block'],
-      
-      [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
-      [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
-      [{ 'direction': 'rtl' }],                         // text direction
-      
-      [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      
-      [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
-      [{ 'font': [] }],
-      [{ 'align': [] }],
-      
-      ['clean'],                                         // remove formatting button
-      
-      ['link', 'image']                         // link and image, video
-    ]
-  }
-  
-  clickHandler = () => {
-    this.openFileDialog()
-  }
-  
-  modules = {
-    toolbar: {
-      container: [
-        ['bold', 'image'] // toggled buttons
-      ],
-      handlers: {
-        image: this.clickHandler,
-      }
-    }
-  }
-  
-  modules3 = {
-    toolbar: '#toolbar'
+  protected insertWhatsAppMessage() {
+    const quill = this.editor.quillEditor
+    const range = quill.getSelection(true);
+    const index = range ? range.index : quill.getLength();
+    
+    const selectedText = quill.getText(range.index, range.length).trimEnd();
+    
+    quill.deleteText(range.index, range.length, 'user');
+    
+    quill.insertEmbed(
+      index,
+      'whatsappBubble',
+      {
+        text: selectedText,
+        direction: 'incoming',
+        senderName: 'Max Mustermann',
+        time: '14:32'
+      } satisfies WhatsAppBubbleValue,
+      'user',
+    );
+    
+    quill.setSelection(index + 1, 0, 'silent');
   }
 }

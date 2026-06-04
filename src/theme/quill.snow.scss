@@ -1148,6 +1148,10 @@ quill-editor .ql-editor.ql-blank::before {
   font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
   padding-left: 16px;
   padding-right: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: white;
 }
 
 .ql-toolbar.ql-snow .ql-formats {
@@ -1268,5 +1272,94 @@ quill-editor .ql-container.ql-snow {
   border-radius: 4px;
   transition: border-color 150ms ease;
 }
+
+
+
+
+
+.ql-editor .ql-whatsapp-bubble {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 75%;
+  margin: 6px 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+  user-select: all;
+  cursor: default;
+}
+
+.ql-editor .ql-whatsapp-bubble--incoming {
+  margin-right: auto;
+  margin-left: 0;
+  background: #ffffff;
+  color: #111b21;
+  border-top-left-radius: 2px;
+}
+
+.ql-editor .ql-whatsapp-bubble--outgoing {
+  margin-right: 0;
+  margin-left: auto;
+  background: #d9fdd3;
+  color: #111b21;
+  border-top-right-radius: 2px;
+}
+
+.ql-editor .ql-whatsapp-bubble__text {
+  white-space: pre-wrap;
+}
+
+.ql-editor .ql-whatsapp-bubble--incoming::before,
+.ql-editor .ql-whatsapp-bubble--outgoing::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.ql-editor .ql-whatsapp-bubble--incoming::before {
+  left: -8px;
+  border-width: 0 8px 8px 0;
+  border-color: transparent #ffffff transparent transparent;
+}
+
+.ql-editor .ql-whatsapp-bubble--outgoing::before {
+  right: -8px;
+  border-width: 0 0 8px 8px;
+  border-color: transparent transparent transparent #d9fdd3;
+}
+
+.ql-editor .ql-whatsapp-bubble__sender {
+  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f7aec;
+}
+
+.ql-editor .ql-whatsapp-bubble__text {
+  white-space: pre-wrap;
+}
+
+.ql-editor .ql-whatsapp-bubble__meta-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-height: 14px;
+  margin-top: 4px;
+}
+
+.ql-editor .ql-whatsapp-bubble__time {
+  flex: 0 0 auto;
+  font-size: 11px;
+  line-height: 1;
+  color: #667781;
+}
+
 
 /*# sourceMappingURL=quill.snow.css.map*/
