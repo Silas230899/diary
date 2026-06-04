@@ -29,9 +29,7 @@ import { v7 as uuidv7 } from 'uuid';
 import {NewEntryWithoutEntryIndex} from "../../models/new-entry-without-entry-index";
 import {ImageView} from "../../models/image-view";
 import {ImageDb} from "../../models/image-db";
-import {ActionSheetController} from "@ionic/angular";
 import {SyncStatus} from "../../models/syncStatusTypes";
-import {ActivatedRoute} from "@angular/router";
 import {
   ImageMetadata,
   ImageResizeOptions,
@@ -39,6 +37,7 @@ import {
 } from "./image-resize-options-modal.component";
 import {ContentChange, QuillEditorComponent} from "ngx-quill";
 import restoreImageDelta from "../../quill/diary-image-delta-restore";
+import Quill from "quill";
 
 @Component({
   selector: 'app-new-entry',
@@ -80,8 +79,6 @@ export class NewEntryComponent  implements OnInit {
   private readonly imageReducer = imageBlobReduce();
 
   constructor(private modalCtrl: ModalController,
-              private actionSheetCtrl: ActionSheetController,
-              private route: ActivatedRoute,
               private toastController: ToastController,) {
     addIcons({ logoWhatsapp, timeOutline, camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
     let currentDate = new Date()
@@ -136,37 +133,8 @@ export class NewEntryComponent  implements OnInit {
       this.imagesDb,
       syncStatus)
     
-    //const unusedImages = this.imagesViews.filter(image => !this.text.includes(`![image](${image.filename})`))
-    const unusedImages: ImageView[] = []
-    if(unusedImages.length > 0) {
-      const actionSheet = await this.actionSheetCtrl.create({
-        header: 'Du hast nicht alle Bilder benutzt. Trotzdem einfügen?',
-        buttons: [
-          {
-            text: 'Ja',
-            role: 'confirm',
-          },
-          {
-            text: 'Nein',
-            role: 'cancel',
-          },
-        ],
-      });
-      
-      await actionSheet.present();
-      
-      const { role } = await actionSheet.onWillDismiss();
-      
-      if(role === "confirm") {
-        const unusedImageFilenames = unusedImages.map(image => image.filename);
-        
-        newEntry.images = this.imagesDb.filter(image => !unusedImageFilenames.includes(image.filename))
-        
-        await this.modalCtrl.dismiss(newEntry, 'confirm');
-      }
-    } else {
-      await this.modalCtrl.dismiss(newEntry, 'confirm');
-    }
+    await this.modalCtrl.dismiss(newEntry, 'confirm');
+    
     localStorage.removeItem("newEntryTextarea")
   }
   
@@ -206,11 +174,33 @@ export class NewEntryComponent  implements OnInit {
       console.log(imageView.localImageUrl)
       await this.presentImageLoadedToast(downscaledWebpBlob.size)
       
+      /*
       const index = this.editor.quillEditor.getSelection()?.index
       const delta = this.editor.quillEditor.insertEmbed(index ? index : 0, 'diaryImage', {
         id: imageView.filename,
         src: imageView.localImageUrl
       })
+      */
+      const range = this.editor.quillEditor.getSelection(true);
+      let index = range ? range.index : this.editor.quillEditor.getLength();
+      
+      const [line, offset] = this.editor.quillEditor.getLine(index);
+      
+      // Wenn mitten in Text, erst neue Zeile erzeugen.
+      if (line && offset > 0) {
+        this.editor.quillEditor.insertText(index, "\n", Quill.sources.USER);
+        index += 1;
+      }
+      
+      const value = {
+        id: imageView.filename,
+        src: imageView.localImageUrl
+      }
+      
+      this.editor.quillEditor.insertEmbed(index, "diaryImage", value, Quill.sources.USER);
+      
+      // Cursor hinter das Bild.
+      this.editor.quillEditor.setSelection(index + 1, 0, Quill.sources.SILENT);
     } finally {
       input.value = ""
     }

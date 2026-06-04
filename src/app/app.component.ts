@@ -4,6 +4,7 @@ import {IonApp, IonRouterOutlet, Platform} from "@ionic/angular/standalone";
 import {SynchronizationService} from "./services/synchronization.service";
 import Quill from "quill";
 import DiaryImageBlot from "./quill/diary-image-blot";
+import DiaryImageRowBlot from "./quill/diary-image-row-blot";
 
 @Component({
   selector: 'app-root',
@@ -14,7 +15,10 @@ import DiaryImageBlot from "./quill/diary-image-blot";
 })
 export class AppComponent {
   constructor(private sync: SynchronizationService) {
+    Quill.register(DiaryImageRowBlot);
     Quill.register(DiaryImageBlot);
+    DiaryImageRowBlot["allowedChildren"] = [DiaryImageBlot];
+    
     const Image = Quill.import('formats/image');
     // @ts-ignore
     Image.sanitize = function(url: string) {

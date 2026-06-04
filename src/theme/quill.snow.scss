@@ -50,6 +50,45 @@
   word-wrap: break-word
 }
 
+
+
+.ql-editor {
+  overflow-x: hidden;
+}
+
+/* Container für zusammenhängende Bilder */
+.ql-editor .diary-image-row {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  white-space: nowrap;
+
+  margin: 8px 0;
+  padding-bottom: 4px;
+}
+
+/* Einzelne Bilder */
+.ql-editor .diary-image-row > img.diary-image {
+  height: clamp(300px, 45vw, 500px);
+  width: auto;
+  max-width: none;
+
+  display: inline-block;
+  vertical-align: top;
+
+  border-radius: 16px;
+  margin-right: 8px;
+
+  border: 1px solid var(--ion-color-primary);
+}
+
+.ql-editor .diary-image-row > img.diary-image:last-child {
+  margin-right: 0;
+}
+
+
+
 quill-view .ql-editor {
   padding: 0;
 }
