@@ -91,7 +91,6 @@ export class HomePage {
     this.date = { month: currentDate.getUTCMonth() + 1, day: currentDate.getUTCDate() }
     
     this.populateEntries()
-    
     /**
      * normally it takes < 150ms for the initialDownloadSync promise to fulfill,
      * so no modal is shown if there are no updates
@@ -126,7 +125,6 @@ export class HomePage {
   async populateEntries() {
     this.entriesLoading = true
     this.hasEntriesForThisYear = false
-    const t = Date.now();
     let entries: EntryViewRecord[] = await this.dbService.getEntriesByDate(this.date)
     for(const entry of entries) {
       if(entry.text.startsWith("{\"ops\":[")) {
@@ -136,7 +134,6 @@ export class HomePage {
         } catch (SyntaxError) {} // keep as is
       }
     }
-    console.log(Date.now()-t)
     
     const thisYear = new Date().getUTCFullYear()
     
@@ -342,4 +339,5 @@ export class HomePage {
   protected async openOnboarding() {
     await this.navController.navigateRoot(`/onboarding`)
   }
+  
 }
