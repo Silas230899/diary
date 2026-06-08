@@ -7,6 +7,7 @@ function isSameDay(date1: Date, date2: Date) {
 }
 
 export function formatWrittenDate(date: string, written: string | null, writtenHasTime: boolean | null) {
+  const nbsp = '\u00A0'
   if(written !== null) {
     if(isSameDay(new Date(date), new Date(written))) {
       if(writtenHasTime !== null && writtenHasTime) {
@@ -15,9 +16,9 @@ export function formatWrittenDate(date: string, written: string | null, writtenH
           minute: "2-digit",
           timeZone: "UTC",
         }
-        return "Heute (" + new Date(written).toLocaleTimeString(undefined, timeOptions) + " Uhr)"
+        return `Heute (${new Date(written).toLocaleTimeString(undefined, timeOptions).replaceAll(" ", nbsp)}${nbsp}Uhr)`
       } else {
-        return "Heute (unbekannte Uhrzeit)"
+        return `Heute (unbekannte${nbsp}Uhrzeit)`
       }
     } else {
       if(writtenHasTime !== null && writtenHasTime) {
@@ -32,10 +33,10 @@ export function formatWrittenDate(date: string, written: string | null, writtenH
           minute: "2-digit",
           timeZone: "UTC",
         }
-        const dateString = new Date(written).toLocaleDateString(undefined, dateOptions)
+        const dateString = new Date(written).toLocaleDateString(undefined, dateOptions).replaceAll(" ", nbsp)
         const timeString = new Date(written).toLocaleTimeString(undefined, timeOptions)
         
-        return `${dateString} (${timeString} Uhr)`
+        return `${dateString} (${timeString}${nbsp}Uhr)`
       } else {
         const options: Intl.DateTimeFormatOptions = {
           day: "2-digit",
@@ -43,7 +44,7 @@ export function formatWrittenDate(date: string, written: string | null, writtenH
           year: "numeric",
           timeZone: "UTC",
         }
-        return new Date(written).toLocaleDateString(undefined, options) + " (unbekannte Uhrzeit)"
+        return `${new Date(written).toLocaleDateString(undefined, options).replaceAll(" ", nbsp)} (unbekannte${nbsp}Uhrzeit)`
       }
     }
   } else {
