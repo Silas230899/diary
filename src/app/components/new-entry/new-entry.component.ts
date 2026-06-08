@@ -116,7 +116,7 @@ export class NewEntryComponent  implements OnInit {
   }
   
   protected canSave() {
-    if(this.editor && this.editor.quillEditor) return this.editor.quillEditor.getText().length > 1
+    if(this.editor && this.editor.quillEditor) return this.editor.quillEditor.getText().length > 0
     else return false
   }
   
@@ -356,7 +356,7 @@ export class NewEntryComponent  implements OnInit {
       'whatsappBubble',
       {
         text: message.text,
-        direction: 'incoming',
+        direction: 'outgoing',
         senderName: message.senderName,
         time: message.time
       } satisfies WhatsAppBubbleValue,
