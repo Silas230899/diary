@@ -16,6 +16,9 @@ export class DatabaseService {
 
   private db: Database | null = null;
   
+  specificDateCache: Map<string, any[]> = new Map()
+  dateCache: Map<string, any[]> = new Map()
+  
   constructor(private crypto: CryptoService) {}
   
   async init(): Promise<void> {
@@ -47,6 +50,11 @@ export class DatabaseService {
       throw new Error('DatabaseService not initialized');
     }
     return this.db;
+  }
+  
+  private invalidateCaches() {
+    this.specificDateCache = new Map()
+    this.dateCache = new Map()
   }
   
   async imageFileExists(filename: string) {
@@ -96,6 +104,7 @@ export class DatabaseService {
       VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8, $9)`,
       [entry.uuidv7, entry.date, entry.written, entry.writtenHasTime, entry.entryIndex, encryptedText, referencedImagesString, entry.syncStatus, entry.driveFileId]
     );
+    this.invalidateCaches()
   }
   
   async insertRawEntry(entry: EntryDbRecord) {
@@ -111,14 +120,17 @@ export class DatabaseService {
       console.error(e)
       throw e
     }
+    this.invalidateCaches()
   }
   
   async deleteEntry(uuidv7: string) {
     await this.database.execute("DELETE FROM entry WHERE uuidv7 = $1", [uuidv7])
+    this.invalidateCaches()
   }
   
   async deleteEntryByDriveFileId(driveFileId: string) {
     const res = await this.database.execute("DELETE FROM entry WHERE driveFileId = $1", [driveFileId])
+    this.invalidateCaches()
     return res.rowsAffected
   }
   
@@ -134,8 +146,28 @@ export class DatabaseService {
    */
   async getEntriesByDate(date: CustomDatetimeValue) {
     const dateAsString = date.month.toString().padStart(2, "0") + "-" + date.day.toString().padStart(2, "0")
-    const res: any[] = await this.database.select("SELECT * FROM entry WHERE strftime('%m-%d', date) = $1 AND syncStatus != 'pending_delete'", [dateAsString])
+    let res: any[]
+    const cacheResult = this.dateCache.get(dateAsString)
+    if(cacheResult !== undefined) {
+      res = cacheResult
+    } else {
+      res = await this.queryDate(dateAsString)
+      this.dateCache.set(dateAsString, res)
+    }
+    //const res: any[] = await this.database.select("SELECT * FROM entry WHERE strftime('%m-%d', date) = $1 AND syncStatus != 'pending_delete'", [dateAsString])
     return await this.transformEntryDatabaseResultsToEntryViewRecords(res)
+  }
+  
+  async preloadDate(date: CustomDatetimeValue) {
+    const dateAsString = date.month.toString().padStart(2, "0") + "-" + date.day.toString().padStart(2, "0")
+    if(!this.dateCache.has(dateAsString)) {
+      const res: any[] = await this.queryDate(dateAsString)
+      this.dateCache.set(dateAsString, res)
+    }
+  }
+  
+  private queryDate(date: string) {
+    return this.database.select("SELECT * FROM entry WHERE strftime('%m-%d', date) = $1 AND syncStatus != 'pending_delete'", [date]) as Promise<any[]>
   }
   
   async getAllUnsyncedSyncEntriesRaw() {
@@ -158,10 +190,12 @@ export class DatabaseService {
   
   async setDriveFileId(uuidv7: string, driveFileId: string) {
     await this.database.select("UPDATE entry SET driveFileId = $1 WHERE uuidv7 = $2", [driveFileId, uuidv7])
+    this.invalidateCaches()
   }
   
   async setSyncStatus(uuidv7: string, syncStatus: SyncStatus) {
     await this.database.select("UPDATE entry SET syncStatus = $1 WHERE uuidv7 = $2", [syncStatus, uuidv7])
+    this.invalidateCaches()
   }
   
   async entryExistsWithDriveFileId(driveFileId: string) {
@@ -255,15 +289,25 @@ export class DatabaseService {
    * does not return entries that are marked as pending_delete
    */
   async getEntriesBySpecificDate(date: string) {
-    /*
-    if(!this.entries.has(date)) {
-      
-      this.entries.set(date, entries)
-    } else console.log("entry cash hit")
-    return this.entries.get(date)!
-    */
-    const res: any[] = await this.database.select("SELECT * FROM entry WHERE date = date($1) AND syncStatus != 'pending_delete'", [date])
+    let res: any[]
+    if(this.specificDateCache.has(date)) {
+      res = this.specificDateCache.get(date)!
+    } else {
+      res = await this.querySpecificDay(date)
+      this.specificDateCache.set(date, res)
+    }
     return await this.transformEntryDatabaseResultsToEntryViewRecords(res)
+  }
+  
+  async preloadSpecificDate(date: string) {
+    if(!this.specificDateCache.has(date)) {
+      const res: any[] = await this.querySpecificDay(date)
+      this.specificDateCache.set(date, res)
+    }
+  }
+  
+  private querySpecificDay(date: string) {
+    return this.database.select("SELECT * FROM entry WHERE date = date($1) AND syncStatus != 'pending_delete'", [date]) as Promise<any[]>
   }
   
   async getEntryByUuid(uuid: string) {

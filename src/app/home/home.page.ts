@@ -88,6 +88,8 @@ export class HomePage {
     this.date = { month: currentDate.getUTCMonth() + 1, day: currentDate.getUTCDate() }
     
     this.populateEntries()
+    this.preloadTomorrow()
+    this.preloadYesterday()
     /**
      * normally it takes < 150ms for the initialDownloadSync promise to fulfill,
      * so no modal is shown if there are no updates
@@ -271,14 +273,26 @@ export class HomePage {
     return {month: newMonth, day: newDay};
   }
   
+  async preloadTomorrow() {
+    const tomorrow = this.navigateYearlessDate(1);
+    await this.dbService.preloadDate(tomorrow)
+  }
+  
+  async preloadYesterday() {
+    const yesterday = this.navigateYearlessDate(-1);
+    await this.dbService.preloadDate(yesterday)
+  }
+  
   async gotoYesterday() {
     this.date = this.navigateYearlessDate(-1);
     await this.populateEntries();
+    this.preloadYesterday()
   }
   
   async gotoTomorrow() {
     this.date = this.navigateYearlessDate(1);
     await this.populateEntries();
+    this.preloadTomorrow()
   }
   
   getYesterdate() {

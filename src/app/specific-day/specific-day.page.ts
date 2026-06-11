@@ -66,6 +66,8 @@ export class SpecificDayPage implements OnInit {
     }
 
     this.populateEntries(this.date)
+    this.preloadTomorrow()
+    this.preloadYesterday()
   }
 
   async populateEntries(date: string) {
@@ -335,12 +337,23 @@ export class SpecificDayPage implements OnInit {
     const allPromises = [...imagePromises, entryPromise]
     await Promise.all(allPromises)
   }
+  
+  async preloadTomorrow() {
+    const yesterday = new Date(new Date(this.date).getTime() + 24*60*60*1000)
+    await this.dbService.preloadSpecificDate(yesterday.toISOString())
+  }
+  
+  async preloadYesterday() {
+    const yesterday = new Date(new Date(this.date).getTime() - 24*60*60*1000)
+    await this.dbService.preloadSpecificDate(yesterday.toISOString())
+  }
 
   async gotoYesterday() {
     const yesterday = new Date(new Date(this.date).getTime() - 24*60*60*1000)
     //yesterday.setUTCHours(0, 0, 0, 0)
     this.date = yesterday.toISOString()
     await this.populateEntries(this.date)
+    this.preloadYesterday()
   }
 
   async gotoTomorrow() {
@@ -348,6 +361,7 @@ export class SpecificDayPage implements OnInit {
     //yesterday.setUTCHours(0, 0, 0, 0)
     this.date = yesterday.toISOString()
     await this.populateEntries(this.date)
+    this.preloadTomorrow()
   }
 
   getYesterdate() {

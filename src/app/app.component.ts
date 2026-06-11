@@ -6,6 +6,7 @@ import Quill from "quill";
 import DiaryImageBlot from "./quill/diary-image-blot";
 import DiaryImageRowBlot from "./quill/diary-image-row-blot";
 import {WhatsAppBubbleBlot} from "./quill/whatsapp-message-blot";
+import {DatabaseService} from "./services/database.service";
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,12 @@ import {WhatsAppBubbleBlot} from "./quill/whatsapp-message-blot";
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  constructor(private sync: SynchronizationService) {
+  constructor(private sync: SynchronizationService, private db: DatabaseService) {
+    let currentDate = new Date();
+    currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
+    const date = { month: currentDate.getUTCMonth() + 1, day: currentDate.getUTCDate() }
+    db.preloadDate(date)
+    
     Quill.register(DiaryImageRowBlot);
     Quill.register(DiaryImageBlot);
     DiaryImageRowBlot["allowedChildren"] = [DiaryImageBlot];
