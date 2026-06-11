@@ -5,8 +5,8 @@ import {
   IonBackButton,
   IonButton, IonButtons,
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonContent,
-  IonHeader, IonIcon,
+  IonContent, IonDatetime, IonDatetimeButton,
+  IonHeader, IonIcon, IonModal,
   IonTitle,
   IonToolbar, ModalController,
   NavController, PopoverController
@@ -38,7 +38,7 @@ import restoreImageDelta from "../quill/diary-image-delta-restore";
   templateUrl: './specific-day.page.html',
   styleUrls: ['./specific-day.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonButtons, IonBackButton, FormatWrittenDatePipe, QuillViewComponent]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonButtons, IonBackButton, FormatWrittenDatePipe, QuillViewComponent, IonDatetimeButton, IonModal, IonDatetime]
 })
 export class SpecificDayPage implements OnInit {
 

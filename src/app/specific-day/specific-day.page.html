@@ -4,7 +4,7 @@
             <ion-back-button></ion-back-button>
         </ion-buttons>
         <ion-title>
-            {{formatToday()}}
+            Bestimmter Tag
         </ion-title>
         <ion-buttons slot="end">
             <ion-button>
@@ -12,7 +12,6 @@
             </ion-button>
         </ion-buttons>
     </ion-toolbar>
-    <!--
     <ion-toolbar color="primary">
         <ion-buttons slot="start">
             <ion-button (click)="gotoYesterday()">
@@ -31,7 +30,8 @@
                             date: {
                               month: 'long',
                               day: '2-digit',
-                              year: 'numeric'
+                              year: 'numeric',
+                              weekday: 'long'
                             }
                           }"
                               [(ngModel)]="date"
@@ -46,11 +46,7 @@
                 <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
             </ion-button>
         </ion-buttons>
-        @if (entriesLoading) {
-            <ion-progress-bar color="light"></ion-progress-bar>
-        }
     </ion-toolbar>
-    -->
 </ion-header>
 
 <ion-content>
