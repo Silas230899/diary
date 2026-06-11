@@ -25,9 +25,6 @@
                 <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
             </ion-button>
         </ion-buttons>
-        @if (entriesLoading) {
-            <ion-progress-bar color="light"></ion-progress-bar>
-        }
     </ion-toolbar>
 </ion-header>
 
@@ -83,62 +80,60 @@
         <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
 
-    @if (!entriesLoading) {
-        @for (yearWithDay of entries; track $index) {
-            <ion-card-header style="padding-bottom: 4px;">
-                @if (yearWithDay.day.length > 0) {
-                    <ion-card-title color="dark">
-                        {{formatDate2(yearWithDay.year)}}
-                        <ion-button (click)="openEntry(yearWithDay.day[0].date)" color="medium" fill="clear" style="position: absolute; right: 0; top: -12px; z-index: 9999;">
-                            <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
-                        </ion-button>
-                    </ion-card-title>
-                } @else {
-                    <ion-card-title color="medium">{{formatDate2(yearWithDay.year)}}</ion-card-title>
-                }
-            </ion-card-header>
+    @for (yearWithDay of entries; track $index) {
+        <ion-card-header style="padding-bottom: 4px;">
             @if (yearWithDay.day.length > 0) {
-                <ion-card>
-                    <ion-card-content>
-                        @for (entry of yearWithDay.day; track entry.uuidv7) {
-                            <!--
-                            @if (entry.syncStatus === "keep_local") {
-                                <ion-icon class="cloudIndicator" [class.firstCloudIndicator]="$first" name="cloud-offline-outline"></ion-icon>
-                            } @else if (entry.syncStatus === "pending_upload" && this.sync.currentlyUploading) {
-                                <ion-spinner name="crescent" class="cloudIndicator" [class.firstCloudIndicator]="$first"></ion-spinner>
-                                <!x--<ion-icon class="cloudIndicator" [class.firstCloudIndicator]="$first" name="cloud-upload-outline"></ion-icon>-x->
-                            } @else if (entry.syncStatus === "synced") {
-                                <ion-icon class="cloudIndicator" [class.firstCloudIndicator]="$first" name="cloud-done-outline"></ion-icon>
-                            }
-                            -->
-
-                            @if (!sync.hasInternetAccess) {
-                                <div class="dot" [class.red]="entry.syncStatus === 'keep_local'" [class.orange]="entry.syncStatus === 'pending_upload'" [class.green]="entry.syncStatus === 'synced'"></div>
-                            }
-
-                            <div style="text-align: right">
-                                {{entry.date | formatWrittenDate:entry.written:entry.writtenHasTime }}
-                            </div>
-
-                            <quill-view
-                                    [content]="entry.text"
-                                    format="json"
-                            ></quill-view>
-                        }
-                    </ion-card-content>
-
-                </ion-card>
+                <ion-card-title color="dark">
+                    {{formatDate2(yearWithDay.year)}}
+                    <ion-button (click)="openEntry(yearWithDay.day[0].date)" color="medium" fill="clear" style="position: absolute; right: 0; top: -12px; z-index: 9999;">
+                        <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
+                    </ion-button>
+                </ion-card-title>
+            } @else {
+                <ion-card-title color="medium">{{formatDate2(yearWithDay.year)}}</ion-card-title>
             }
-        } @empty {
-            <div class="no-entries-container">
-                <div class="no-entries-headline">
-                    Für diesen Tag gibt es noch keine Einträge
-                </div>
-                <ion-button (click)="openNewEntryModal()" expand="block" class="ion-padding-horizontal">
-                    Für {{thisYear()}} hinzufügen
-                </ion-button>
-            </div>
+        </ion-card-header>
+        @if (yearWithDay.day.length > 0) {
+            <ion-card>
+                <ion-card-content>
+                    @for (entry of yearWithDay.day; track entry.uuidv7) {
+                        <!--
+                        @if (entry.syncStatus === "keep_local") {
+                            <ion-icon class="cloudIndicator" [class.firstCloudIndicator]="$first" name="cloud-offline-outline"></ion-icon>
+                        } @else if (entry.syncStatus === "pending_upload" && this.sync.currentlyUploading) {
+                            <ion-spinner name="crescent" class="cloudIndicator" [class.firstCloudIndicator]="$first"></ion-spinner>
+                            <!x--<ion-icon class="cloudIndicator" [class.firstCloudIndicator]="$first" name="cloud-upload-outline"></ion-icon>-x->
+                        } @else if (entry.syncStatus === "synced") {
+                            <ion-icon class="cloudIndicator" [class.firstCloudIndicator]="$first" name="cloud-done-outline"></ion-icon>
+                        }
+                        -->
+
+                        @if (!sync.hasInternetAccess) {
+                            <div class="dot" [class.red]="entry.syncStatus === 'keep_local'" [class.orange]="entry.syncStatus === 'pending_upload'" [class.green]="entry.syncStatus === 'synced'"></div>
+                        }
+
+                        <div style="text-align: right">
+                            {{entry.date | formatWrittenDate:entry.written:entry.writtenHasTime }}
+                        </div>
+
+                        <quill-view
+                                [content]="entry.text"
+                                format="json"
+                        ></quill-view>
+                    }
+                </ion-card-content>
+
+            </ion-card>
         }
+    } @empty {
+        <div class="no-entries-container">
+            <div class="no-entries-headline">
+                Für diesen Tag gibt es noch keine Einträge
+            </div>
+            <ion-button (click)="openNewEntryModal()" expand="block" class="ion-padding-horizontal">
+                Für {{thisYear()}} hinzufügen
+            </ion-button>
+        </div>
     }
 
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">

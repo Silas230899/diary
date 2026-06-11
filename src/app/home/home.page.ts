@@ -23,7 +23,6 @@ import {
   IonToolbar,
   ModalController,
   NavController,
-  PopoverController,
   RefresherCustomEvent,
   ToastController
 } from '@ionic/angular/standalone';
@@ -73,12 +72,10 @@ export class HomePage {
   @ViewChild(IonContent) content!: IonContent;
   date: CustomDatetimeValue
   entries: { year: number, day: Day }[] = []
-  entriesLoading = true
   hasEntriesForThisYear = false
   protected loadingModalOpen = false
 
   constructor(private navController: NavController,
-              private popoverController: PopoverController,
               private dbService: DatabaseService,
               private modalCtrl: ModalController,
               protected sync: SynchronizationService,
@@ -123,7 +120,6 @@ export class HomePage {
   }
   
   async populateEntries() {
-    this.entriesLoading = true
     this.hasEntriesForThisYear = false
     let entries: EntryViewRecord[] = await this.dbService.getEntriesByDate(this.date)
     for(const entry of entries) {
@@ -177,7 +173,6 @@ export class HomePage {
     this.hasEntriesForThisYear = entriesForThisYear === undefined ? false : entriesForThisYear.length > 0
     
     this.entries = yearWithDay
-    this.entriesLoading = false
   }
 
   async navigate(dst: string) {
