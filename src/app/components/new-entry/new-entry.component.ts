@@ -101,7 +101,7 @@ export class NewEntryComponent  implements OnInit {
   }
 
   constructor(private modalCtrl: ModalController,
-              private toastController: ToastController,) {
+              private toastController: ToastController) {
     addIcons({ logoWhatsapp, timeOutline, camera, closeOutline, checkmarkOutline, add, pencil, createOutline, todayOutline, barChartOutline, peopleOutline, calendarNumberOutline, homeOutline })
     let currentDate = new Date()
     currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
@@ -116,7 +116,7 @@ export class NewEntryComponent  implements OnInit {
   }
   
   protected canSave() {
-    if(this.editor && this.editor.quillEditor) return this.editor.quillEditor.getText().length > 0
+    if(this.editor && this.editor.quillEditor) return this.editor.quillEditor.getLength() > 0
     else return false
   }
   
@@ -333,9 +333,7 @@ export class NewEntryComponent  implements OnInit {
 
       quill.deleteText(range.index, range.length, 'user');
       this.insertWhatsAppBubble(index, {
-        text: selectedText,
-        senderName: 'Max Mustermann',
-        time: '14:32'
+        text: selectedText
       });
       return
     }
@@ -356,7 +354,7 @@ export class NewEntryComponent  implements OnInit {
       'whatsappBubble',
       {
         text: message.text,
-        direction: 'outgoing',
+        direction: message.senderName === undefined ? 'outgoing' : 'incoming',
         senderName: message.senderName,
         time: message.time
       } satisfies WhatsAppBubbleValue,
