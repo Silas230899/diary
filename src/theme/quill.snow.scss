@@ -1361,5 +1361,9 @@ quill-editor .ql-container.ql-snow {
   color: #667781;
 }
 
+.ql-container .ql-editor[contenteditable=false] > p:last-child:has(> br:only-child) {
+  display: none;
+}
+
 
 /*# sourceMappingURL=quill.snow.css.map*/
