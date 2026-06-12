@@ -6,8 +6,6 @@ import {
   IonHeader,
   IonIcon,
   IonInput,
-  IonItem,
-  IonList,
   IonTextarea,
   IonTitle,
   IonToolbar,
@@ -35,8 +33,6 @@ export interface WhatsAppMessageModalResult {
     IonButton,
     IonTitle,
     IonContent,
-    IonList,
-    IonItem,
     IonInput,
     IonTextarea,
     IonIcon
