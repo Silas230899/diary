@@ -310,7 +310,7 @@ export class NewEntryComponent  implements OnInit {
   
   setCustomWrittenDate(flag: boolean) {
     this.customWrittenDate = flag
-    let currentDate = new Date()
+    let currentDate = new Date(this.date)
     currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
     this.written = currentDate.toISOString()
   }
