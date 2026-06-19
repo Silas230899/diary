@@ -1,41 +1,8 @@
-.dot {
-  position: absolute;
-  right: 8px;
-  top: 8px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
 ion-card-header {
   width: calc(100vw - 20px);
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
-}
-
-.red {
-  background-color: red;
-}
-
-.orange {
-  background-color: orange;
-}
-
-.green {
-  background-color: green;
-}
-
-.cloudIndicator {
-  position: absolute;
-  right: 8px;
-  top: 10px;
-  width: 16px;
-  height: 16px;
-}
-
-.firstCloudIndicator:first-of-type {
-  right: 32px;
 }
 
 .customModal {

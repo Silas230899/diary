@@ -2,6 +2,11 @@
     <ion-toolbar color="primary">
         <ion-title>An diesem Tag</ion-title>
         <ion-buttons slot="end">
+            @if (!loadingModalOpen && !sync.downloadingProcessDone) {
+                <ion-button (click)="loadingModalOpen = true">
+                    <ion-spinner name="crescent"></ion-spinner>
+                </ion-button>
+            }
             <ion-button id="popover-opener">
                 <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
             </ion-button>
@@ -49,7 +54,7 @@
     </ng-template>
 </ion-popover>
 
-<ion-modal [isOpen]="loadingModalOpen" [canDismiss]="!loadingModalOpen" class="customModal">
+<ion-modal [isOpen]="loadingModalOpen" class="customModal">
     <ng-template>
         <div class="ion-padding">
             <!--
@@ -97,21 +102,6 @@
             <ion-card>
                 <ion-card-content>
                     @for (entry of yearWithDay.day; track entry.uuidv7) {
-                        <!--
-                        @if (entry.syncStatus === "keep_local") {
-                            <ion-icon class="cloudIndicator" [class.firstCloudIndicator]="$first" name="cloud-offline-outline"></ion-icon>
-                        } @else if (entry.syncStatus === "pending_upload" && this.sync.currentlyUploading) {
-                            <ion-spinner name="crescent" class="cloudIndicator" [class.firstCloudIndicator]="$first"></ion-spinner>
-                            <!x--<ion-icon class="cloudIndicator" [class.firstCloudIndicator]="$first" name="cloud-upload-outline"></ion-icon>-x->
-                        } @else if (entry.syncStatus === "synced") {
-                            <ion-icon class="cloudIndicator" [class.firstCloudIndicator]="$first" name="cloud-done-outline"></ion-icon>
-                        }
-                        -->
-
-                        @if (!sync.hasInternetAccess) {
-                            <div class="dot" [class.red]="entry.syncStatus === 'keep_local'" [class.orange]="entry.syncStatus === 'pending_upload'" [class.green]="entry.syncStatus === 'synced'"></div>
-                        }
-
                         <div style="text-align: right">
                             {{entry.date | formatWrittenDate:entry.written:entry.writtenHasTime }}
                         </div>

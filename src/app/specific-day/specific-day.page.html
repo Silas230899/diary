@@ -52,19 +52,38 @@
 <ion-content>
     @if (!entriesLoading && entries.length > 0) {
         <div style="width: 100%; display: flex; justify-content: center;">
-            <ion-button size="small" fill="outline" shape="round" (click)="openNewEntryModal(0, null)">
+            <ion-button size="small" fill="outline" shape="round" (click)="openNewEntryModal(undefined, 0)">
                 <ion-icon slot="icon-only" name="add"></ion-icon>
             </ion-button>
         </div>
     }
 
-    @for (entry of entries; track entry) {
+    @for (entry of entries; track entry.uuidv7) {
         <ion-card>
             <ion-card-header>
                 <ion-card-title>
                     Verfasst: {{entry.date | formatWrittenDate:entry.written:entry.writtenHasTime }}
                 </ion-card-title>
                 <div class="card-button-container">
+                    @if ($count > 1 && $index > 0) {
+                        <ion-button (click)="moveUpwards(entry, $index)"
+                                    size="small"
+                                    color="primary"
+                                    shape="round"
+                                    fill="outline">
+                            <ion-icon slot="icon-only" name="chevron-up-outline"></ion-icon>
+                        </ion-button>
+                    }
+                    @if ($count > 1 && $index < $count-1) {
+                        <ion-button (click)="moveDownwards(entry, $index)"
+                                    class="downwards"
+                                    size="small"
+                                    color="primary"
+                                    shape="round"
+                                    fill="outline">
+                            <ion-icon slot="icon-only" name="chevron-down-outline"></ion-icon>
+                        </ion-button>
+                    }
                     <ion-button (click)="presentInfoPopover($event, entry)" color="medium" fill="clear">
                         <ion-icon slot="icon-only" name="information-circle-outline"></ion-icon>
                     </ion-button>
@@ -83,11 +102,11 @@
         </ion-card>
         @if ($index < $count) {
             <div style="width: 100%; display: flex; justify-content: center">
-                <ion-button size="small" fill="outline" shape="round" (click)="openNewEntryModal($last ? null : $index+1, $index)">
+                <ion-button size="small" fill="outline" shape="round" (click)="openNewEntryModal($index, $last ? undefined : $index+1)">
                     <ion-icon slot="icon-only" name="add"></ion-icon>
                 </ion-button>
                 @if (!$last) {
-                    <ion-button size="small" fill="outline" shape="round" (click)="merge($index+1, $index)">
+                    <ion-button size="small" fill="outline" shape="round" (click)="merge($index, $index+1)">
                         <ion-icon slot="icon-only" name="chevron-collapse-outline"></ion-icon>
                     </ion-button>
                 }
@@ -99,7 +118,7 @@
                 <div class="no-entries-headline">
                     Noch kein Eintrag
                 </div>
-                <ion-button (click)="openNewEntryModal(null, null)" expand="block" class="ion-padding-horizontal">
+                <ion-button (click)="openNewEntryModal(undefined, undefined)" expand="block" class="ion-padding-horizontal">
                     Eintrag hinzufügen
                 </ion-button>
             </div>

@@ -18,7 +18,7 @@ import {
   IonPopover,
   IonProgressBar,
   IonRefresher,
-  IonRefresherContent,
+  IonRefresherContent, IonSpinner,
   IonTitle,
   IonToolbar,
   ModalController,
@@ -65,7 +65,7 @@ type Day = EntryViewRecord[]
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, IonButtons, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, FormatWrittenDatePipe, CustomDatetimeComponent, IonPopover, IonList, IonItem, IonLabel, QuillViewComponent],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonFab, IonFabButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, FormsModule, NavBarComponent, IonButtons, IonModal, IonProgressBar, IonRefresher, IonRefresherContent, FormatWrittenDatePipe, CustomDatetimeComponent, IonPopover, IonList, IonItem, IonLabel, QuillViewComponent, IonSpinner],
 })
 export class HomePage {
   
@@ -74,6 +74,8 @@ export class HomePage {
   entries: { year: number, day: Day }[] = []
   hasEntriesForThisYear = false
   protected loadingModalOpen = false
+  
+  private firstLoading = true
 
   constructor(private navController: NavController,
               private dbService: DatabaseService,
@@ -87,9 +89,9 @@ export class HomePage {
     currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
     this.date = { month: currentDate.getUTCMonth() + 1, day: currentDate.getUTCDate() }
     
-    this.populateEntries()
-    this.preloadTomorrow()
-    this.preloadYesterday()
+    void this.populateEntries()
+    void this.preloadTomorrow()
+    void this.preloadYesterday()
     /**
      * normally it takes < 150ms for the initialDownloadSync promise to fulfill,
      * so no modal is shown if there are no updates
@@ -99,16 +101,20 @@ export class HomePage {
         await this.showLoading()
       }, 150)
     } else {
-      this.showLoading()
+      void this.showLoading()
     }
-    
   }
   
-  /*
+  /**
+   * reload after z.B. changes in specific-day page
+   */
   async ionViewWillEnter() {
-    await this.content.scrollByPoint(0, 50, 0)
+    if(this.firstLoading) {
+      this.firstLoading = false
+    } else {
+      await this.populateEntries()
+    }
   }
-  */
   
   async showLoading() {
     if(this.sync.downloadingProcessDone) return

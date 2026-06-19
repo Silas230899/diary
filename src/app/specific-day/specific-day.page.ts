@@ -14,7 +14,7 @@ import {
 import {addIcons} from "ionicons";
 import {
   informationOutline, add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline, chevronCollapseOutline,
-  informationCircleOutline, trashOutline, pencilOutline
+  informationCircleOutline, trashOutline, pencilOutline, chevronDownOutline, chevronUpOutline
 } from "ionicons/icons";
 import {SpecificDayPopoverComponent} from "../components/specific-day-popover/specific-day-popover.component";
 import {DatabaseService} from "../services/database.service";
@@ -54,7 +54,7 @@ export class SpecificDayPage implements OnInit {
               private route: ActivatedRoute,
               private passwordService: PasswordService,
               private actionSheetCtrl: ActionSheetController) {
-    addIcons({ informationCircleOutline, trashOutline, pencilOutline, informationOutline, add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline, chevronCollapseOutline })
+    addIcons({ chevronDownOutline, chevronUpOutline, informationCircleOutline, trashOutline, pencilOutline, informationOutline, add, ellipsisVerticalOutline, chevronBackOutline, chevronForwardOutline, chevronCollapseOutline })
     
     const date = this.route.snapshot.queryParamMap.get("date");
     if(date !== null) {
@@ -94,20 +94,9 @@ export class SpecificDayPage implements OnInit {
 
   ngOnInit() { }
   
-  formatToday() {
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    }
-    return new Date(this.date).toLocaleDateString(undefined, options);
-  }
-  
   async editEntry(entry: EntryViewRecord) {
     // loads all images from db by filename
     const imagesDb: ImageDb[] = await Promise.all(entry.images.map((image) => this.dbService.getDBImage(image.filename)))
-    if(imagesDb.length > 0) console.log("done loading images")
     
     const modal = await this.modalCtrl.create({
       component: NewEntryComponent,
@@ -147,11 +136,7 @@ export class SpecificDayPage implements OnInit {
           null
         )
         
-        await this.saveNewEntryToDb(newEntry, newEntryWithoutEntryIndex.images)
-        // will also care for deleting images
-        await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
-        if(this.sync.hasInternetAccess) this.sync.uploadLocalChanges() // dont wait for upload
-        await this.populateEntries(this.date)
+        await this.updateEntry(entry, newEntry)
       } else if(role === "backdrop" || role === "dismiss") {
         localStorage.removeItem("newEntryTextarea")
       }
@@ -190,7 +175,7 @@ export class SpecificDayPage implements OnInit {
         await this.populateEntries(this.date)
         if(this.sync.hasInternetAccess) await this.sync.uploadLocalChanges()
       } else if(e.data.action === 'cancel') {
-        console.log("cancled")
+        console.log("canceled")
       }
     })
     
@@ -210,94 +195,79 @@ export class SpecificDayPage implements OnInit {
     await popover.present()
   }
 
-  async createPopover($event: MouseEvent, entry: EntryViewRecord) {
-    const popover = await this.popoverController.create({
-      component: SpecificDayPopoverComponent,
-      event: $event,
-      reference: "event"
-    })
-    popover.onDidDismiss().then(async e => {
-      const { data, role } = e
-      if(role === "delete") {
-        await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
-        //const entryDeletionPromise = this.dbService.deleteEntry(entry.id)
-        //const imageDeletionPromises = entry.images.map(image => this.dbService.deleteImage(image.filename))
-        //await Promise.all([...imageDeletionPromises, entryDeletionPromise])
-        await this.populateEntries(this.date)
-        if(this.sync.hasInternetAccess) this.sync.uploadLocalChanges()
-      } else if(role === "edit") {
-        // loads all images from db by filename
-        const imagesDb: ImageDb[] = await Promise.all(entry.images.map((image) => this.dbService.getDBImage(image.filename)))
-        if(imagesDb.length > 0) console.log("done loading images")
-        
-        const modal = await this.modalCtrl.create({
-          component: NewEntryComponent,
-          componentProps: {
-            text: entry.text,
-            date: entry.date,
-            written: entry.written,
-            customWrittenDate: true,
-            sync: entry.syncStatus !== "keep_local",
-            imagesViews: entry.images,
-            imagesDb: imagesDb
-          }
-        });
-        
-        modal.onWillDismiss().then(async e => {
-          const { data, role } = e
-          if(role === "confirm") {
-            const newEntryWithoutEntryIndex = data as NewEntryWithoutEntryIndex
-            const newUuidv7 = v7()
-            const newEntryIndex = entry.entryIndex
-            for(const image of newEntryWithoutEntryIndex.images) {
-              const newFilename = uuidv7() + "." + "webp"
-              newEntryWithoutEntryIndex.text = newEntryWithoutEntryIndex.text.replaceAll(image.filename, newFilename)
-              image.filename = newFilename
-            }
-            const referencedImages = newEntryWithoutEntryIndex.images.map((image) => image.filename)
-            
-            const newEntry = new EntryDbRecord(
-              newUuidv7,
-              newEntryWithoutEntryIndex.date,
-              newEntryWithoutEntryIndex.written,
-              newEntryWithoutEntryIndex.writtenHasTime,
-              newEntryIndex,
-              newEntryWithoutEntryIndex.text,
-              referencedImages,
-              newEntryWithoutEntryIndex.syncStatus,
-              null
-            )
-            
-            await this.saveNewEntryToDb(newEntry, newEntryWithoutEntryIndex.images)
-            // will also care for deleting images
-            await this.dbService.setSyncStatus(entry.uuidv7, "pending_delete")
-            if(this.sync.hasInternetAccess) this.sync.uploadLocalChanges() // dont wait for upload
-            await this.populateEntries(this.date)
-          }
-        })
-        
-        await modal.present();
-      }
-    })
-    await popover.present()
-  }
-
   async selectedDate($event: any) {
     this.date = $event.detail.value;
     await this.populateEntries(this.date)
   }
-
-  async openNewEntryModal(beforeId: number | null, afterId: number | null) {
-    let entryIndex = 0
-    if(beforeId !== null && afterId !== null) {
-      entryIndex = this.entries[afterId].entryIndex + (this.entries[beforeId].entryIndex - this.entries[afterId].entryIndex)/2
-    } else if(beforeId === null && afterId === null) {
+  
+  protected async moveDownwards(entry: EntryViewRecord, index: number) {
+    const oneAfterIndex = index+1 > this.entries.length-1 ? undefined : index + 1
+    const twoAfterIndex = index+2 > this.entries.length-1 ? undefined : index + 2
+    const newIndex = this.calcNewEntryIndex(oneAfterIndex, twoAfterIndex)
     
-    } else if(afterId !== null) {
-      entryIndex = this.entries[afterId].entryIndex + 1
-    } else if(beforeId !== null) {
-      entryIndex = this.entries[beforeId].entryIndex - 1
+    const uuidv7 = v7()
+    const newEntryWithoutEntryIndex = entry
+    const newEntry = new EntryDbRecord(
+      uuidv7,
+      newEntryWithoutEntryIndex.date,
+      newEntryWithoutEntryIndex.written,
+      newEntryWithoutEntryIndex.writtenHasTime,
+      newIndex,
+      newEntryWithoutEntryIndex.text,
+      newEntryWithoutEntryIndex.images.map(image => image.filename),
+      "pending_upload",
+      null
+    )
+    
+    await this.updateEntry(entry, newEntry)
+  }
+  
+  private async updateEntry(oldEntry: EntryViewRecord, newEntry: EntryDbRecord) {
+    const images = await Promise.all(newEntry.referencedImages.map((filename) => this.dbService.getDBImage(filename)))
+    await this.saveNewEntryToDb(newEntry, images)
+    await this.dbService.setSyncStatus(oldEntry.uuidv7, "pending_delete")
+    await this.populateEntries(this.date)
+    if(this.sync.hasInternetAccess) void this.sync.uploadLocalChanges() // dont wait for upload
+  }
+  
+  protected async moveUpwards(entry: EntryViewRecord, index: number) {
+    const oneBeforeIndex = index-1 < 0 ? undefined : index - 1
+    const twoBeforeIndex = index-2 < 0 ? undefined : index - 2
+    const newIndex = this.calcNewEntryIndex(twoBeforeIndex, oneBeforeIndex)
+    
+    const uuidv7 = v7()
+    const newEntryWithoutEntryIndex = entry
+    const newEntry = new EntryDbRecord(
+      uuidv7,
+      newEntryWithoutEntryIndex.date,
+      newEntryWithoutEntryIndex.written,
+      newEntryWithoutEntryIndex.writtenHasTime,
+      newIndex,
+      newEntryWithoutEntryIndex.text,
+      newEntryWithoutEntryIndex.images.map(image => image.filename),
+      "pending_upload",
+      null
+    )
+    
+    await this.updateEntry(entry, newEntry)
+  }
+  
+  private calcNewEntryIndex(beforeIndex: number | undefined, afterIndex: number | undefined) {
+    let entryIndex = 0
+    if(beforeIndex !== undefined && afterIndex !== undefined) {
+      entryIndex = this.entries[afterIndex].entryIndex + (this.entries[beforeIndex].entryIndex - this.entries[afterIndex].entryIndex)/2
+    } else if(beforeIndex === undefined && afterIndex === undefined) {
+    
+    } else if(afterIndex !== undefined) {
+      entryIndex = this.entries[afterIndex].entryIndex - 1
+    } else if(beforeIndex !== undefined) {
+      entryIndex = this.entries[beforeIndex].entryIndex + 1
     }
+    return entryIndex
+  }
+
+  async openNewEntryModal(beforeIndex: number | undefined, afterIndex: number | undefined) {
+    const entryIndex = this.calcNewEntryIndex(beforeIndex, afterIndex)
     
     const modal = await this.modalCtrl.create({
       component: NewEntryComponent,
@@ -372,11 +342,91 @@ export class SpecificDayPage implements OnInit {
     return new Date(new Date(this.date).getTime() + 24*60*60*1000).getUTCDate()
   }
   
-  protected merge(number: number, $index: number) {
-  
-  }
-  
-  protected wordCount(entry: EntryViewRecord) {
-    return entry.text.split(" ").length;
+  protected async merge(beforeIndex: number, afterIndex: number) {
+    const topEntry = this.entries[beforeIndex]
+    const downEntry = this.entries[afterIndex]
+    
+    const entryIndex = topEntry.entryIndex
+    
+    const topEntryImagePromises = topEntry.images.map(image => this.dbService.getDBImage(image.filename))
+    const downEntryImagePromises = downEntry.images.map(image => this.dbService.getDBImage(image.filename))
+    const imagesDB: ImageDb[] = await Promise.all([...topEntryImagePromises, ...downEntryImagePromises])
+    
+    const quillTextParser = ((text: string) => {
+      if(!text.startsWith("{\"ops\":[")) return undefined
+      try {
+        return JSON.parse(text) as {
+          ops: {
+            insert: unknown
+          }[]}
+      } catch (e) {
+        return undefined
+      }
+    })
+    
+    let mergedTextsJSON: {
+      ops: {
+        insert: unknown
+      }[]}
+    const topEntryQuill = quillTextParser(topEntry.text)
+    const bottomEntryQuill = quillTextParser(downEntry.text)
+    if(topEntryQuill !== undefined && bottomEntryQuill !== undefined) {
+      mergedTextsJSON = {
+        ops: [...topEntryQuill.ops, {insert: "\n"}, ...bottomEntryQuill.ops]
+      }
+    } else if(topEntryQuill !== undefined) {
+      mergedTextsJSON = {
+        ops: [...topEntryQuill.ops, {insert: "\n"}, {insert: downEntry.text}]
+      }
+    } else if(bottomEntryQuill !== undefined) {
+      mergedTextsJSON = {
+        ops: [{insert: topEntry.text}, {insert: "\n"}, {insert: "\n"}, ...bottomEntryQuill.ops]
+      }
+    } else {
+      mergedTextsJSON = {
+        ops: [{insert: topEntry.text}, {insert: "\n"}, {insert: "\n"}, {insert: downEntry.text}]
+      }
+    }
+    const mergedTexts = JSON.stringify(mergedTextsJSON)
+    
+    const modal = await this.modalCtrl.create({
+      component: NewEntryComponent,
+      componentProps: {
+        text: mergedTexts,
+        date: topEntry.date,
+        written: topEntry.written,
+        customWrittenDate: true,
+        sync: "pending_upload",
+        imagesViews: [...topEntry.images, ...downEntry.images],
+        imagesDb: imagesDB
+      }
+    });
+    
+    modal.onDidDismiss().then(async e => {
+      const { data, role } = e
+      if(role === "confirm") {
+        const uuidv7 = v7()
+        const newEntryWithoutEntryIndex = data as NewEntryWithoutEntryIndex
+        const newEntry = new EntryDbRecord(
+          uuidv7,
+          newEntryWithoutEntryIndex.date,
+          newEntryWithoutEntryIndex.written,
+          newEntryWithoutEntryIndex.writtenHasTime,
+          entryIndex,
+          newEntryWithoutEntryIndex.text,
+          newEntryWithoutEntryIndex.images.map(image => image.filename),
+          newEntryWithoutEntryIndex.syncStatus,
+          null
+        )
+        
+        await this.saveNewEntryToDb(newEntry, newEntryWithoutEntryIndex.images)
+        await this.dbService.setSyncStatus(topEntry.uuidv7, "pending_delete")
+        await this.dbService.setSyncStatus(downEntry.uuidv7, "pending_delete")
+        await this.populateEntries(this.date)
+        if(this.sync.hasInternetAccess) this.sync.uploadLocalChanges() // dont wait for upload
+      }
+    })
+    
+    await modal.present();
   }
 }
