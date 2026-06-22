@@ -19,39 +19,18 @@ Build on macOS:
   },
 ```
 
+Building command
 ```
 npm run tauri android build
 ```
 
 or
 
-```npm run tauri android build -- -- --target aarch64```
+```
+npm run tauri android build -- -- --target aarch64
+```
 
 # Signing the apk
-
-Goto
-````
-E:\Programmieren\WebStorm\diary\src-tauri\gen\android\app\build\outputs\apk\universal\release
-````
-
-and do
-
-```
-C:\Users\Silas\AppData\Local\Android\Sdk\build-tools\35.0.0\apksigner.bat sign
---ks "C:\Users\Silas\.android\debug.keystore"
--ks-key-alias androiddebugkey
---ks-pass pass:android
--key-pass pass:android
---out "signed.apk" 
-".\app-universal-release-unsigned.apk"
-```
-bzw.
-```
-C:\Users\Silas\AppData\Local\Android\Sdk\build-tools\35.0.0\apksigner.bat sign --ks "C:\Users\Silas\.android\debug.keystore" -ks-key-alias androiddebugkey --ks-pass pass:android -key-pass pass:android --out "signed.apk" ".\app-universal-release-unsigned.apk"
-```
-
-
-New:
 
 ```
 apksigner sign --ks "C:\Users\Silas\.android\debug.keystore" -ks-key-alias androiddebugkey --ks-pass pass:android -key-pass pass:android --out "E:\Programmieren\WebStorm\diary\src-tauri\gen\android\app\build\outputs\apk\universal\release\signed.apk" "E:\Programmieren\WebStorm\diary\src-tauri\gen\android\app\build\outputs\apk\universal\release\app-universal-release-unsigned.apk"
@@ -59,18 +38,6 @@ apksigner sign --ks "C:\Users\Silas\.android\debug.keystore" -ks-key-alias andro
 
 # Installing the signed apk
 
-Goto
-```
-C:\Users\Silas\AppData\Local\Android\Sdk\platform-tools
-```
-
-and do
-
-```
-./adb.exe install E:\Programmieren\WebStorm\diary\src-tauri\gen\android\app\build\outputs\apk\universal\release\signed.apk
-```
-
-New:
 ```
 adb install E:\Programmieren\WebStorm\diary\src-tauri\gen\android\app\build\outputs\apk\universal\release\signed.apk
 ```
