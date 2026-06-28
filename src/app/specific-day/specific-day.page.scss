@@ -58,14 +58,81 @@ ion-card-title {
   margin-bottom: 0;
 }
 
-ion-card {
+.entry-card {
+  position: relative;
   overflow: visible;
   contain: none;
+
+  --card-bg: var(--ion-card-background, #fff);
+  --page-bg: var(--ion-background-color, #fff);
+  --card-border-color: var(--ion-color-step-150, #d7d8da);
+  --card-radius: 12px;
+  --card-shadow: rgba(0, 0, 0, 0.2) 0px 3px 1px -2px, rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
+  --card-border: 1px solid var(--ion-color-step-150, #d7d8da);
+  --join-radius: 14px;
+  --tab-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  //--join-shadow: var(--card-shadow);
+  --join-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
+}
+
+.card-button-tab {
+  position: absolute;
+
+  width: 36px;
+  height: 36px;
+
+  background: var(--card-bg);
+  /*
+  border-left: var(--card-border);
+  border-right: var(--card-border);
+  border-bottom: var(--card-border);
+  border-top: none;
+  */
+
+  box-shadow: var(--card-shadow);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 2;
+}
+
+.top {
+  border-radius: 50% 50% 0 0;
+  top: -38px;
+  right: 40px;
+}
+
+.bottom {
+  border-radius: 0 0 50% 50%;
+  right: 0;
+  bottom: -36px;
+}
+
+/* Überdeckt oben die eigentliche Card-Kante / Naht */
+.card-button-tab::before {
+  content: "";
+  position: absolute;
+  height: 10px;
+
+  background: var(--card-bg);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.bottom::before {
+  top: -8px;
+  left: 0;
+  right: 0;
+}
+
+.top::before {
+  bottom: -8px;
+  left: 0;
+  right: 0;
 }
 
 .downwards {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  transform: translateY(calc(100% + 12px));
+  margin: 0;
 }
