@@ -136,7 +136,7 @@ export class SpecificDayPage implements OnInit {
           null
         )
         
-        await this.updateEntry(entry, newEntry)
+        await this.updateEntry2(entry, newEntry, newEntryWithoutEntryIndex.images)
       } else if(role === "backdrop" || role === "dismiss") {
         localStorage.removeItem("newEntryTextarea")
       }
@@ -220,6 +220,13 @@ export class SpecificDayPage implements OnInit {
     )
     
     await this.updateEntry(entry, newEntry)
+  }
+  
+  private async updateEntry2(oldEntry: EntryViewRecord, newEntry: EntryDbRecord, newImageData: ImageDb[]) {
+    await this.saveNewEntryToDb(newEntry, newImageData)
+    await this.dbService.setSyncStatus(oldEntry.uuidv7, "pending_delete")
+    await this.populateEntries(this.date)
+    if(this.sync.hasInternetAccess) void this.sync.uploadLocalChanges() // dont wait for upload
   }
   
   private async updateEntry(oldEntry: EntryViewRecord, newEntry: EntryDbRecord) {
