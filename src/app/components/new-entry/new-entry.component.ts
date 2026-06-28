@@ -128,6 +128,7 @@ export class NewEntryComponent  implements OnInit {
           const delta = restoreImageDelta(this.text, this.imagesViews)
           this.editor.quillEditor.setContents(delta)
         } catch (e) {
+          console.log("Failed to restore image delta")
           this.editor.quillEditor.setText(this.text)
         }
       } else this.editor.quillEditor.setText(this.text)
