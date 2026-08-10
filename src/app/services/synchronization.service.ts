@@ -138,20 +138,22 @@ export class SynchronizationService {
     this.currentlyUploading = true
     if(entries.length === 0) console.log("nothing to upload")
     for(let entry of entries) {
-      if(entry.syncStatus === "pending_delete" && entry.driveFileId !== null) {
+      if(entry.syncStatus === "pending_delete") {
         // delete locally
-        await this.dbService.deleteEntry(entry.uuidv7)
         for(const filename of entry.referencedImages) {
           await this.dbService.deleteImage(filename)
         }
+        await this.dbService.deleteEntry(entry.uuidv7)
         
-        // delete remote
-        await this.deleteFile(entry.driveFileId)
-        for(const filename of entry.referencedImages) {
-          const driveFileId = await this.getDriveFileIdOfImageByFilename(filename)
-          if(driveFileId === null) throw new Error(`file ${filename} not found`)
-          await this.deleteFile(driveFileId.id)
-          //console.log("deleted image " + filename + ", " + driveFileId)
+        if(entry.driveFileId !== null) {
+          // delete remote
+          for(const filename of entry.referencedImages) {
+            const driveFileId = await this.getDriveFileIdOfImageByFilename(filename)
+            if(driveFileId === null) throw new Error(`file ${filename} not found`)
+            await this.deleteFile(driveFileId.id)
+            //console.log("deleted image " + filename + ", " + driveFileId)
+          }
+          await this.deleteFile(entry.driveFileId)
         }
         
         console.log("deleted entry " + entry.uuidv7)
