@@ -237,7 +237,7 @@ export class DatabaseService {
   }
   
   async getHeatmapData() {
-    const res: any[] = await this.database.select("SELECT date, COUNT(*) AS count FROM entry GROUP BY date")
+    const res: any[] = await this.database.select("SELECT date, COUNT(*) AS count FROM entry WHERE syncStatus != 'pending_delete' GROUP BY date")
     return res
   }
   
