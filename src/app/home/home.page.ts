@@ -251,6 +251,9 @@ export class HomePage {
     if($event.value !== null) {
       this.date = $event.value
       await this.populateEntries()
+      this.preloadYesterday()
+      this.preloadTomorrow()
+      await this.content.scrollToTop(350)
     }
   }
   
@@ -293,12 +296,14 @@ export class HomePage {
     this.date = this.navigateYearlessDate(-1);
     await this.populateEntries();
     this.preloadYesterday()
+    await this.content.scrollToTop(350)
   }
   
   async gotoTomorrow() {
     this.date = this.navigateYearlessDate(1);
     await this.populateEntries();
     this.preloadTomorrow()
+    await this.content.scrollToTop(350)
   }
   
   getYesterdate() {
