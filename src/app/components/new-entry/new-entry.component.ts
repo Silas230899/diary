@@ -149,10 +149,24 @@ export class NewEntryComponent  implements OnInit {
       currentDate = new Date(currentDate.getTime() - currentDate.getTimezoneOffset()*60*1000)
       writtenDate = currentDate.toISOString()
     }
+    
+    const stringifiedContent = JSON.stringify(this.editor.quillEditor.getContents())
+    
+    // remove images that are (no longer) used/present in the text
+    this.imagesDb = this.imagesDb.filter(referencedImage => {
+      const included = stringifiedContent.includes(referencedImage.filename);
+      
+      if (!included) {
+        console.log("doesnt include ", referencedImage.filename);
+      }
+      
+      return included;
+    });
+    
     const newEntry = new NewEntryWithoutEntryIndex(this.date,
       writtenDate,
       true,
-      JSON.stringify(this.editor.quillEditor.getContents()),
+      stringifiedContent,
       this.imagesDb,
       syncStatus)
     
@@ -298,15 +312,6 @@ export class NewEntryComponent  implements OnInit {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-  }
-  
-  reference(img: ImageView) {
-    this.text += `\n![image](${img.filename})`
-    console.log(img.filename)
-  }
-  
-  addChat() {
-    this.text += `![chat]()`
   }
   
   setCustomWrittenDate(flag: boolean) {

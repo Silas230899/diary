@@ -116,8 +116,7 @@ export class SpecificDayPage implements OnInit {
       const { data, role } = e
       if(role === "confirm") {
         const newEntryWithoutEntryIndex = data as NewEntryWithoutEntryIndex
-        const newUuidv7 = v7()
-        const newEntryIndex = entry.entryIndex
+        
         for(const image of newEntryWithoutEntryIndex.images) {
           const newFilename = uuidv7() + "." + "webp"
           newEntryWithoutEntryIndex.text = newEntryWithoutEntryIndex.text.replaceAll(image.filename, newFilename)
@@ -125,6 +124,8 @@ export class SpecificDayPage implements OnInit {
         }
         const referencedImages = newEntryWithoutEntryIndex.images.map((image) => image.filename)
         
+        const newUuidv7 = v7()
+        const newEntryIndex = entry.entryIndex
         const newEntry = new EntryDbRecord(
           newUuidv7,
           newEntryWithoutEntryIndex.date,
