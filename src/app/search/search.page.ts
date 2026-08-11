@@ -16,6 +16,7 @@ import {EntryDbRecord} from "../models/entry-db-record";
 import {Router} from "@angular/router";
 import {Chart, ChartConfiguration, ChartType, registerables} from "chart.js";
 import {ImageNameToObjectURLPipe} from "../pipes/image-name-to-object-url-pipe";
+import {DeltaToTextPipe} from "../pipes/delta-to-text-pipe";
 
 Chart.register(...registerables);
 
@@ -24,7 +25,7 @@ Chart.register(...registerables);
   templateUrl: './search.page.html',
   styleUrls: ['./search.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonToggle, IonDatetimeButton, IonModal, ImageNameToObjectURLPipe, IonThumbnail, NgOptimizedImage]
+  imports: [IonContent, IonHeader, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonToggle, IonDatetimeButton, IonModal, ImageNameToObjectURLPipe, IonThumbnail, NgOptimizedImage, DeltaToTextPipe]
 })
 export class SearchPage implements OnInit {
   

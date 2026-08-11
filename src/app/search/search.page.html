@@ -60,7 +60,7 @@
                         {{formatDate(entry.date)}}
                     </span>
                     <ion-label class="ion-text-nowrap">
-                        {{entry.text}}
+                        {{ entry.text | deltaToText }}
                     </ion-label>
                     @if(entry.referencedImages.length > 0) {
                         <ion-thumbnail slot="end" style="--border-radius: 8px">
