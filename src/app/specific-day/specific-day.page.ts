@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -41,7 +41,8 @@ import restoreImageDelta from "../quill/diary-image-delta-restore";
   imports: [IonContent, IonHeader, IonTitle, IonToolbar, FormsModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonButtons, IonBackButton, FormatWrittenDatePipe, QuillViewComponent, IonDatetimeButton, IonModal, IonDatetime]
 })
 export class SpecificDayPage implements OnInit {
-
+  
+  @ViewChild(IonContent) content!: IonContent;
   date: string
   entries: EntryViewRecord[] = []
   entriesLoading = true
@@ -198,6 +199,9 @@ export class SpecificDayPage implements OnInit {
   async selectedDate($event: any) {
     this.date = $event.detail.value;
     await this.populateEntries(this.date)
+    this.preloadTomorrow()
+    this.preloadYesterday()
+    await this.content.scrollToTop(350)
   }
   
   protected async moveDownwards(entry: EntryViewRecord, index: number) {
@@ -331,6 +335,7 @@ export class SpecificDayPage implements OnInit {
     this.date = yesterday.toISOString()
     await this.populateEntries(this.date)
     this.preloadYesterday()
+    await this.content.scrollToTop(350)
   }
 
   async gotoTomorrow() {
@@ -339,6 +344,7 @@ export class SpecificDayPage implements OnInit {
     this.date = yesterday.toISOString()
     await this.populateEntries(this.date)
     this.preloadTomorrow()
+    await this.content.scrollToTop(350)
   }
 
   getYesterdate() {

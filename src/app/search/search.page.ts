@@ -96,9 +96,11 @@ export class SearchPage implements OnInit {
 
   constructor(private dbService: DatabaseService,
               private router: Router) {
-    this.startDate = "2025-10-03"//new Date(new Date().getTime() - 100*24*60*60*1000).toISOString()
-    const t = Date.now()
+    //this.startDate = "2025-10-03"//new Date(new Date().getTime() - 100*24*60*60*1000).toISOString()
+    this.startDate = new Date(new Date().getTime() - 365*24*60*60*1000).toISOString()
+    //const t = Date.now()
     this.entries = this.dbService.getAllEntries()
+    /**
     this.entries.then(entries => {
       console.log("time load ms: ", Date.now() - t)
       let earliest = entries[0]
@@ -106,7 +108,7 @@ export class SearchPage implements OnInit {
         if(new Date(entry.date).getTime() < new Date(earliest.date).getTime()) earliest = entry
       }
       this.startDate = earliest.date
-    })
+    })**/
   }
   
   async search() {
@@ -117,8 +119,9 @@ export class SearchPage implements OnInit {
     } else {
       search = this.searchString.toLowerCase()
     }
-    const resultFrequencies = new Map<EntryDbRecord, number>()
     if(search.length > 0) {
+      
+      const resultFrequencies = new Map<EntryDbRecord, number>()
       let earliest = new Date(this.startDate)
       earliest.setUTCHours(0, 0, 0, 0)
       const entries = await this.entries
@@ -151,7 +154,11 @@ export class SearchPage implements OnInit {
         .filter(entry => entry[1] > 0)
         .sort((a, b) => a[1] - b[1])
         .map(entry => entry[0])
-      this.results = entriesSortedByFrequency
+      const entriesSortedByDate2 = Array.of(...resultFrequencies.entries())
+        .filter(entry => entry[1] > 0)
+        .sort((a, b) => new Date(b[0].date).getTime() - new Date(a[0].date).getTime())
+        .map(entry => entry[0])
+      this.results = entriesSortedByDate2
       //console.log(count)
       this.resultCount = count
       
@@ -176,13 +183,15 @@ export class SearchPage implements OnInit {
         .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
         .map(entry => entry[0])
       
+      const data = entriesSortedByDate.map(entry => sameDaysCombined.get(entry))
+      const labels = entriesSortedByDate.map(entry => new Date(entry).toLocaleDateString())
       const ctx = this.chart.nativeElement
       if(this.graph) this.graph.destroy()
       this.graph = new Chart(ctx, {
         type: this.lineChartType,
         data: {
           datasets: [{
-            data: entriesSortedByDate.map(entry => sameDaysCombined.get(entry)),
+            data: data,
             label: "Anzahl",
             steppedLine: true,
             backgroundColor: "#e129c6",
@@ -192,7 +201,7 @@ export class SearchPage implements OnInit {
             type: 'bar',
             cubicInterpolationMode: 'monotone',
           } as any],
-          labels: entriesSortedByDate.map(entry => new Date(entry).toLocaleDateString()),
+          labels: labels,
         },
         options: this.lineChartOptions
       });
