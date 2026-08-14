@@ -6,7 +6,7 @@ import {
   IonDatetime, IonDatetimeButton,
   IonHeader, IonItem, IonLabel,
   IonList, IonListHeader, IonModal,
-  IonSearchbar, IonThumbnail,
+  IonSearchbar, IonSegment, IonSegmentButton, IonThumbnail,
   IonToggle,
   IonToolbar
 } from '@ionic/angular/standalone';
@@ -25,7 +25,7 @@ Chart.register(...registerables);
   templateUrl: './search.page.html',
   styleUrls: ['./search.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonToggle, IonDatetimeButton, IonModal, ImageNameToObjectURLPipe, IonThumbnail, NgOptimizedImage, DeltaToTextPipe]
+  imports: [IonContent, IonHeader, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonToggle, IonDatetimeButton, IonModal, ImageNameToObjectURLPipe, IonThumbnail, NgOptimizedImage, DeltaToTextPipe, IonSegment, IonSegmentButton]
 })
 export class SearchPage implements OnInit {
   
@@ -93,12 +93,16 @@ export class SearchPage implements OnInit {
   fullWords = true
   searchString = ""
   protected caseSensitive = false;
-  protected startDate: string;
+  
+  protected selectedTimePeriodSegment: 'all' | 'year' | 'ytd' | 'month' | 'custom' = 'ytd'
+  protected fromDateValue!: string;
+  protected toDateValue!: string;
 
   constructor(private dbService: DatabaseService,
               private router: Router) {
-    //this.startDate = "2025-10-03"//new Date(new Date().getTime() - 100*24*60*60*1000).toISOString()
-    this.startDate = new Date(new Date().getTime() - 365*24*60*60*1000).toISOString()
+    
+    this.evalSelectedTimePeriodSegment()
+    
     //const t = Date.now()
     this.entries = this.dbService.getAllEntries()
     /**
@@ -123,10 +127,12 @@ export class SearchPage implements OnInit {
     if(search.length > 0) {
       
       const resultFrequencies = new Map<EntryDbRecord, number>()
-      let earliest = new Date(this.startDate)
+      const earliest = new Date(this.fromDateValue)
       earliest.setUTCHours(0, 0, 0, 0)
+      const latest = new Date(this.toDateValue)
+      latest.setUTCHours(23, 59, 59, 999)
       const entries = await this.entries
-      const entriesInRange = entries.filter(entry => new Date(entry.date).getTime() >= earliest.getTime())
+      const entriesInRange = entries.filter(entry => new Date(entry.date).getTime() >= earliest.getTime() && new Date(entry.date).getTime() <= latest.getTime())
       
       const satzzeichen = [",", ";", ".", ":", "-", "_", "#", "'", "*", "\"", "%", "@", "€", "(", ")", "/", "\\", "{", "}", "[", "]"]
         .filter(satzzeichen => !search.includes(satzzeichen))
@@ -164,11 +170,12 @@ export class SearchPage implements OnInit {
       this.resultCount = count
       
       const sameDaysCombined = new Map<string, number>
-      const latest = new Date()
-      latest.setUTCHours(0, 0, 0, 0)
-      while(earliest.getTime() <= latest.getTime()) {
-        sameDaysCombined.set(earliest.toISOString(), 0)
-        earliest = new Date(earliest.getTime() + 24*60*60*1000)
+      //const latest = new Date()
+      //latest.setUTCHours(0, 0, 0, 0)
+      let current = earliest
+      while(current.getTime() <= latest.getTime()) {
+        sameDaysCombined.set(current.toISOString(), 0)
+        current = new Date(current.getTime() + 24*60*60*1000)
       }
       sameDaysCombined.set(latest.toISOString(), 0)
       for(const entry of resultFrequencies.entries()) {
@@ -228,4 +235,60 @@ export class SearchPage implements OnInit {
     return `${dateObject.toLocaleDateString(undefined, {day: "2-digit", month: "short", year: "numeric"})}`
   }
   
+  private evalSelectedTimePeriodSegment() {
+    const timezoneOffsetMilliseconds = new Date().getTimezoneOffset() * 60 * 1000
+    const today = new Date(Date.now() - timezoneOffsetMilliseconds).toISOString()
+    switch (this.selectedTimePeriodSegment) {
+      case "month": {
+        const from = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000 - timezoneOffsetMilliseconds)
+        this.fromDateValue = from.toISOString()
+        
+        this.toDateValue = today
+        break
+      }
+      case "year": {
+        const from = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000 - timezoneOffsetMilliseconds)
+        this.fromDateValue = from.toISOString()
+        
+        this.toDateValue = today
+        break;
+      }
+      case "all": {
+        this.entries.then(entries => {
+          let earliest = entries[0]
+          for(const entry of entries) {
+            if(new Date(entry.date).getTime() < new Date(earliest.date).getTime()) earliest = entry
+          }
+          this.fromDateValue = earliest.date
+        })
+        
+        this.toDateValue = today
+        break;
+      }
+      case "ytd": {
+        const from = new Date(Date.now() - timezoneOffsetMilliseconds)
+        from.setUTCMonth(0, 1)
+        this.fromDateValue = from.toISOString()
+        
+        this.toDateValue = today
+        break;
+      }
+      case "custom":
+        break;
+    }
+  }
+  
+  protected timePeriodSegmentChanged($event: any) {
+    this.selectedTimePeriodSegment = $event.detail.value
+    this.evalSelectedTimePeriodSegment()
+    this.search()
+  }
+  
+  protected dateChanged($event: any) {
+    const fromDate = new Date(this.fromDateValue)
+    fromDate.setUTCHours(0, 0, 0, 0)
+    const toDate = new Date(this.toDateValue)
+    toDate.setUTCHours(23, 59, 59, 999)
+    this.search()
+  }
 }

@@ -19,28 +19,64 @@
         <ion-item>
             <ion-toggle [(ngModel)]="fullWords" (ionChange)="search()">Nur ganze Wörter</ion-toggle>
         </ion-item>
+
         <ion-item>
-            <ion-label>Startdatum</ion-label>
-            <ion-datetime-button datetime="date" slot="end"></ion-datetime-button>
-            <ion-modal [keepContentsMounted]="true">
-                <ng-template>
-                    <ion-datetime id="date"
-                                  (ionChange)="search()"
-                                  presentation="date"
-                                  [firstDayOfWeek]="1"
-                                  [formatOptions]="{
+            <ion-segment [value]="selectedTimePeriodSegment" mode="ios" style="grid-auto-columns: auto; justify-content: unset" (ionChange)="timePeriodSegmentChanged($event)">
+                <ion-segment-button value="all" class="segmentButtonFix">
+                    <ion-label class="ion-text-wrap">
+                        alle
+                    </ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="year" class="segmentButtonFix">
+                    <ion-label class="ion-text-wrap">365d</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="ytd" class="segmentButtonFix">
+                    <ion-label class="ion-text-wrap">ytd</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="month" class="segmentButtonFix">
+                    <ion-label class="ion-text-wrap">30d</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="custom" class="segmentButtonFix">
+                    <ion-label class="ion-text-wrap">
+                        custom
+                    </ion-label>
+                </ion-segment-button>
+            </ion-segment>
+        </ion-item>
+
+        @if (selectedTimePeriodSegment == 'custom') {
+            <ion-item>
+                <ion-datetime-button datetime="begin"></ion-datetime-button>
+                bis
+                <ion-datetime-button datetime="end"></ion-datetime-button>
+            </ion-item>
+        }
+
+        <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+                <ion-datetime id="begin" presentation="date" [firstDayOfWeek]="1" [formatOptions]="{
                                             date: {
                                               weekday: 'short',
                                               month: 'long',
                                               day: 'numeric',
                                               year: 'numeric'
                                             }
-                                          }"
-                                  [(ngModel)]="startDate"
-                    ></ion-datetime>
-                </ng-template>
-            </ion-modal>
-        </ion-item>
+                                          }" [(ngModel)]="fromDateValue" (ionChange)="dateChanged($event)"></ion-datetime>
+            </ng-template>
+        </ion-modal>
+
+        <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+                <ion-datetime id="end" presentation="date" [firstDayOfWeek]="1" [formatOptions]="{
+                                            date: {
+                                              weekday: 'short',
+                                              month: 'long',
+                                              day: 'numeric',
+                                              year: 'numeric'
+                                            }
+                                          }" [(ngModel)]="toDateValue" (ionChange)="dateChanged($event)"></ion-datetime>
+            </ng-template>
+        </ion-modal>
     </ion-list>
 
     <div class="canvasParent" [class.canvasHidden]="resultCount === 0">
