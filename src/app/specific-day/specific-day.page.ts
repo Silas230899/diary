@@ -95,6 +95,10 @@ export class SpecificDayPage implements OnInit {
 
   ngOnInit() { }
   
+  async ionViewWillLeave() {
+    (await this.popoverController.getTop())?.dismiss()
+  }
+  
   async editEntry(entry: EntryViewRecord) {
     // loads all images from db by filename
     const imagesDb: ImageDb[] = await Promise.all(entry.images.map((image) => this.dbService.getDBImage(image.filename)))
