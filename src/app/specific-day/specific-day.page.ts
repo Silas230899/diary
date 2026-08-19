@@ -325,18 +325,20 @@ export class SpecificDayPage implements OnInit {
   }
   
   async preloadTomorrow() {
-    const yesterday = new Date(new Date(this.date).getTime() + 24*60*60*1000)
-    await this.dbService.preloadSpecificDate(yesterday.toISOString())
+    const current = new Date(this.date)
+    const tomorrow = new Date(current.getTime() + 24*60*60*1000 - current.getTimezoneOffset() * 60 * 1000)
+    await this.dbService.preloadSpecificDate(tomorrow.toISOString())
   }
   
   async preloadYesterday() {
-    const yesterday = new Date(new Date(this.date).getTime() - 24*60*60*1000)
+    const current = new Date(this.date)
+    const yesterday = new Date(current.getTime() - 24*60*60*1000 - current.getTimezoneOffset() * 60 * 1000)
     await this.dbService.preloadSpecificDate(yesterday.toISOString())
   }
 
   async gotoYesterday() {
-    const yesterday = new Date(new Date(this.date).getTime() - 24*60*60*1000)
-    //yesterday.setUTCHours(0, 0, 0, 0)
+    const current = new Date(this.date)
+    const yesterday = new Date(current.getTime() - 24*60*60*1000 - current.getTimezoneOffset() * 60 * 1000)
     this.date = yesterday.toISOString()
     await this.populateEntries(this.date)
     this.preloadYesterday()
@@ -344,20 +346,24 @@ export class SpecificDayPage implements OnInit {
   }
 
   async gotoTomorrow() {
-    const yesterday = new Date(new Date(this.date).getTime() + 24*60*60*1000)
-    //yesterday.setUTCHours(0, 0, 0, 0)
-    this.date = yesterday.toISOString()
+    const current = new Date(this.date)
+    const tomorrow = new Date(current.getTime() + 24*60*60*1000 - current.getTimezoneOffset() * 60 * 1000)
+    this.date = tomorrow.toISOString()
     await this.populateEntries(this.date)
     this.preloadTomorrow()
     await this.content.scrollToTop(350)
   }
 
   getYesterdate() {
-    return new Date(new Date(this.date).getTime() - 24*60*60*1000).getUTCDate()
+    const current = new Date(this.date)
+    const yesterday = new Date(current.getTime() - 24*60*60*1000 - current.getTimezoneOffset() * 60 * 1000)
+    return yesterday.getDate()
   }
 
   getTomorrowdate() {
-    return new Date(new Date(this.date).getTime() + 24*60*60*1000).getUTCDate()
+    const current = new Date(this.date)
+    const tomorrow = new Date(current.getTime() + 24*60*60*1000 - current.getTimezoneOffset() * 60 * 1000)
+    return tomorrow.getDate()
   }
   
   protected async merge(beforeIndex: number, afterIndex: number) {
