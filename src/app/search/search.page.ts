@@ -97,14 +97,25 @@ export class SearchPage implements OnInit {
   protected selectedTimePeriodSegment: 'all' | 'year' | 'ytd' | 'month' | 'custom' = 'ytd'
   protected fromDateValue!: string;
   protected toDateValue!: string;
+  
+  private earliestDate: Promise<string>
 
   constructor(private dbService: DatabaseService,
               private router: Router) {
     
-    this.evalSelectedTimePeriodSegment()
-    
     //const t = Date.now()
     this.entries = this.dbService.getAllEntries()
+    
+    this.earliestDate = new Promise<string>(async (resolve, reject) => {
+      const entries = await this.entries
+      let earliest = entries[0]
+      for(const entry of entries) {
+        if(new Date(entry.date).getTime() < new Date(earliest.date).getTime()) earliest = entry
+      }
+      resolve(earliest.date)
+    })
+    
+    void this.evalSelectedTimePeriodSegment()
     /**
     this.entries.then(entries => {
       console.log("time load ms: ", Date.now() - t)
@@ -235,7 +246,7 @@ export class SearchPage implements OnInit {
     return `${dateObject.toLocaleDateString(undefined, {day: "2-digit", month: "short", year: "numeric"})}`
   }
   
-  private evalSelectedTimePeriodSegment() {
+  private async evalSelectedTimePeriodSegment() {
     const timezoneOffsetMilliseconds = new Date().getTimezoneOffset() * 60 * 1000
     const today = new Date(Date.now() - timezoneOffsetMilliseconds).toISOString()
     switch (this.selectedTimePeriodSegment) {
@@ -254,13 +265,7 @@ export class SearchPage implements OnInit {
         break;
       }
       case "all": {
-        this.entries.then(entries => {
-          let earliest = entries[0]
-          for(const entry of entries) {
-            if(new Date(entry.date).getTime() < new Date(earliest.date).getTime()) earliest = entry
-          }
-          this.fromDateValue = earliest.date
-        })
+        this.fromDateValue = await this.earliestDate
         
         this.toDateValue = today
         break;
@@ -278,17 +283,17 @@ export class SearchPage implements OnInit {
     }
   }
   
-  protected timePeriodSegmentChanged($event: any) {
+  protected async timePeriodSegmentChanged($event: any) {
     this.selectedTimePeriodSegment = $event.detail.value
-    this.evalSelectedTimePeriodSegment()
-    this.search()
+    await this.evalSelectedTimePeriodSegment()
+    await this.search()
   }
   
-  protected dateChanged($event: any) {
+  protected async dateChanged($event: any) {
     const fromDate = new Date(this.fromDateValue)
     fromDate.setUTCHours(0, 0, 0, 0)
     const toDate = new Date(this.toDateValue)
     toDate.setUTCHours(23, 59, 59, 999)
-    this.search()
+    await this.search()
   }
 }
