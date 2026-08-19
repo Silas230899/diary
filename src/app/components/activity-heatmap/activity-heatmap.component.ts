@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {NgClass} from "@angular/common";
+import {NgClass, DecimalPipe} from "@angular/common";
 import {IonCardHeader, IonCardSubtitle, IonCardTitle} from "@ionic/angular/standalone";
 import {Router} from "@angular/router";
 
@@ -29,7 +29,8 @@ interface MonthMatrix {
     NgClass,
     IonCardHeader,
     IonCardTitle,
-    IonCardSubtitle
+    IonCardSubtitle,
+    DecimalPipe
   ]
 })
 export class ActivityHeatmapComponent  implements OnInit {
