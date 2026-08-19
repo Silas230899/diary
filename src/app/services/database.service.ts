@@ -9,6 +9,18 @@ import {EntryDbRecord} from "../models/entry-db-record";
 import {SyncStatus} from "../models/syncStatusTypes";
 import {CustomDatetimeValue} from "../components/custom-datetime/custom-datetime-value";
 
+type EntryRow = {
+  uuidv7: string,
+  date: string,
+  written: string | null,
+  writtenHasTime: string, // technical debt - is string in db
+  entryIndex: number,
+  text: string,
+  referencedImages: string,
+  syncStatus: SyncStatus,
+  driveFileId: string
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -16,8 +28,8 @@ export class DatabaseService {
 
   private db: Database | null = null;
   
-  specificDateCache: Map<string, any[]> = new Map()
-  dateCache: Map<string, any[]> = new Map()
+  specificDateCache: Map<string, EntryRow[]> = new Map()
+  dateCache: Map<string, EntryRow[]> = new Map()
   
   constructor(private crypto: CryptoService) {}
   
@@ -99,10 +111,10 @@ export class DatabaseService {
   async addEntry(entry: EntryDbRecord) {
     const referencedImagesString = entry.referencedImages.join(",")
     const encryptedText = await this.crypto.encryptStringToBase64String(entry.text)
-    await this.database.execute(
-      `INSERT into entry (uuidv7, date, written, writtenHasTime, entryIndex, text, referencedImages, syncStatus, driveFileId)
-      VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8, $9)`,
-      [entry.uuidv7, entry.date, entry.written, entry.writtenHasTime, entry.entryIndex, encryptedText, referencedImagesString, entry.syncStatus, entry.driveFileId]
+    await this.database.execute(`
+        INSERT into entry (uuidv7, date, written, writtenHasTime, entryIndex, text, referencedImages, syncStatus, driveFileId)
+        VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8, $9)`,
+        [entry.uuidv7, entry.date, entry.written, entry.writtenHasTime, entry.entryIndex, encryptedText, referencedImagesString, entry.syncStatus, entry.driveFileId]
     );
     this.invalidateCaches()
   }
@@ -110,9 +122,9 @@ export class DatabaseService {
   async insertRawEntry(entry: EntryDbRecord) {
     const referencedImagesString = entry.referencedImages.join(",")
     try {
-      await this.database.execute(
-        `INSERT into entry (uuidv7, date, written, writtenHasTime, entryIndex, text, referencedImages, syncStatus, driveFileId)
-      VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8, $9)`,
+      await this.database.execute(`
+        INSERT into entry (uuidv7, date, written, writtenHasTime, entryIndex, text, referencedImages, syncStatus, driveFileId)
+        VALUES ($1, date($2), datetime($3), $4, $5, $6, $7, $8, $9)`,
         [entry.uuidv7, entry.date, entry.written, entry.writtenHasTime, entry.entryIndex, entry.text, referencedImagesString, entry.syncStatus, entry.driveFileId]
       );
     } catch (e) {
@@ -124,7 +136,10 @@ export class DatabaseService {
   }
   
   async deleteEntry(uuidv7: string) {
-    await this.database.execute("DELETE FROM entry WHERE uuidv7 = $1", [uuidv7])
+    await this.database.execute(`
+        DELETE FROM entry WHERE uuidv7 = $1`,
+        [uuidv7]
+    )
     this.invalidateCaches()
   }
   
@@ -135,7 +150,12 @@ export class DatabaseService {
   }
   
   async getMaxEntryIndexForDate(date: string) {
-    const res = await this.database.select("SELECT MAX(entryIndex) AS entryIndex FROM entry WHERE date = date($1)", [date])
+    const res = await this.database.select(`
+        SELECT MAX(entryIndex) AS entryIndex
+        FROM entry
+        WHERE date = date($1)`,
+        [date]
+    )
     // @ts-ignore
     const currentMax = res[0].entryIndex
     return currentMax + 1
@@ -146,7 +166,7 @@ export class DatabaseService {
    */
   async getEntriesByDate(date: CustomDatetimeValue) {
     const dateAsString = date.month.toString().padStart(2, "0") + "-" + date.day.toString().padStart(2, "0")
-    let res: any[]
+    let res: EntryRow[]
     const cacheResult = this.dateCache.get(dateAsString)
     if(cacheResult !== undefined) {
       res = cacheResult
@@ -167,25 +187,41 @@ export class DatabaseService {
   }
   
   private queryDate(date: string) {
-    return this.database.select("SELECT * FROM entry WHERE strftime('%m-%d', date) = $1 AND syncStatus != 'pending_delete'", [date]) as Promise<any[]>
+    return this.database.select<EntryRow[]>(`
+      SELECT *
+      FROM entry
+      WHERE strftime('%m-%d', date) = $1 AND syncStatus != 'pending_delete'`,
+      [date])
   }
   
   async getAllUnsyncedSyncEntriesRaw() {
-    const res = await this.database.select("SELECT * FROM entry WHERE (syncStatus = 'pending_upload' OR syncStatus = 'pending_delete')")
-    const entryPromises: Promise<EntryDbRecord>[] = (res as any[]).map(async entry => {
-      const referencedImages = (entry["referencedImages"] as string).length === 0 ? [] : (entry["referencedImages"] as string).split(",")
-      return new EntryDbRecord(
-        entry["uuidv7"],
-        new Date(entry["date"]).toISOString(),
-        this.writtenDateToIsoString(entry["written"]),
-        entry["writtenHasTime"],
-        entry["entryIndex"],
-        entry["text"],
-        referencedImages,
-        entry["syncStatus"],
-        entry["driveFileId"])
-    })
-    return Promise.all(entryPromises)
+    const res = await this.database.select<EntryRow[]>(`
+      SELECT *
+      FROM entry
+      WHERE (syncStatus = 'pending_upload' OR syncStatus = 'pending_delete')`
+    )
+    return res.map(entry => this.entryRowToRawEntryDbRecord(entry))
+  }
+  
+  private entryRowToRawEntryDbRecord(row: EntryRow): EntryDbRecord {
+    const referencedImages = row["referencedImages"]
+    const referencedImagesArray = this.transformReferencedImageStringToArray(referencedImages)
+    
+    return new EntryDbRecord(
+      row["uuidv7"],
+      new Date(row["date"]).toISOString(),
+      this.writtenDateToIsoString(row["written"]),
+      this.dbBooleanStringToBoolean(row["writtenHasTime"]),
+      row["entryIndex"],
+      row["text"],
+      referencedImagesArray,
+      row["syncStatus"],
+      row["driveFileId"]
+    )
+  }
+  
+  private transformReferencedImageStringToArray(referencedImages: string) {
+    return referencedImages.length === 0 ? [] : referencedImages.split(",")
   }
   
   async setDriveFileId(uuidv7: string, driveFileId: string) {
@@ -205,26 +241,13 @@ export class DatabaseService {
   }
   
   async getRawEntryByDriveFileId(id: string) {
-    const res = (await this.database.select("SELECT * FROM entry WHERE driveFileId = $1", [id])) as any[]
+    const res = await this.database.select<EntryRow[]>(`
+        SELECT *
+        FROM entry
+        WHERE driveFileId = $1`,
+        [id])
     if(res.length === 0) return null;
-    
-    const entry = res[0]
-    const rawText = entry["text"]
-    const referencedImages = (entry["referencedImages"] as string).length === 0 ? [] : (entry["referencedImages"] as string).split(",")
-    return new EntryDbRecord(
-      entry["uuidv7"],
-      new Date(entry["date"]).toISOString(),
-      this.writtenDateToIsoString(entry["written"]),
-      entry["writtenHasTime"],
-      entry["entryIndex"],
-      rawText,
-      referencedImages,
-      entry["syncStatus"],
-      entry["driveFileId"])
-  }
-  
-  private transformReferencedImageStringToArray(referencedImages: string) {
-    return referencedImages.length === 0 ? [] : referencedImages.split(",")
+    else return this.entryRowToRawEntryDbRecord(res[0])
   }
   
   private writtenDateToIsoString(source: string | null) {
@@ -242,54 +265,38 @@ export class DatabaseService {
   }
   
   async getAllEntriesRaw() {
-    const res: any[] = await this.database.select("SELECT * FROM entry")
-    return res.map(entry => {
-      const referencedImages = this.transformReferencedImageStringToArray(entry["referencedImages"])
-      return new EntryDbRecord(
-        entry["uuidv7"],
-        new Date(entry["date"]).toISOString(),
-        this.writtenDateToIsoString(entry["written"]),
-        entry["writtenHasTime"],
-        entry["entryIndex"],
-        entry["text"],
-        referencedImages,
-        entry["syncStatus"],
-        entry["driveFileId"])
-    })
+    const res: any[] = await this.database.select<EntryRow[]>("SELECT * FROM entry")
+    return res.map(entry => this.entryRowToRawEntryDbRecord(entry))
   }
   
   /**
    * doesnt return pending_delete entries
    */
   async getAllEntries() {
-    const res: any[] = await this.database.select("SELECT * FROM entry WHERE syncStatus != 'pending_delete'")
-    const entriesPromises = res.map(async entry => {
-      const decryptedText = await this.crypto.decryptBase64StringToString(entry["text"])
-      const referencedImages = this.transformReferencedImageStringToArray(entry["referencedImages"])
-      let writtenHasTime: boolean | null;
-      if(entry["writtenHasTime"] === "true") writtenHasTime = true;
-      else if(entry["writtenHasTime"] === "false") writtenHasTime = false;
-      else writtenHasTime = null
-      return new EntryDbRecord(
-        entry["uuidv7"],
-        new Date(entry["date"]).toISOString(),
-        this.writtenDateToIsoString(entry["written"]),
-        writtenHasTime,
-        entry["entryIndex"],
-        decryptedText,
-        referencedImages,
-        entry["syncStatus"],
-        entry["driveFileId"])
+    const res = await this.database.select<EntryRow[]>(`
+        SELECT *
+        FROM entry
+        WHERE syncStatus != 'pending_delete'`
+    )
+    const rawEntries = res.map(entry => this.entryRowToRawEntryDbRecord(entry))
+    const decryptedEntryPromises = rawEntries.map(async entry => {
+      entry.text = await this.crypto.decryptBase64StringToString(entry.text) // text decryption
+      return entry
     })
-    const entries = Promise.all(entriesPromises)
-    return entries
+    return Promise.all(decryptedEntryPromises)
+  }
+  
+  private dbBooleanStringToBoolean(dbBooleanString: string) {
+    if(dbBooleanString === "true") return true
+    else if(dbBooleanString === "false") return false
+    else return null
   }
   
   /**
    * does not return entries that are marked as pending_delete
    */
   async getEntriesBySpecificDate(date: string) {
-    let res: any[]
+    let res: EntryRow[]
     if(this.specificDateCache.has(date)) {
       res = this.specificDateCache.get(date)!
     } else {
@@ -301,28 +308,36 @@ export class DatabaseService {
   
   async preloadSpecificDate(date: string) {
     if(!this.specificDateCache.has(date)) {
-      const res: any[] = await this.querySpecificDay(date)
+      const res = await this.querySpecificDay(date)
       this.specificDateCache.set(date, res)
     }
   }
   
   private querySpecificDay(date: string) {
-    return this.database.select("SELECT * FROM entry WHERE date = date($1) AND syncStatus != 'pending_delete'", [date]) as Promise<any[]>
+    return this.database.select<EntryRow[]>(`
+        SELECT *
+        FROM entry
+        WHERE date = date($1) AND syncStatus != 'pending_delete'`,
+        [date])
   }
   
   async getEntryByUuid(uuid: string) {
-    const res: any[] = await this.database.select("SELECT * FROM entry WHERE uuidv7 = $1", [uuid])
+    const res = await this.database.select<EntryRow[]>(`
+        SELECT *
+        FROM entry
+        WHERE uuidv7 = $1`,
+        [uuid])
     return await this.transformEntryDatabaseResultsToEntryViewRecords(res)
   }
   
   /**
    * does not return entries that are marked as pending_delete
    */
-  private async transformEntryDatabaseResultsToEntryViewRecords(databaseRecords: any[]) {
-    const entries = databaseRecords.map(async entry => {
-      const decryptedText = await this.crypto.decryptBase64StringToString(entry["text"])
-      const referencedImages = this.transformReferencedImageStringToArray(entry["referencedImages"])
-      const imagePromises = referencedImages.map(async (imageName) => {
+  private async transformEntryDatabaseResultsToEntryViewRecords(databaseRecords: EntryRow[]) {
+    const entryDbRecords = databaseRecords.map(entry => this.entryRowToRawEntryDbRecord(entry))
+    const entryViewRecordPromises = entryDbRecords.map(async entry => {
+      const decryptedText = await this.crypto.decryptBase64StringToString(entry.text)
+      const imagePromises = entry.referencedImages.map(async imageName => {
         try {
           const img = await this.getImageObjectURL(imageName);
           return new ImageView(imageName, img);
@@ -332,22 +347,18 @@ export class DatabaseService {
       });
       const results = await Promise.all(imagePromises);
       const images: ImageView[] = results.filter((imageResult): imageResult is ImageView => imageResult !== null);
-      let writtenHasTime: boolean | null;
-      if(entry["writtenHasTime"] === "true") writtenHasTime = true;
-      else if(entry["writtenHasTime"] === "false") writtenHasTime = false;
-      else writtenHasTime = null
       return new EntryViewRecord(
-        entry["uuidv7"],
-        new Date(entry["date"]).toISOString(),
-        this.writtenDateToIsoString(entry["written"]),
-        writtenHasTime,
-        entry["entryIndex"],
+        entry.uuidv7,
+        entry.date,
+        entry.written,
+        entry.writtenHasTime,
+        entry.entryIndex,
         decryptedText,
         images,
-        entry["syncStatus"],
-        entry["driveFileId"])
+        entry.syncStatus,
+        entry.driveFileId)
     })
-    return await Promise.all(entries)
+    return await Promise.all(entryViewRecordPromises)
   }
   
   async clearDb() {
