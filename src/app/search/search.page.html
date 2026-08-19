@@ -6,19 +6,28 @@
 
 <ion-content>
 
-    <ion-list>
-        <ion-list-header>
-            Suchoptionen
-        </ion-list-header>
+    <ion-list lines="none">
         <ion-item>
-            <ion-toggle>Einzelne Einträge</ion-toggle>
+            <ion-label>Suchoptionen</ion-label>
+            <ion-button fill="clear" slot="end" id="click-trigger">
+                <ion-icon slot="icon-only" name="menu-outline" size="large"></ion-icon>
+            </ion-button>
+            <ion-popover trigger="click-trigger" triggerAction="click">
+                <ng-template>
+                    <ion-content>
+                        <ion-list>
+                            <ion-item>
+                                <ion-toggle [(ngModel)]="caseSensitive" (ionChange)="search()">Case sensitive</ion-toggle>
+                            </ion-item>
+                            <ion-item>
+                                <ion-toggle [(ngModel)]="fullWords" (ionChange)="search()">Nur ganze Wörter</ion-toggle>
+                            </ion-item>
+                        </ion-list>
+                    </ion-content>
+                </ng-template>
+            </ion-popover>
         </ion-item>
-        <ion-item>
-            <ion-toggle [(ngModel)]="caseSensitive" (ionChange)="search()">Case sensitive</ion-toggle>
-        </ion-item>
-        <ion-item>
-            <ion-toggle [(ngModel)]="fullWords" (ionChange)="search()">Nur ganze Wörter</ion-toggle>
-        </ion-item>
+
 
         <ion-item>
             <ion-segment [value]="selectedTimePeriodSegment" mode="ios" style="grid-auto-columns: auto; justify-content: unset" (ionChange)="timePeriodSegmentChanged($event)">
@@ -43,7 +52,7 @@
         @if (selectedTimePeriodSegment == 'custom') {
             <ion-item>
                 <ion-datetime-button datetime="begin"></ion-datetime-button>
-                bis
+                &nbsp;bis&nbsp;
                 <ion-datetime-button datetime="end"></ion-datetime-button>
             </ion-item>
         }

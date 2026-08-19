@@ -2,10 +2,11 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
+  IonButton,
   IonContent,
   IonDatetime, IonDatetimeButton,
-  IonHeader, IonItem, IonLabel,
-  IonList, IonListHeader, IonModal,
+  IonHeader, IonIcon, IonItem, IonLabel,
+  IonList, IonListHeader, IonModal, IonPopover,
   IonSearchbar, IonSegment, IonSegmentButton, IonThumbnail,
   IonToggle,
   IonToolbar
@@ -17,6 +18,8 @@ import {Router} from "@angular/router";
 import {Chart, ChartConfiguration, ChartType, registerables} from "chart.js";
 import {ImageNameToObjectURLPipe} from "../pipes/image-name-to-object-url-pipe";
 import {DeltaToTextPipe} from "../pipes/delta-to-text-pipe";
+import {addIcons} from "ionicons";
+import { menuOutline } from 'ionicons/icons';
 
 Chart.register(...registerables);
 
@@ -25,7 +28,7 @@ Chart.register(...registerables);
   templateUrl: './search.page.html',
   styleUrls: ['./search.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonToggle, IonDatetimeButton, IonModal, ImageNameToObjectURLPipe, IonThumbnail, NgOptimizedImage, DeltaToTextPipe, IonSegment, IonSegmentButton]
+  imports: [IonContent, IonHeader, IonToolbar, CommonModule, FormsModule, IonSearchbar, NavBarComponent, IonDatetime, IonList, IonItem, IonLabel, IonListHeader, IonToggle, IonDatetimeButton, IonModal, ImageNameToObjectURLPipe, IonThumbnail, NgOptimizedImage, DeltaToTextPipe, IonSegment, IonSegmentButton, IonButton, IonPopover, IonIcon]
 })
 export class SearchPage implements OnInit {
   
@@ -98,11 +101,11 @@ export class SearchPage implements OnInit {
   protected fromDateValue!: string;
   protected toDateValue!: string;
   
-  private earliestDate: Promise<string>
+  private readonly earliestDate: Promise<string>
 
   constructor(private dbService: DatabaseService,
               private router: Router) {
-    
+    addIcons({menuOutline})
     //const t = Date.now()
     this.entries = this.dbService.getAllEntries()
     
