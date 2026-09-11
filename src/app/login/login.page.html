@@ -5,18 +5,46 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-    <form (submit)="submit()">
-        <ion-input
-            #passwordField
-            label="Passwort"
-            labelPlacement="floating"
-            fill="outline"
-            name="first"
-            [(ngModel)]="password">
-        </ion-input>
-        <ion-button (click)="login(password)" [disabled]="password.length === 0">Einloggen</ion-button>
-    </form>
+    <div style="width: 100%; max-width: 400px; height: 100%; margin: auto; display: flex; flex-direction: column;">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px; margin-top: 16px">
+            <div>
+                <ion-img
+                        src="assets/app-icon.png"
+                        style="width: 50px; margin: auto"
+                >
+                </ion-img>
+            </div>
 
-  <br>
-  <ion-button (click)="openBiometry()" [disabled]="!biometryAvailable">Mit Biometrie einloggen</ion-button>
+            <div class="ion-text-center">Tagebuch entsperren</div>
+
+            <form (submit)="submit()">
+                <ion-input
+                    #passwordField
+                    label="Passwort"
+                    labelPlacement="floating"
+                    fill="outline"
+                    name="first"
+                    [(ngModel)]="password">
+                </ion-input>
+            </form>
+        </div>
+
+        <div>
+            <ion-button
+                    (click)="login(password)"
+                    [disabled]="password.length === 0"
+                    style="width: 100%"
+            >
+                Einloggen
+            </ion-button>
+
+            <ion-button
+                    (click)="openBiometry()"
+                    [disabled]="!biometryAvailable"
+                    style="width: 100%"
+            >
+                Biometrie verwenden
+            </ion-button>
+        </div>
+    </div>
 </ion-content>
