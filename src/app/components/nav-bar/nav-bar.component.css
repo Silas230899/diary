@@ -1,14 +1,14 @@
-ionButtons {
-    justify-content: center;
-}
-
-.toolbarButton {
-    width: 33.3%;
-}
-
 .toolbar {
     box-shadow: none;
     border-top: 1px solid rgba(0,0,0,0.07);
+}
+
+.toolbarButtons {
+    display: flex;
+}
+
+.toolbarButton {
+    flex: 1;
 }
 
 .toolbarButtonWrapper {
@@ -23,7 +23,6 @@ ionButtons {
 }
 
 .toolbarLabel {
-//text-transform: none;
     font-size: 12px;
     font-weight: normal;
     letter-spacing: 0.03em;
