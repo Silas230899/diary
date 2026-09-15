@@ -112,6 +112,7 @@ export class SynchronizationService {
       
     } catch (err) {
       this.rejectDownloadingProcess(err)
+      this.downloadingProcessDone = true
     }
   }
   
