@@ -1,6 +1,6 @@
 import Quill from 'quill';
 
-const BlockEmbed = Quill.import('blots/block/embed') as any;
+const BlockEmbed = Quill.import('blots/embed') as any;
 
 export type WhatsAppBubbleDirection = 'incoming' | 'outgoing';
 
