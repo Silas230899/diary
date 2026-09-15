@@ -133,4 +133,4 @@
     </ion-fab>
 </ion-content>
 
-<app-nav-bar [host]="'home'"></app-nav-bar>
+<app-nav-bar [host]="'home'" (onNavigateToSelf)="scrollUp()"></app-nav-bar>

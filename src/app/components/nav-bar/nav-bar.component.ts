@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {
   IonButton,
   IonButtons,
@@ -15,6 +15,7 @@ import {
   searchOutline,
   flameOutline
 } from "ionicons/icons";
+import {ActivatedRoute} from "@angular/router";
 
 @Component({
   selector: 'app-nav-bar',
@@ -30,16 +31,22 @@ import {
   ],
   standalone: true
 })
-export class NavBarComponent  implements OnInit {
+export class NavBarComponent implements OnInit {
 
   @Input() host!: string
+  
+  @Output() onNavigateToSelf = new EventEmitter()
 
-  constructor(private navController: NavController) {
+  constructor(private navController: NavController, private route: ActivatedRoute) {
     addIcons({ flameOutline, todayOutline, homeOutline, searchOutline })
   }
 
-  async navigate(dst: string) {
-    await this.navController.navigateRoot(`/${dst}`)
+  async navigate(page: string) {
+    if(this.route.snapshot.routeConfig?.path === page) {
+      this.onNavigateToSelf.emit()
+    } else {
+      await this.navController.navigateRoot(`/${page}`)
+    }
   }
 
   ngOnInit() {}

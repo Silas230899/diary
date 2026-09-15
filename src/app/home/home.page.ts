@@ -253,8 +253,12 @@ export class HomePage {
       await this.populateEntries()
       this.preloadYesterday()
       this.preloadTomorrow()
-      await this.content.scrollToTop(350)
+      await this.scrollUp()
     }
+  }
+  
+  async scrollUp() {
+    await this.content.scrollToTop(350)
   }
   
   // Helper function to navigate yearless dates
@@ -296,14 +300,14 @@ export class HomePage {
     this.date = this.navigateYearlessDate(-1);
     await this.populateEntries();
     this.preloadYesterday()
-    await this.content.scrollToTop(350)
+    await this.scrollUp()
   }
   
   async gotoTomorrow() {
     this.date = this.navigateYearlessDate(1);
     await this.populateEntries();
     this.preloadTomorrow()
-    await this.content.scrollToTop(350)
+    await this.scrollUp()
   }
   
   getYesterdate() {
