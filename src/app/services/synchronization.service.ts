@@ -31,7 +31,7 @@ export class SynchronizationService {
   private refreshToken: string | null = null
   private accessTokenExpiration: string | null = null
   
-  private startPageToken: string | null = null
+  private startPageToken: string | undefined = undefined
   
   remoteChangesCount: number | null = null
   remoteChangesDownloadedCount: number | null = null
@@ -271,14 +271,16 @@ export class SynchronizationService {
     
     await this.checkToken()
     // download changes from drive
-    let changesList
+    let changesList: {changes: {removed: boolean}[], nextPageToken?: string, newStartPageToken?: string}
     this.remoteChangesCount = 0
     this.remoteChangesDownloadedCount = 0
     do {
       changesList = await this.listChanges()
       console.log(changesList)
       console.log("no. of changes: " + changesList.changes.length)
-      this.remoteChangesCount += changesList.changes.length
+      //this.remoteChangesCount += changesList.changes.length
+      const actualFileChanges = changesList.changes.filter(change => !change.removed).length
+      this.remoteChangesCount += actualFileChanges
       await this.processChangesList(changesList)
       this.startPageToken = changesList.nextPageToken
       localStorage.setItem("drive_start_page_token", this.startPageToken!)
