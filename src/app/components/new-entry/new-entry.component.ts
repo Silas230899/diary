@@ -99,6 +99,8 @@ export class NewEntryComponent  implements OnInit {
   modules3 = {
     toolbar: '#toolbar'
   }
+  
+  protected allowedFormats: string[] = ['diaryImage', 'whatsappBubble', 'diary-entry-reference']
 
   constructor(private modalCtrl: ModalController,
               private toastController: ToastController) {
@@ -120,7 +122,7 @@ export class NewEntryComponent  implements OnInit {
     else return false
   }
   
-  protected editorCreated() {
+  protected editorCreated(quill: Quill) {
     const newEntryText = localStorage.getItem("newEntryTextarea")
     if(this.text !== undefined) {
       if(this.text.startsWith("{\"ops\":[")) {
@@ -135,6 +137,34 @@ export class NewEntryComponent  implements OnInit {
     } else if(newEntryText !== null) {
       this.editor.quillEditor.setContents(JSON.parse(newEntryText))
     }
+    
+    this.installQuillEditorUpdatePatch(quill)
+  }
+  
+  private installQuillEditorUpdatePatch(quill: Quill) {
+    if (!/Android/i.test(navigator.userAgent)) {
+      return;
+    }
+    
+    const editor = (quill as any).editor;
+    
+    if (editor.__fullRebuildPatchInstalled) {
+      return;
+    }
+    
+    editor.__fullRebuildPatchInstalled = true;
+    
+    editor.update = function (
+      _change: any | null,
+      _mutations: MutationRecord[] = [],
+      selectionInfo?: any
+    ) {
+      const oldDelta = this.delta;
+      
+      this.delta = this.getDelta();
+      
+      return oldDelta.diff(this.delta, selectionInfo);
+    };
   }
 
   cancel() {
@@ -381,5 +411,24 @@ export class NewEntryComponent  implements OnInit {
     if(role !== "confirm" || !data) return null
 
     return data
+  }
+  
+  protected insertOtherEntry() {
+    const quill = this.editor.quillEditor
+    const range = quill.getSelection(true);
+    let index = range ? range.index : quill.getLength()-1;
+    
+    this.editor.quillEditor.insertText(index++, " ")
+    
+    this.editor.quillEditor.insertEmbed(
+      index++,
+      'diary-entry-reference',
+      "skjbfs-45t4-4t45",
+      'user'
+    );
+    
+    this.editor.quillEditor.insertText(index++, " ")
+    
+    this.editor.quillEditor.setSelection(index, 0, 'silent');
   }
 }

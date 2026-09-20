@@ -95,15 +95,16 @@
             <ion-label>Chat</ion-label>
             <ion-icon slot="end" icon="logo-whatsapp"></ion-icon>
         </ion-button>
+        <ion-button (click)="insertOtherEntry()">Eintrag</ion-button>
     </div>
 
     <quill-editor
             placeholder="Eintrag"
             spellcheck="true"
-            (onEditorCreated)="editorCreated()"
+            (onEditorCreated)="editorCreated($event)"
             (onContentChanged)="contentChanged($event)"
             style="width: 100%"
-            [formats]="['diaryImage', 'whatsappBubble']"
+            [formats]="allowedFormats"
             [modules]="modules3"
             theme="snow"
             #quill>
