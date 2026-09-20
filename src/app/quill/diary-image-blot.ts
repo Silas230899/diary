@@ -1,7 +1,7 @@
 import Quill from 'quill';
 import DiaryImageRowBlot from "./diary-image-row-blot";
 
-const BlockEmbed = Quill.import('blots/embed') as any;
+const BlockEmbed = Quill.import('blots/block/embed') as any;
 
 export type DiaryImageValue = {
   id: string;
