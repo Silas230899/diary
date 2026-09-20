@@ -1366,4 +1366,13 @@ quill-editor .ql-container.ql-snow {
 }
 
 
+.ql-diary-entry-reference {
+  background-color: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  padding: 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+
 /*# sourceMappingURL=quill.snow.css.map*/

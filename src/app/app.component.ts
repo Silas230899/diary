@@ -7,6 +7,7 @@ import DiaryImageBlot from "./quill/diary-image-blot";
 import DiaryImageRowBlot from "./quill/diary-image-row-blot";
 import {WhatsAppBubbleBlot} from "./quill/whatsapp-message-blot";
 import {DatabaseService} from "./services/database.service";
+import {DiaryEntryReferenceBlot} from "./quill/diary-entry-reference-blot";
 
 @Component({
   selector: 'app-root',
@@ -26,6 +27,7 @@ export class AppComponent {
     Quill.register(DiaryImageBlot);
     DiaryImageRowBlot["allowedChildren"] = [DiaryImageBlot];
     Quill.register(WhatsAppBubbleBlot)
+    Quill.register(DiaryEntryReferenceBlot)
     
     const Image = Quill.import('formats/image');
     // @ts-ignore
