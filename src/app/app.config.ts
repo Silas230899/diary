@@ -21,7 +21,14 @@ export const appConfig: ApplicationConfig = {
     },
     */
     provideAppInitializer(async () => {await initDbFactory(inject(DatabaseService))}),
-    provideIonicAngular(),
+    provideIonicAngular(
+      {
+        // Tauri/Android resizes the native WebView for the IME.
+        // Ionic must not add an additional synthetic keyboard offset.
+        scrollPadding: false,
+        scrollAssist: true
+      }
+    ),
     provideRouter(routes, withPreloading(PreloadAllModules)),
   ],
 };
