@@ -109,6 +109,8 @@ export class SearchPage implements OnInit {
     //const t = Date.now()
     this.entries = this.dbService.getAllEntries()
     
+    this.entries.then(entries => this.buildIndex(entries))
+    
     this.earliestDate = new Promise<string>(async (resolve, reject) => {
       const entries = await this.entries
       let earliest = entries[0]
@@ -130,6 +132,12 @@ export class SearchPage implements OnInit {
     })**/
   }
   
+  buildIndex(entries: EntryDbRecord[]) {
+    for(const entry of entries) {
+    
+    }
+  }
+  
   async search() {
     //const search = $event.detail.value.toLowerCase()
     let search = ""
@@ -141,12 +149,16 @@ export class SearchPage implements OnInit {
     if(search.length > 0) {
       
       const resultFrequencies = new Map<EntryDbRecord, number>()
-      const earliest = new Date(this.fromDateValue)
+      let earliest = new Date(this.fromDateValue)
       earliest.setUTCHours(0, 0, 0, 0)
       const latest = new Date(this.toDateValue)
       latest.setUTCHours(23, 59, 59, 999)
       const entries = await this.entries
-      const entriesInRange = entries.filter(entry => new Date(entry.date).getTime() >= earliest.getTime() && new Date(entry.date).getTime() <= latest.getTime())
+      const entriesInRange = entries
+        .filter(entry =>
+          new Date(entry.date).getTime() >= earliest.getTime()
+          && new Date(entry.date).getTime() <= latest.getTime()
+        )
       
       const satzzeichen = [",", ";", ".", ":", "-", "_", "#", "'", "*", "\"", "%", "@", "€", "(", ")", "/", "\\", "{", "}", "[", "]"]
         .filter(satzzeichen => !search.includes(satzzeichen))
@@ -186,6 +198,11 @@ export class SearchPage implements OnInit {
       const sameDaysCombined = new Map<string, number>
       //const latest = new Date()
       //latest.setUTCHours(0, 0, 0, 0)
+      if(this.selectedTimePeriodSegment === 'all') {
+        earliest = new Date(this.results[this.results.length-1].date)
+        earliest.setUTCHours(0, 0, 0, 0)
+        console.log("first occurrence:", earliest)
+      }
       let current = earliest
       while(current.getTime() <= latest.getTime()) {
         sameDaysCombined.set(current.toISOString(), 0)
@@ -193,6 +210,12 @@ export class SearchPage implements OnInit {
       }
       sameDaysCombined.set(latest.toISOString(), 0)
       for(const entry of resultFrequencies.entries()) {
+        /**
+         * on 'all', resultFrequencies contains all entries, but we only
+         * want those up from the first occurrence on, so we skip the
+         * earlier ones
+         */
+        if(this.selectedTimePeriodSegment === 'all' && new Date(entry[0].date) < new Date(earliest)) continue
         const current = sameDaysCombined.get(entry[0].date)
         if(current !== undefined) {
           sameDaysCombined.set(entry[0].date, current + entry[1])
