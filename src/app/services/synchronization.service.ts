@@ -258,8 +258,8 @@ export class SynchronizationService {
             await this.dbService.insertRawImage(image)
           } else console.log("image '" + change.file.name + "' exists already")
         }
+        this.remoteChangesDownloadedCount!++
       }
-      this.remoteChangesDownloadedCount!++
     }
   }
   
