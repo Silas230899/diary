@@ -183,7 +183,7 @@ export class OnboardingPage implements OnInit {
     const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     
-    const filename = `dump-${new Date().toISOString()}.json`
+    const filename = `dump-${new Date().toISOString().replace(/[:.]/g, "-")}.json`
     
     // Virtuellen Download-Link erzeugen
     const a = document.createElement("a");
@@ -197,7 +197,7 @@ export class OnboardingPage implements OnInit {
     URL.revokeObjectURL(url);
     
     const toast = await this.toastController.create({
-      message: `Datei gespeichert in Downloads als ${filename}!`,
+      message: `${entries.length} Einträge als ${filename} in Downloads gespeichert!`,
       duration: 2000,
       position: "bottom",
     });
